@@ -1,0 +1,14 @@
+CREATE DATABASE wal_go;
+CREATE DATABASE wal_go_cvr;
+CREATE DATABASE wal_go_cdb;
+
+\c wal_go;
+
+CREATE TABLE "user" (
+    "id" VARCHAR PRIMARY KEY,
+    "email" VARCHAR(200) NOT NULL UNIQUE,
+    "callsign" VARCHAR(10) NOT NULL UNIQUE,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

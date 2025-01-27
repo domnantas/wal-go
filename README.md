@@ -1,13 +1,11 @@
-# One Project
+# WAL GO
 
-Welcome to One!
+## Development
 
-## Developing
-
-Run your One app in development:
+Start the database
 
 ```bash
-yarn dev
+docker-compose up
 ```
 
 ## Production
