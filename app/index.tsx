@@ -1,8 +1,4 @@
-import { Image } from "@tamagui/image-next";
-import { Link } from "one";
-import { version } from "react";
-import { Text, YStack } from "tamagui";
-import oneBall from "~/app-icon.png";
+import { Button, H1, XStack, YStack } from "tamagui";
 import { ToggleThemeButton } from "~/interface/ToggleThemeButton";
 
 export function HomePage() {
@@ -16,30 +12,16 @@ export function HomePage() {
 			justify="center"
 			flex={1}
 		>
-			<Text fontSize="$8" textAlign="center">
-				Hello, One
-			</Text>
-
-			<Image src={oneBall} width={128} height={128} />
-
+			<H1 text="center">WAL GO</H1>
 			<YStack items="center" gap="$6">
-				<Text fontSize="$5" lineHeight="$5" textAlign="center" color="$color11">
-					Edit <Text>app/index.tsx</Text> to change this screen and then come
-					back to see your edits.
-				</Text>
-				<Text fontSize="$5" lineHeight="$5" textAlign="center" color="$color11">
-					Read{" "}
-					<Link href="https://onestack.dev/docs/introduction">
-						<Text color="$yellow10" $platform-web={{ fontSize: "inherit" }}>
-							the docs
-						</Text>
-					</Link>{" "}
-					to discover what to do next.
-				</Text>
-
-				<Text fontSize="$5" lineHeight="$5" textAlign="center" color="$color11">
-					React version: {version}
-				</Text>
+				<XStack gap="$6">
+					<Button>A01</Button>
+					<Button>A02</Button>
+				</XStack>
+				<XStack gap="$6">
+					<Button>B01</Button>
+					<Button>B02</Button>
+				</XStack>
 
 				<ToggleThemeButton />
 			</YStack>
