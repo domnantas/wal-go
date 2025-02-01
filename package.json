@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "db:up": "docker-compose up",
-    "db:seed": "tsx ./src/database/seed.ts",
     "db:down": "docker-compose down --volumes",
+    "db:studio": "drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "bun ./src/db/seed.ts",
     "dev": "one dev",
     "build:web": "one build",
     "clean": "one clean",
@@ -16,32 +19,41 @@
     "check": "biome check --write"
   },
   "dependencies": {
-    "@tamagui/animations-css": "^1.123.3",
-    "@tamagui/animations-moti": "^1.123.3",
-    "@tamagui/colors": "^1.123.3",
-    "@tamagui/config": "^1.123.3",
-    "@tamagui/image-next": "^1.123.3",
-    "@tamagui/lucide-icons": "^1.123.3",
-    "@tamagui/react-native-media-driver": "^1.123.3",
-    "@tamagui/shorthands": "^1.123.3",
-    "@vxrn/color-scheme": "1.1.412",
-    "expo": "~52.0.27",
-    "expo-modules-core": "2.1.4",
-    "one": "1.1.412",
+    "@tamagui/animations-css": "^1.123.5",
+    "@tamagui/animations-moti": "^1.123.5",
+    "@tamagui/colors": "^1.123.5",
+    "@tamagui/config": "^1.123.5",
+    "@tamagui/image-next": "^1.123.5",
+    "@tamagui/lucide-icons": "^1.123.5",
+    "@tamagui/react-native-media-driver": "^1.123.5",
+    "@tamagui/shorthands": "^1.123.5",
+    "@vxrn/better-auth": "^1.1.421",
+    "@vxrn/color-scheme": "1.1.421",
+    "better-auth": "^1.1.15",
+    "drizzle-orm": "^0.39.1",
+    "expo": "~52.0.28",
+    "expo-modules-core": "2.2.0",
+    "one": "1.1.421",
+    "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-native": "^0.77.0",
     "react-native-reanimated": "~3.16.7",
     "react-native-safe-area-context": "5.1.0",
-    "react-native-screens": "4.5.0",
+    "react-native-screens": "4.6.0",
     "react-native-svg": "15.11.1",
     "react-native-web": "^0.19.13",
-    "tamagui": "^1.123.3"
+    "tamagui": "^1.123.5"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@react-native-community/cli": "15.1.3",
-    "@tamagui/vite-plugin": "^1.123.3",
+    "@tamagui/vite-plugin": "^1.123.5",
+    "@types/pg": "^8.11.11",
     "@types/react": "^19.0.8",
+    "drizzle-kit": "^0.30.4",
     "vite": "^6.0.11"
-  }
+  },
+  "trustedDependencies": [
+    "@rocicorp/zero-sqlite3"
+  ]
 }

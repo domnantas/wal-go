@@ -1,4 +1,5 @@
 import { Button, H1, XStack, YStack } from "tamagui";
+import { SignUp } from "~/components/SignUp";
 import { ToggleThemeButton } from "~/interface/ToggleThemeButton";
 
 export function HomePage() {
@@ -13,6 +14,9 @@ export function HomePage() {
 			flex={1}
 		>
 			<H1 text="center">WAL GO</H1>
+
+			<SignUp />
+
 			<YStack items="center" gap="$6">
 				<XStack gap="$6">
 					<Button>A01</Button>
