@@ -1,8 +1,11 @@
-import { Button, H1, XStack, YStack } from "tamagui";
-import { SignUp } from "~/components/SignUp";
-import { ToggleThemeButton } from "~/interface/ToggleThemeButton";
+import { Link } from "one";
+import { Button, H1, SizableText, XStack, YStack } from "tamagui";
+import { authClient, useAuth } from "~/authClient";
+import { ToggleThemeButton } from "~/components/ToggleThemeButton";
 
-export function HomePage() {
+export default function HomePage() {
+	const { loggedIn, user } = useAuth();
+
 	return (
 		<YStack
 			bg="$color1"
@@ -13,9 +16,23 @@ export function HomePage() {
 			justify="center"
 			flex={1}
 		>
-			<H1 text="center">WAL GO</H1>
+			{loggedIn ? (
+				<>
+					<SizableText>{user?.name}</SizableText>
+					<Button onPress={() => authClient.signOut()}>Logout</Button>
+				</>
+			) : (
+				<>
+					<Link href="/signup">
+						<SizableText>Sign Up</SizableText>
+					</Link>
+					<Link href="/signin">
+						<SizableText>Sign In</SizableText>
+					</Link>
+				</>
+			)}
 
-			<SignUp />
+			<H1 text="center">WAL GO</H1>
 
 			<YStack items="center" gap="$6">
 				<XStack gap="$6">

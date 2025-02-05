@@ -1,20 +1,18 @@
 import { useRouter } from "one";
 import { useState } from "react";
-import { Button, Input } from "tamagui";
+import { Button, Input, YStack } from "tamagui";
 import { authClient } from "~/authClient";
 
-export const SignUp = () => {
+export const SignIn = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [callsign, setCallsign] = useState("");
 	const router = useRouter();
 
-	const signUp = async () => {
-		const { data, error } = await authClient.signUp.email(
+	const signIn = async () => {
+		const { data, error } = await authClient.signIn.email(
 			{
 				email,
 				password,
-				name: callsign,
 			},
 			{
 				onRequest: (ctx) => {
@@ -33,19 +31,20 @@ export const SignUp = () => {
 	};
 
 	return (
-		<>
+		<YStack
+			minH="100%"
+			gap="$4"
+			px="$4"
+			items="center"
+			justify="center"
+			flex={1}
+		>
 			<Input
 				inputMode="email"
 				autoComplete="email"
 				placeholder="email"
 				value={email}
 				onChangeText={(text) => setEmail(text)}
-				width={200}
-			/>
-			<Input
-				value={callsign}
-				placeholder="callsign"
-				onChangeText={(text) => setCallsign(text)}
 				width={200}
 			/>
 			<Input
@@ -56,7 +55,7 @@ export const SignUp = () => {
 				onChangeText={(text) => setPassword(text)}
 				width={200}
 			/>
-			<Button onPress={signUp}>Sign Up</Button>
-		</>
+			<Button onPress={signIn}>Sign In</Button>
+		</YStack>
 	);
 };

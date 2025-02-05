@@ -21,7 +21,7 @@ export default function Layout() {
 				/>
 				<link rel="icon" href="/favicon.svg" />
 
-				<title>👋</title>
+				<title>WAL GO</title>
 			</head>
 
 			<body>
