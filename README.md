@@ -2,28 +2,86 @@
 
 ## Development
 
+Install the dependencies
+
+```sh
+bun install
+```
+
 Start the database
 
-```bash
-docker-compose up
+```sh
+bun db:up
+```
+
+### When starting for the first time
+
+Apply database migrations
+
+```sh
+bun db:migrate
+```
+
+Seed the database
+
+```sh
+bun db:seed
+```
+
+### Start the development servers
+
+Run the following commands in separate terminals
+
+Start Zero server
+
+```sh
+bun zero:dev
+```
+
+Start One server
+
+```sh
+bun one:dev
 ```
 
 ## Production
 
-To build your app for production:
+### Zero
+
+Deploy the Zero cache close to the database
+
+Generate `zero-schema.json`
+
+```sh
+bun zero:build
+```
+
+Start Zero server
+
+```sh
+bun zero:start
+```
 
 ### Web
 
-```bash
-yarn build:web
+Build the web application
+
+```sh
+bun one:build
 ```
 
-### iOS
+Start the web server
 
-First, you'll need to generate the native code for your app:
-
-```bash
-yarn prebuild:native
+```sh
+bun one:start
 ```
 
-Afterward, follow the instructions printed in the terminal to build and upload your iOS app for distribution.
+### Native (iOS/Android)
+
+Pre-build the native application
+
+```bash
+yarn one:prebuild
+```
+
+Afterwards, follow the instructions printed in the terminal to build and upload your iOS/Android app for distribution.

@@ -1,7 +1,7 @@
 {
 	"expo": {
-		"name": "one-wal",
-		"slug": "one-wal",
+		"name": "wal-go",
+		"slug": "wal-go",
 		"sdkVersion": "52.0.0",
 		"newArchEnabled": true,
 		"platforms": ["ios", "android"],
@@ -13,10 +13,10 @@
 			"backgroundColor": "#000000"
 		},
 		"ios": {
-			"bundleIdentifier": "com.natew.oneexample"
+			"bundleIdentifier": "com.domnantas.walgo"
 		},
 		"android": {
-			"package": "com.natew.oneexample"
+			"package": "com.domnantas.walgo"
 		}
 	}
 }
