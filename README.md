@@ -80,8 +80,8 @@ bun one:start
 
 Pre-build the native application
 
-```bash
-yarn one:prebuild
+```sh
+bun one:prebuild
 ```
 
 Afterwards, follow the instructions printed in the terminal to build and upload your iOS/Android app for distribution.
