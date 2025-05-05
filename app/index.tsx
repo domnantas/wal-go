@@ -2,9 +2,14 @@ import { Link } from "one";
 import { Button, H1, SizableText, XStack, YStack } from "tamagui";
 import { authClient, useAuth } from "~/authClient";
 import { ToggleThemeButton } from "~/components/ToggleThemeButton";
+import { useQuery } from "~/zero";
 
 export default function HomePage() {
 	const { loggedIn, user } = useAuth();
+
+	const [users] = useQuery((q) => q.user.orderBy("created_at", "desc"));
+
+	console.log(users);
 
 	return (
 		<YStack

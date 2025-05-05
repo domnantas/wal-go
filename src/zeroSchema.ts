@@ -1,4 +1,5 @@
 import {
+	boolean,
 	createSchema,
 	definePermissions,
 	number,
@@ -12,9 +13,10 @@ export const user = table("user")
 		id: string(),
 		name: string(),
 		email: string(),
+		email_verified: boolean(),
 		image: string(),
-		updatedAt: number(),
-		createdAt: number(),
+		updated_at: number(),
+		created_at: number(),
 	})
 	.primaryKey("id");
 

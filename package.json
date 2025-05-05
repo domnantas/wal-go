@@ -34,6 +34,7 @@
     "@tamagui/shorthands": "^1.123.10",
     "@vxrn/better-auth": "^1.1.429",
     "@vxrn/color-scheme": "1.1.429",
+    "@vxrn/emitter": "^1.1.434",
     "better-auth": "^1.1.15",
     "drizzle-orm": "^0.39.1",
     "expo": "~52.0.28",

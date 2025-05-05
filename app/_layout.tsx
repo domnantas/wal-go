@@ -4,12 +4,21 @@ import "./_layout.css";
 import { SchemeProvider } from "@vxrn/color-scheme";
 import { LoadProgressBar, Slot } from "one";
 import { TamaguiRootProvider } from "../src/tamagui/TamaguiRootProvider";
+import { ZeroProvider } from "@rocicorp/zero/react";
+import { useState } from "react";
+import { useZeroEmit, zero } from "~/zero";
 
 /**
  * The root _layout.tsx filters <html /> and <body /> out on native
  */
 
 export default function Layout() {
+	const [zeroInstance, setZeroInstance] = useState(zero);
+
+	useZeroEmit((next) => {
+		setZeroInstance(next);
+	});
+
 	return (
 		<html lang="en-US">
 			<head>
@@ -27,11 +36,13 @@ export default function Layout() {
 			<body>
 				<LoadProgressBar />
 
-				<SchemeProvider>
-					<TamaguiRootProvider>
-						<Slot />
-					</TamaguiRootProvider>
-				</SchemeProvider>
+				<ZeroProvider zero={zeroInstance}>
+					<SchemeProvider>
+						<TamaguiRootProvider>
+							<Slot />
+						</TamaguiRootProvider>
+					</SchemeProvider>
+				</ZeroProvider>
 			</body>
 		</html>
 	);
