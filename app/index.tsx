@@ -1,15 +1,36 @@
+import { useQuery } from "@rocicorp/zero/react";
 import { Link } from "one";
 import { Button, H1, SizableText, XStack, YStack } from "tamagui";
 import { authClient, useAuth } from "~/authClient";
 import { ToggleThemeButton } from "~/components/ToggleThemeButton";
-import { useQuery } from "~/zero";
+import { useZero } from "~/zero";
+import { nanoid } from "nanoid";
 
 export default function HomePage() {
 	const { loggedIn, user } = useAuth();
 
-	const [users] = useQuery((q) => q.user.orderBy("created_at", "desc"));
+	const z = useZero();
+	const [users] = useQuery(z.query.user.orderBy("created_at", "desc"));
+	const qsoQuery = z.query.qso.orderBy("created_at", "desc");
+	const [qsos] = useQuery(qsoQuery);
 
-	console.log(users);
+	const logQso = (square: string) => {
+		if (!user) {
+			console.error("User not logged in");
+			return;
+		}
+
+		z.mutate.qso.insert({
+			activator_callsign: user.name,
+			activator_square: square,
+			id: nanoid(),
+			hunter_callsign: "LY0TEST",
+			band: "20m",
+			mode: "SSB",
+		});
+	};
+
+	console.log({ users, qsos });
 
 	return (
 		<YStack
@@ -41,12 +62,12 @@ export default function HomePage() {
 
 			<YStack items="center" gap="$6">
 				<XStack gap="$6">
-					<Button>A01</Button>
-					<Button>A02</Button>
+					<Button onPress={() => logQso("A01")}>A01</Button>
+					<Button onPress={() => logQso("A02")}>A02</Button>
 				</XStack>
 				<XStack gap="$6">
-					<Button>B01</Button>
-					<Button>B02</Button>
+					<Button onPress={() => logQso("B01")}>B01</Button>
+					<Button onPress={() => logQso("B02")}>B02</Button>
 				</XStack>
 
 				<ToggleThemeButton />

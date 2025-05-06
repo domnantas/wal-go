@@ -1,7 +1,7 @@
-import { type Query, Zero } from "@rocicorp/zero";
-import { useZero, useQuery as useZeroQuery } from "@rocicorp/zero/react";
+import { Zero } from "@rocicorp/zero";
 import { type Schema, schema } from "~/zeroSchema";
 import { createEmitter } from "@vxrn/emitter";
+import { createUseZero } from "@rocicorp/zero/react";
 
 export let zero = createZero();
 
@@ -32,15 +32,4 @@ export function setZeroAuth({
 	zeroEmitter.emit(zero);
 }
 
-export function useQuery<
-	TSchema extends Schema,
-	TTable extends keyof TSchema["tables"] & string,
-	TReturn,
->(
-	createQuery: (z: Zero<TSchema>["query"]) => Query<TSchema, TTable, TReturn>,
-	enable?: boolean,
-) {
-	const z = useZero<TSchema>();
-	z.query;
-	return useZeroQuery<TSchema, TTable, TReturn>(createQuery(z.query), enable);
-}
+export const useZero = createUseZero<Schema>();

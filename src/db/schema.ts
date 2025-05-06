@@ -58,3 +58,19 @@ export const jwks = pgTable("jwks", {
 	privateKey: text("private_key").notNull(),
 	createdAt: timestamp("created_at").notNull(),
 });
+
+// WAL GO schema
+export const qso = pgTable("qso", {
+	id: text("id").primaryKey(),
+	activatorCallsign: text("activator_callsign").notNull(),
+	hunterCallsign: text("hunter_callsign").notNull(),
+	activatorSquare: text("activator_square").notNull(),
+	hunterSquare: text("hunter_square"),
+	band: text("band").notNull(),
+	mode: text("mode").notNull(),
+	rstSent: text("rst_sent"),
+	rstReceived: text("rst_received"),
+	qsoAt: timestamp("qso_at").defaultNow(),
+	updatedAt: timestamp("updated_at").defaultNow(),
+	createdAt: timestamp("created_at").defaultNow(),
+});
