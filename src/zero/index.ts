@@ -1,7 +1,9 @@
 import { Zero } from "@rocicorp/zero";
-import { type Schema, schema } from "~/zeroSchema";
 import { createEmitter } from "@vxrn/emitter";
 import { createUseZero } from "@rocicorp/zero/react";
+import { type Schema, schema } from "./schema";
+import { createMutators, type Mutators } from "./mutators";
+import { decodeAuthData } from "~/auth/authData";
 
 export let zero = createZero();
 
@@ -17,6 +19,7 @@ function createZero({
 		auth,
 		server: import.meta.env.VITE_PUBLIC_ZERO_SERVER,
 		schema,
+		mutators: createMutators(decodeAuthData(auth)),
 		kvStore: "mem",
 	});
 }
@@ -25,6 +28,7 @@ export function setZeroAuth({
 	jwtToken,
 	userID,
 }: { jwtToken: string; userID: string }) {
+	zero.close();
 	zero = createZero({
 		auth: jwtToken,
 		userID,
@@ -32,4 +36,4 @@ export function setZeroAuth({
 	zeroEmitter.emit(zero);
 }
 
-export const useZero = createUseZero<Schema>();
+export const useZero = createUseZero<Schema, Mutators>();

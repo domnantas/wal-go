@@ -1,12 +1,17 @@
 import {
+	ANYONE_CAN,
 	boolean,
 	createSchema,
 	definePermissions,
+	type ExpressionBuilder,
+	type InsertValue,
 	number,
+	type PermissionsConfig,
 	type Row,
 	string,
 	table,
 } from "@rocicorp/zero";
+import type { AuthData } from "~/auth";
 
 export const user = table("user")
 	.columns({
@@ -37,13 +42,29 @@ export const qso = table("qso")
 	})
 	.primaryKey("id");
 
-export const schema = createSchema(1, {
+export const schema = createSchema({
 	tables: [user, qso],
 });
 
 export type Schema = typeof schema;
 export type User = Row<typeof schema.tables.user>;
+export type Qso = Row<typeof schema.tables.qso>;
+export type InsertQso = InsertValue<typeof schema.tables.qso>;
 
-export const permissions = definePermissions<unknown, Schema>(schema, () => {
-	return {};
+export const permissions = definePermissions<AuthData, Schema>(schema, () => {
+	const allowIfLoggedIn = (
+		authData: AuthData,
+		{ cmpLit }: ExpressionBuilder<Schema, keyof Schema["tables"]>,
+	) => {
+		return cmpLit(authData.sub, "IS NOT", null);
+	};
+
+	return {
+		user: { row: { select: [allowIfLoggedIn] } },
+		qso: {
+			row: {
+				select: ANYONE_CAN,
+			},
+		},
+	} satisfies PermissionsConfig<AuthData, Schema>;
 });

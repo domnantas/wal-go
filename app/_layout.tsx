@@ -7,6 +7,7 @@ import { TamaguiRootProvider } from "../src/tamagui/TamaguiRootProvider";
 import { ZeroProvider } from "@rocicorp/zero/react";
 import { useState } from "react";
 import { useZeroEmit, zero } from "~/zero";
+import { useSetZeroAuthEffect } from "~/auth/authEffects";
 
 /**
  * The root _layout.tsx filters <html /> and <body /> out on native
@@ -18,6 +19,8 @@ export default function Layout() {
 	useZeroEmit((next) => {
 		setZeroInstance(next);
 	});
+
+	useSetZeroAuthEffect();
 
 	return (
 		<html lang="en-US">

@@ -1,7 +1,7 @@
 import { useQuery } from "@rocicorp/zero/react";
 import { Link } from "one";
 import { Button, H1, SizableText, XStack, YStack } from "tamagui";
-import { authClient, useAuth } from "~/authClient";
+import { authClient, useAuth } from "~/auth/authClient";
 import { ToggleThemeButton } from "~/components/ToggleThemeButton";
 import { useZero } from "~/zero";
 import { nanoid } from "nanoid";
@@ -16,7 +16,7 @@ export default function HomePage() {
 
 	const logQso = (square: string) => {
 		if (!user) {
-			console.error("User not logged in");
+			console.error("Must be logged in");
 			return;
 		}
 

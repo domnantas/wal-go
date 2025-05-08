@@ -1,7 +1,7 @@
 import { useRouter } from "one";
 import { useState } from "react";
 import { Button, Input, YStack } from "tamagui";
-import { authClient } from "~/authClient";
+import { authClient } from "~/auth/authClient";
 
 export const SignIn = () => {
 	const [email, setEmail] = useState("");
