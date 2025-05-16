@@ -1,3 +1,4 @@
+import "fast-text-encoding";
 import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import { z } from "zod";
 

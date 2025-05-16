@@ -30,8 +30,6 @@ export default function HomePage() {
 		});
 	};
 
-	console.log({ users, qsos });
-
 	return (
 		<YStack
 			bg="$color1"

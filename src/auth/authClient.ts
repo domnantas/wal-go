@@ -1,4 +1,6 @@
-import { createBetterAuthClient } from "@vxrn/better-auth";
+// import { createBetterAuthClient } from "@vxrn/better-auth";
+// Temporary override for the loading fix
+import { createBetterAuthClient } from "./betterAuth";
 
 export const {
 	setAuthClientToken,

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button, Input } from "tamagui";
 import { authClient } from "~/auth/authClient";
 
-export const SignUp = () => {
+export const SignUpForm = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [callsign, setCallsign] = useState("");

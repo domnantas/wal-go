@@ -11,7 +11,7 @@ import {
 	string,
 	table,
 } from "@rocicorp/zero";
-import type { AuthData } from "~/auth";
+import type { AuthData } from "~/auth/authData";
 
 export const user = table("user")
 	.columns({

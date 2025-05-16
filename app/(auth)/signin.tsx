@@ -1,7 +1,6 @@
-import { ArrowLeft } from "@tamagui/lucide-icons";
 import { Link } from "one";
-import { Button, YStack } from "tamagui";
-import { SignIn } from "~/components/SignIn";
+import { SizableText, YStack } from "tamagui";
+import { SignInForm } from "~/components/SignInForm";
 
 export default function SignInPage() {
 	return (
@@ -14,10 +13,10 @@ export default function SignInPage() {
 			justify="center"
 			flex={1}
 		>
-			<SignIn />
+			<SignInForm />
 
-			<Link asChild href="/">
-				<Button icon={ArrowLeft}>Back</Button>
+			<Link href="/signup">
+				<SizableText>Sign Up</SizableText>
 			</Link>
 		</YStack>
 	);

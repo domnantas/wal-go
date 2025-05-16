@@ -1,9 +1,9 @@
 import { useRouter } from "one";
 import { useState } from "react";
-import { Button, Input, YStack } from "tamagui";
+import { Button, Input } from "tamagui";
 import { authClient } from "~/auth/authClient";
 
-export const SignIn = () => {
+export const SignInForm = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const router = useRouter();
@@ -26,19 +26,10 @@ export const SignIn = () => {
 				},
 			},
 		);
-
-		console.log({ data, error });
 	};
 
 	return (
-		<YStack
-			minH="100%"
-			gap="$4"
-			px="$4"
-			items="center"
-			justify="center"
-			flex={1}
-		>
+		<>
 			<Input
 				inputMode="email"
 				autoComplete="email"
@@ -56,6 +47,6 @@ export const SignIn = () => {
 				width={200}
 			/>
 			<Button onPress={signIn}>Sign In</Button>
-		</YStack>
+		</>
 	);
 };

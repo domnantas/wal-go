@@ -2,12 +2,16 @@ import "~/tamagui/tamagui.css";
 import "./_layout.css";
 
 import { SchemeProvider } from "@vxrn/color-scheme";
-import { LoadProgressBar, Slot } from "one";
-import { TamaguiRootProvider } from "../src/tamagui/TamaguiRootProvider";
+import { LoadProgressBar, Slot, Tabs } from "one";
 import { ZeroProvider } from "@rocicorp/zero/react";
 import { useState } from "react";
 import { useZeroEmit, zero } from "~/zero";
 import { useSetZeroAuthEffect } from "~/auth/authEffects";
+import { useAuth } from "~/auth/authClient";
+import { TamaguiRootProvider } from "~/tamagui/TamaguiRootProvider";
+import { SplashScreen } from "~/components/SplashScreen";
+import { isWeb } from "tamagui";
+import { CircleUser, Map as MapIcon, NotebookPen } from "@tamagui/lucide-icons";
 
 /**
  * The root _layout.tsx filters <html /> and <body /> out on native
@@ -15,6 +19,7 @@ import { useSetZeroAuthEffect } from "~/auth/authEffects";
 
 export default function Layout() {
 	const [zeroInstance, setZeroInstance] = useState(zero);
+	const { loggedIn, loading } = useAuth();
 
 	useZeroEmit((next) => {
 		setZeroInstance(next);
@@ -42,7 +47,70 @@ export default function Layout() {
 				<ZeroProvider zero={zeroInstance}>
 					<SchemeProvider>
 						<TamaguiRootProvider>
-							<Slot />
+							{loading ? (
+								<SplashScreen />
+							) : isWeb ? (
+								<Slot />
+							) : (
+								<Tabs>
+									<Tabs.Screen
+										name="map"
+										options={{
+											title: "Žemėlapis",
+											href: "/map",
+											tabBarIcon: ({ color }) => (
+												<MapIcon size={20} color={color} />
+											),
+										}}
+									/>
+									{loggedIn && (
+										<Tabs.Screen
+											name="log"
+											options={{
+												title: "Žurnalas",
+												href: "/log",
+												tabBarIcon: ({ color }) => (
+													<NotebookPen size={20} color={color} />
+												),
+											}}
+										/>
+									)}
+									<Tabs.Screen
+										name="(auth)"
+										options={{
+											title: "Paskyra",
+											href: "/account",
+											tabBarIcon: ({ color }) => (
+												<CircleUser size={20} color={color} />
+											),
+										}}
+									/>
+								</Tabs>
+								// <Stack screenOptions={{ headerShown: false }}>
+								// 	{loggedIn ? (
+								// 		<Stack.Screen name="index" />
+								// 	) : (
+								// 		<Stack.Screen name="(auth)" />
+								// 	)}
+								// </Stack>
+							)}
+
+							{/* <Tabs screenOptions={{ headerShown: false }}>
+								<Tabs.Screen
+									name="map"
+									options={{
+										title: "Žemėlapis",
+										href: "/map",
+									}}
+								/>
+								<Tabs.Screen
+									name="index"
+									options={{
+										title: "Žurnalas",
+										href: "/",
+									}}
+								/>
+							</Tabs> */}
 						</TamaguiRootProvider>
 					</SchemeProvider>
 				</ZeroProvider>
