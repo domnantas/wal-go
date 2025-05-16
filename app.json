@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "wal-go-rn",
-    "slug": "wal-go-rn",
+    "name": "wal-go",
+    "slug": "wal-go",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "walgorn",
+    "scheme": "walgo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
