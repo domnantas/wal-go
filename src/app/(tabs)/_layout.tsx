@@ -1,9 +1,12 @@
+import { authClient } from "@/lib/auth-client";
 import { Tabs } from "expo-router";
-import { Map, NotebookText } from "lucide-react-native";
+import { Map, NotebookText, User } from "lucide-react-native";
 
 export default function TabLayout() {
+  const { data, isPending } = authClient.useSession();
+  const isLoggedIn = Boolean(data);
   return (
-    <Tabs>
+    <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -18,6 +21,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <NotebookText color={color} size={size} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="(auth)"
+        options={{
+          title: data?.user.name ?? "Prisijungti",
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
     </Tabs>

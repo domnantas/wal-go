@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function AboutScreen() {
+export default function Log() {
   return (
     <View style={styles.container}>
       <Text>Log</Text>
