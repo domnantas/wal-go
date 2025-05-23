@@ -4,7 +4,7 @@
     "slug": "wal-go",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/icon.png",
+    "icon": "./src/assets/images/wal-go-logo.png",
     "scheme": "walgo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,7 +15,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#fdfbf8"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.domnantas.walgo"
@@ -30,10 +30,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/splash-icon.png",
+          "image": "./src/assets/images/wal-go-logo.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#fdfbf8"
         }
       ],
       "expo-build-properties"

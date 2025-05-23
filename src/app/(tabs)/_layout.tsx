@@ -3,8 +3,7 @@ import { Tabs } from "expo-router";
 import { Map, NotebookText, User } from "lucide-react-native";
 
 export default function TabLayout() {
-  const { data, isPending } = authClient.useSession();
-  const isLoggedIn = Boolean(data);
+  const { data } = authClient.useSession();
   return (
     <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen

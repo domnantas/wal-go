@@ -1,6 +1,6 @@
 {
   "name": "wal-go",
-  "main": "expo-router/entry",
+  "main": "src/index.ts",
   "version": "1.0.0",
   "scripts": {
     "db:up": "docker-compose up",
