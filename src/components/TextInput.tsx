@@ -5,13 +5,13 @@ const UniTextInput = withUnistyles(RNTextInput, (theme) => ({
   placeholderTextColor: theme.colors.mutedForeground,
 }));
 
-export const TextInput = (props: TextInputProps) => {
-  const isEditable = props.editable ?? true;
+export const TextInput = ({ editable = true, ...props }: TextInputProps) => {
   return (
     <UniTextInput
       {...props}
-      style={[styles.textInput(isEditable), props.style]}
-      aria-disabled={!isEditable}
+      editable={editable}
+      style={[styles.textInput(editable), props.style]}
+      aria-disabled={!editable}
     />
   );
 };

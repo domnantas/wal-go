@@ -4,17 +4,21 @@
     "slug": "wal-go",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/wal-go-logo.png",
+    "icon": "./src/assets/images/wal-go-logo-light.png",
     "scheme": "walgo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.domnantas.walgo"
+      "bundleIdentifier": "com.domnantas.walgo",
+      "icon": {
+        "light": "./src/assets/images/wal-go-logo-light.png",
+        "dark": "./src/assets/images/wal-go-logo-dark.png"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/images/adaptive-icon.png",
+        "foregroundImage": "./src/assets/images/wal-go-logo-transparent.png",
         "backgroundColor": "#fdfbf8"
       },
       "edgeToEdgeEnabled": true,
@@ -23,16 +27,21 @@
     "web": {
       "bundler": "metro",
       "output": "server",
-      "favicon": "./src/assets/images/favicon.png"
+      "favicon": "./src/assets/images/wal-go-logo-transparent.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/wal-go-logo.png",
+          "image": "./src/assets/images/wal-go-logo-light.png",
           "imageWidth": 200,
-          "backgroundColor": "#fdfbf8"
+          "backgroundColor": "#fdfbf8",
+          "dark": {
+            "image": "./src/assets/images/wal-go-logo-dark.png",
+            "imageWidth": 200,
+            "backgroundColor": "#0c1014"
+          }
         }
       ],
       "expo-build-properties"

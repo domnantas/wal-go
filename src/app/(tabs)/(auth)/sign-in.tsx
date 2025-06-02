@@ -1,8 +1,9 @@
+import { Button } from "@/components/Button";
 import { TextInput } from "@/components/TextInput";
 import { authClient } from "@/lib/auth-client";
 import { Link } from "expo-router";
 import { useState } from "react";
-import { Button, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -28,15 +29,23 @@ export default function SignIn() {
         placeholder="El. paštas"
         value={email}
         onChangeText={setEmail}
+        autoFocus
+        autoComplete="email"
+        inputMode="email"
+        autoCorrect={false}
+        autoCapitalize="none"
+        returnKeyType="next"
       />
       <TextInput
         placeholder="Slaptažodis"
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+        returnKeyType="send"
       />
-      <Button title="Prisijungti" onPress={handleLogin} />
-      <Link href="/sign-up" withAnchor>
-        Registracija
+      <Button onPress={handleLogin}>Prisijungti</Button>
+      <Link href="/sign-up" withAnchor asChild>
+        <Button variant="link">Registracija</Button>
       </Link>
     </View>
   );
