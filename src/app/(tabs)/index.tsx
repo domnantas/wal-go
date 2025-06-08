@@ -1,17 +1,26 @@
-import { Text, View } from "react-native";
-import { StyleSheet, UnistylesRuntime } from "react-native-unistyles";
+import Mapbox, { Camera, MapView } from "@rnmapbox/maps";
+import { StyleSheet } from "react-native-unistyles";
+
+Mapbox.setAccessToken(
+  "pk.eyJ1IjoiZmlzdG1lbmFydXRvIiwiYSI6ImNqeXd6bmMxeTEybzMzbXJyZG9tMjVkemgifQ.5cwA9ergt7yRmWfNAIuDHw"
+);
 
 export default function Map() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Map</Text>
-      <Text style={styles.text}>
-        Selected theme is {UnistylesRuntime.colorScheme}
-      </Text>
-      <Text style={styles.text}>
-        My device is using the {UnistylesRuntime.contentSizeCategory} size.
-      </Text>
-    </View>
+    <MapView
+      style={{ flex: 1 }}
+      projection="globe"
+      styleURL="mapbox://styles/mapbox/standard"
+    >
+      <Camera
+        zoomLevel={6}
+        centerCoordinate={[23.8813, 55.1694]}
+        maxBounds={{
+          ne: [27.835556, 57.450278],
+          sw: [19.970833, 52.896667],
+        }}
+      />
+    </MapView>
   );
 }
 

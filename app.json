@@ -44,7 +44,20 @@
           }
         }
       ],
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiZmlzdG1lbmFydXRvIiwiYSI6ImNtYmdwOG5yZDAxOWoya3F0MGtka2xwdTQifQ.5JfJG0TsAAYTz0H2JimMjA",
+          "RNMapboxMapsVersion": "11.12.2"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Show current location on map."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
