@@ -31,16 +31,30 @@ export default function SignUp() {
 
   return (
     <View style={styles.container}>
-      <TextInput placeholder="Šaukinys" value={name} onChangeText={setName} />
+      <TextInput
+        placeholder="Šaukinys"
+        value={name}
+        onChangeText={setName}
+        autoFocus
+        autoCorrect={false}
+        autoCapitalize="characters"
+        returnKeyType="next"
+      />
       <TextInput
         placeholder="El. paštas"
         value={email}
         onChangeText={setEmail}
+        autoComplete="email"
+        inputMode="email"
+        autoCorrect={false}
+        autoCapitalize="none"
+        returnKeyType="next"
       />
       <TextInput
         placeholder="Slaptažodis"
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
       />
       <Button onPress={handleLogin}>Užsiregistruoti</Button>
     </View>

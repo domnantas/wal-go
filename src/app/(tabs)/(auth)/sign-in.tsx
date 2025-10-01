@@ -41,6 +41,8 @@ export default function SignIn() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        autoCorrect={false}
+        autoCapitalize="none"
         returnKeyType="send"
       />
       <Button onPress={handleLogin}>Prisijungti</Button>

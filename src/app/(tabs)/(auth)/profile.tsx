@@ -1,11 +1,12 @@
 import { authClient } from "@/lib/auth-client";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, Text, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 
 export default function Profile() {
   const { data } = authClient.useSession();
   return (
     <View style={styles.container}>
-      <Text>{data?.user.name}</Text>
+      <Text style={styles.text}>{data?.user.name}</Text>
       <Button
         title="Atsijungti"
         onPress={() => {
@@ -16,10 +17,13 @@ export default function Profile() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-});
+  text: {
+    color: theme.colors.foreground,
+  },
+}));
