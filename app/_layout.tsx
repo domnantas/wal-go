@@ -1,24 +1,14 @@
+import { Stack } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { StatusBar } from "expo-status-bar";
 
-export default function TabLayout() {
+export default function RootLayout() {
   return (
     <>
-      <StatusBar />
-      <NativeTabs>
-        <NativeTabs.Trigger name="index">
-          <Label>Map</Label>
-          <Icon sf="map" drawable="custom_android_drawable" />
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="log">
-          <Label>Log</Label>
-          <Icon sf="list.bullet" drawable="custom_android_drawable" />
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="settings">
-          <Icon sf="gear" drawable="custom_settings_drawable" />
-          <Label>Settings</Label>
-        </NativeTabs.Trigger>
-      </NativeTabs>
+      <StatusBar style="auto" />
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
     </>
   );
 }
