@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Tab() {
+export default function Map() {
   return (
     <View style={[styles.container]}>
       <Text>Žemėlapis</Text>
