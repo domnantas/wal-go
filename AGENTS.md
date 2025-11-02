@@ -30,3 +30,7 @@ Use concise, imperative commit subjects (`Add home tab icons`). Squash noisy fix
 ## Environment & Configuration
 
 Environment variables currently rely on Expo defaults; introduce additional config via `app.config.ts` when needed. Keep secrets out of the repo—use Expo’s secrets store for runtime keys. Update `app.json` and asset catalogs whenever branding or splash screens change, and verify `expo-env.d.ts` reflects any new module typings.
+
+## Jazz
+
+This project uses [Jazz](https://jazz.tools/) for sync/storage. Refer to `llms/jazz.md` for instructions when working with Jazz.

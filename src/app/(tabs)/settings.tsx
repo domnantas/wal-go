@@ -2,8 +2,8 @@ import { StyleSheet, Text, View } from "react-native";
 
 export default function Tab() {
   return (
-    <View style={[styles.container]}>
-      <Text>Tab Home</Text>
+    <View style={styles.container}>
+      <Text>Nustatymai</Text>
     </View>
   );
 }
