@@ -1,1 +1,32 @@
-Be extremely concise; use as few tokens as possible.
+# Repository Guidelines
+
+## Agent instructions
+
+Be extremely concise. Use as few tokens as possible.
+
+## Project Structure & Module Organization
+
+`app/` hosts Expo Router screens; co-locate screen-specific styles beside the route file. Shared UI lives in `components/`, reusable logic in `hooks/`, and constants in `constants/`. Static media sits under `assets/`. Keep scripts for release automation in `scripts/`, and manage Expo metadata via `app.json`. Prefer module aliases provided by Expo Router over deep relative paths.
+
+## Build, Test, and Development Commands
+
+- `npm install` resolves JS/TS dependencies. Rerun after pulling lockfile updates.
+- `npm run start` launches the Expo dev server with hot reload.
+- `npm run android|ios|web` targets a specific platform simulator or browser.
+- `npm run lint` executes `expo lint` and should pass before committing.
+
+## Coding Style & Naming Conventions
+
+TypeScript is mandatory; extend new files with `.ts` or `.tsx`. Follow Expo’s ESLint flat config, 2-space indentation, and single quotes. Name screens with PascalCase (e.g., `ProfileScreen.tsx`), hooks with `use` prefix, and constants in SCREAMING_SNAKE_CASE. Keep component files small; extract shared styles into `StyleSheet.create` blocks exported from local modules when reuse is needed.
+
+## Testing Guidelines
+
+No automated tests exist yet; plan Jest with @testing-library/react-native. Place specs under `__tests__/` mirroring the source path, naming them `*.test.tsx`. Target at least smoke coverage for each screen and hook; capture platform-specific behavior with descriptive test names. When Jest is configured, expose `npm test -- --watch` for local runs and require it in CI. Until then, document any manual QA steps inside the PR description.
+
+## Commit & Pull Request Guidelines
+
+Use concise, imperative commit subjects (`Add home tab icons`). Squash noisy fixups before merging. PRs must describe the change, include relevant screenshots or screen recordings, list manual test scenarios, and link issues with `Closes #123`. Request review from at least one maintainer and ensure the Expo dev server starts cleanly before requesting merge.
+
+## Environment & Configuration
+
+Environment variables currently rely on Expo defaults; introduce additional config via `app.config.ts` when needed. Keep secrets out of the repo—use Expo’s secrets store for runtime keys. Update `app.json` and asset catalogs whenever branding or splash screens change, and verify `expo-env.d.ts` reflects any new module typings.
