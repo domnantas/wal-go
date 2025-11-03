@@ -48,19 +48,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-secure-store",
     "expo-sqlite",
     // "expo-build-properties",
-    // [
-    //   "@rnmapbox/maps",
-    //   {
-    //     RNMapboxMapsDownloadToken: process.env.MAPBOX_SECRET,
-    //     RNMapboxMapsVersion: "11.12.2",
-    //   },
-    // ],
-    // [
-    //   "expo-location",
-    //   {
-    //     locationWhenInUsePermission: "Show current location on map.",
-    //   },
-    // ],
+    [
+      "@rnmapbox/maps",
+      {
+        RNMapboxMapsVersion: "11.16.1",
+      },
+    ],
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission: "Show current location on map.",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
