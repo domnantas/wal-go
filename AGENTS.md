@@ -17,7 +17,7 @@ Be extremely concise. Use as few tokens as possible.
 
 ## Coding Style & Naming Conventions
 
-TypeScript is mandatory; extend new files with `.ts` or `.tsx`. Follow Expo’s ESLint flat config, 2-space indentation, and single quotes. Name screens with PascalCase (e.g., `ProfileScreen.tsx`), hooks with `use` prefix, and constants in SCREAMING_SNAKE_CASE. Keep component files small; extract shared styles into `StyleSheet.create` blocks exported from local modules when reuse is needed.
+TypeScript is mandatory; extend new files with `.ts` or `.tsx`. Follow Expo’s ESLint flat config, 2-space indentation, and double quotes. Name screens with PascalCase (e.g., `ProfileScreen.tsx`), hooks with `use` prefix, and constants in SCREAMING_SNAKE_CASE. Keep component files small; extract shared styles into `StyleSheet.create` blocks exported from local modules when reuse is needed.
 
 ## Testing Guidelines
 

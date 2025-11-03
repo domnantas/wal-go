@@ -8,6 +8,10 @@ export default function AuthLayout() {
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="sign-in" options={{ title: "Prisijungti" }} />
         <Stack.Screen name="sign-up" options={{ title: "Registracija" }} />
+        <Stack.Screen
+          name="forgot-password"
+          options={{ title: "Atkurti slaptažodį" }}
+        />
       </Stack.Protected>
     </Stack>
   );
