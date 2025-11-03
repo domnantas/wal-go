@@ -12,10 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.domnantas.walgo",
-    icon: {
-      light: "./src/assets/images/wal-go-logo-light.png",
-      dark: "./src/assets/images/wal-go-logo-dark.png",
-    },
+    icon: "./src/assets/images/wal-go-logo.icon",
   },
   android: {
     adaptiveIcon: {
