@@ -16,6 +16,7 @@ export default function SignUp() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
+  const [callsign, setCallsign] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
@@ -24,12 +25,11 @@ export default function SignUp() {
   const handleSignUp = async () => {
     if (!isLoaded) return;
 
-    console.log(emailAddress, password);
-
     try {
       await signUp.create({
         emailAddress,
         password,
+        username: callsign,
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -100,6 +100,21 @@ export default function SignUp() {
         behavior={Platform.select({ ios: "padding", android: undefined })}
       >
         <View style={styles.formCard}>
+          <Text style={styles.label}>Šaukinys</Text>
+          <TextInput
+            autoCapitalize="none"
+            value={callsign}
+            placeholder="Šaukinys"
+            placeholderTextColor="#9a9a9a"
+            onChangeText={(value) => {
+              const normalizedCallsign = value
+                .replace(/[^a-zA-Z0-9]/g, "")
+                .toUpperCase();
+              setCallsign(normalizedCallsign);
+            }}
+            style={styles.input}
+          />
+
           <Text style={styles.label}>El. paštas</Text>
           <TextInput
             autoCapitalize="none"
