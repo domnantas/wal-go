@@ -1,3 +1,4 @@
+import { WalGoAccount } from "@/schema";
 import { ClerkLoaded, ClerkProvider, useClerk } from "@clerk/clerk-expo";
 import { resourceCache } from "@clerk/clerk-expo/resource-cache";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
@@ -16,6 +17,7 @@ function JazzWithClerkProvider({ children }: { children: ReactNode }) {
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${process.env.EXPO_PUBLIC_JAZZ_API_KEY}`,
       }}
+      AccountSchema={WalGoAccount}
     >
       {children}
     </JazzExpoProviderWithClerk>
