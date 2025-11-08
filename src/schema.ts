@@ -11,21 +11,25 @@ export const QSO = co.map({
 });
 export type QSO = co.loaded<typeof QSO>;
 
-export const WalGoAccountRoot = co.map({
-  log: co.list(QSO),
-});
-export type WalGoAccountRoot = co.loaded<typeof WalGoAccountRoot>;
+export const PartialQSO = QSO.partial();
 
-export const WalGoAccount = co
-  .account({
-    profile: co.profile(),
-    root: WalGoAccountRoot,
-  })
-  .withMigration((account) => {
-    if (!account.$jazz.has("root")) {
-      account.$jazz.set("root", {
-        log: [],
-      });
-    }
-  });
-export type WalGoAccount = co.loaded<typeof WalGoAccount>;
+export const Log = co.list(QSO);
+
+// export const WalGoAccountRoot = co.map({
+//   log: co.list(QSO),
+// });
+// export type WalGoAccountRoot = co.loaded<typeof WalGoAccountRoot>;
+
+// export const WalGoAccount = co
+//   .account({
+//     profile: co.profile(),
+//     root: WalGoAccountRoot,
+//   })
+//   .withMigration((account) => {
+//     if (!account.$jazz.has("root")) {
+//       account.$jazz.set("root", {
+//         log: [],
+//       });
+//     }
+//   });
+// export type WalGoAccount = co.loaded<typeof WalGoAccount>;
