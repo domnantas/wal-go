@@ -1,5 +1,12 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import {
+  Icon,
+  Label,
+  NativeTabs,
+  VectorIcon,
+} from "expo-router/unstable-native-tabs";
+import { Platform } from "react-native";
 
 export default function TabLayout() {
   const { isSignedIn } = useAuth();
@@ -8,26 +15,40 @@ export default function TabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Label>Žemėlapis</Label>
-        <Icon sf="map" drawable="custom_android_drawable" />
+        {Platform.select({
+          ios: <Icon sf="map" />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name="map" />} />
+          ),
+        })}
       </NativeTabs.Trigger>
-      {!isSignedIn && (
-        <NativeTabs.Trigger name="(auth)">
-          <Icon sf="person.fill" drawable="custom_settings_drawable" />
-          <Label>Prisijungti</Label>
-        </NativeTabs.Trigger>
-      )}
-      {isSignedIn && (
-        <NativeTabs.Trigger name="log">
-          <Label>Žurnalas</Label>
-          <Icon sf="list.bullet" drawable="custom_android_drawable" />
-        </NativeTabs.Trigger>
-      )}
-      {isSignedIn && (
-        <NativeTabs.Trigger name="profile">
-          <Icon sf="person.fill" drawable="custom_settings_drawable" />
-          <Label>Profilis</Label>
-        </NativeTabs.Trigger>
-      )}
+      <NativeTabs.Trigger name="(auth)" hidden={isSignedIn}>
+        <Label>Prisijungti</Label>
+        {Platform.select({
+          ios: <Icon sf="person.fill" />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name="person" />} />
+          ),
+        })}
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="log" hidden={!isSignedIn}>
+        <Label>Žurnalas</Label>
+        {Platform.select({
+          ios: <Icon sf="list.bullet" />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name="list" />} />
+          ),
+        })}
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile" hidden={!isSignedIn}>
+        <Label>Profilis</Label>
+        {Platform.select({
+          ios: <Icon sf="person.fill" />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name="person" />} />
+          ),
+        })}
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
