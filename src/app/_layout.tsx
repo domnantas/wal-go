@@ -1,10 +1,16 @@
 import { ClerkLoaded, ClerkProvider, useClerk } from "@clerk/clerk-expo";
 import { resourceCache } from "@clerk/clerk-expo/resource-cache";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { JazzExpoProviderWithClerk } from "jazz-tools/expo";
 import type { ReactNode } from "react";
+import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import "../polyfills";
@@ -27,6 +33,7 @@ function JazzWithClerkProvider({ children }: { children: ReactNode }) {
 
 export default function RootLayout() {
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const scheme = useColorScheme();
 
   if (!publishableKey) {
     throw new Error("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY");
@@ -42,10 +49,17 @@ export default function RootLayout() {
         <JazzWithClerkProvider>
           <GestureHandlerRootView>
             <KeyboardProvider>
-              <StatusBar style="auto" />
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              </Stack>
+              <ThemeProvider
+                value={scheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <StatusBar style="auto" />
+                <Stack>
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                </Stack>
+              </ThemeProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </JazzWithClerkProvider>

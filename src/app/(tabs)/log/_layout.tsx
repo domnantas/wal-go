@@ -1,37 +1,44 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { IconSymbol } from "@/components/IconSymbol";
+import { PartialQSO } from "@/lib/jazz/schema";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Link, Stack, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import { Platform, Pressable } from "react-native";
 
 export default function LogLayout() {
   const router = useRouter();
+  const handleOpenForm = () => {
+    const newQSO = PartialQSO.create({});
+    router.navigate(`/log/form?id=${newQSO.$jazz.id}`);
+  };
   return (
-    <Stack
-      screenOptions={{
-        headerLargeTitle: true,
-        headerLargeTitleShadowVisible: false,
-      }}
-    >
+    <Stack>
       <Stack.Screen
         name="index"
         options={{
           title: "Žurnalas",
-          headerStyle: {
-            backgroundColor: isLiquidGlassAvailable() ? "transparent" : "white",
-          },
+          headerLargeTitle: true,
+          headerTransparent: Platform.OS === "ios",
+          headerBlurEffect: isLiquidGlassAvailable()
+            ? "none"
+            : "systemMaterial",
           headerRight: () => (
-            <Link href="/log/form">
-              <MaterialIcons name="add" size={32} />
-            </Link>
+            <Pressable
+              accessibilityLabel="Naujas QSO"
+              onPress={handleOpenForm}
+              hitSlop={8}
+            >
+              <IconSymbol name="plus" size={32} />
+            </Pressable>
           ),
           unstable_headerRightItems: () => [
             {
               type: "button",
-              label: "Add",
+              label: "Naujas QSO",
               icon: {
                 name: "plus",
                 type: "sfSymbol",
               },
-              onPress: () => router.navigate("/log/form"),
+              onPress: handleOpenForm,
             },
           ],
         }}
@@ -39,24 +46,18 @@ export default function LogLayout() {
       <Stack.Screen
         name="form"
         options={{
-          title: "Naujas įrašas",
+          title: "Naujas QSO",
           presentation: "formSheet",
           headerLargeTitle: false,
-          unstable_headerRightItems: () => [
-            {
-              type: "button",
-              label: "Add",
-              icon: {
-                name: "checkmark",
-                type: "sfSymbol",
-              },
-              onPress: () => router.back(),
-            },
-          ],
+          headerTransparent: Platform.OS === "ios",
+          headerBlurEffect: isLiquidGlassAvailable()
+            ? "none"
+            : "systemMaterial",
+          sheetAllowedDetents: "fitToContents",
           unstable_headerLeftItems: () => [
             {
               type: "button",
-              label: "Add",
+              label: "Uždaryti",
               icon: {
                 name: "xmark",
                 type: "sfSymbol",
@@ -64,8 +65,6 @@ export default function LogLayout() {
               onPress: () => router.back(),
             },
           ],
-          // headerShown: false,
-          // sheetAllowedDetents: "fitToContents",
           sheetGrabberVisible: true,
         }}
       />

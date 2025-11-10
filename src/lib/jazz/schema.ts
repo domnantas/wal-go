@@ -13,7 +13,10 @@ export type QSO = co.loaded<typeof QSO>;
 
 export const PartialQSO = QSO.partial();
 
-export const Log = co.list(QSO);
+export type PartialQSO = co.loaded<typeof PartialQSO>;
+
+// export const Log = co.list(QSO);
+export const LogFeed = co.feed(QSO);
 
 // export const WalGoAccountRoot = co.map({
 //   log: co.list(QSO),

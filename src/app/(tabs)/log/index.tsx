@@ -1,58 +1,37 @@
-import { Button, StyleSheet, Text } from "react-native";
-import {
-  KeyboardAwareScrollView,
-  KeyboardToolbar,
-} from "react-native-keyboard-controller";
+import { Text } from "@/components/Text";
+import { LogFeed } from "@/lib/jazz/schema";
+import { useCoState } from "jazz-tools/expo";
+import { ScrollView, StyleSheet } from "react-native";
 
 export default function Log() {
+  const logFeed = useCoState(LogFeed, process.env.EXPO_PUBLIC_GLOBAL_LOG_FEED);
+
+  if (!logFeed.$isLoaded) return null;
+
+  const logs = Object.values(logFeed.perAccount).flatMap((accountFeed) =>
+    Array.from(accountFeed.all)
+  );
+
   return (
-    <>
-      <KeyboardAwareScrollView bottomOffset={62}>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-        <Text style={styles.text}>aaaaaaaaaaa</Text>
-      </KeyboardAwareScrollView>
-      <KeyboardToolbar>
-        <KeyboardToolbar.Prev />
-        <KeyboardToolbar.Next />
-        <KeyboardToolbar.Done />
-      </KeyboardToolbar>
-    </>
+    <ScrollView contentInsetAdjustmentBehavior="automatic">
+      {/* {logs.map((entry) => {
+          if (!entry.value.$isLoaded) return null;
+          return (
+            <Text key={entry.value.$jazz.id} style={styles.text}>
+              {entry.value.receivedCallsign}
+            </Text>
+          );
+        })} */}
+      {Array.from({ length: 40 }, (_, index) => (
+        <Text key={index} style={styles.text}>
+          TEST {index + 1}
+        </Text>
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-    padding: 16,
-  },
-  scrollView: {
-    gap: 16,
-  },
-  textInput: {
-    height: 45,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: "#d8d8d8",
-    backgroundColor: "#fff",
-  },
   text: {
     fontSize: 32,
   },

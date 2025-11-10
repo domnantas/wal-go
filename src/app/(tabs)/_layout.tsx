@@ -12,7 +12,7 @@ export default function TabLayout() {
   const { isSignedIn } = useAuth();
 
   return (
-    <NativeTabs>
+    <NativeTabs disableTransparentOnScrollEdge>
       <NativeTabs.Trigger name="index">
         <Label>Žemėlapis</Label>
         {Platform.select({
