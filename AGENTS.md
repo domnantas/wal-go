@@ -34,3 +34,31 @@ Environment variables currently rely on Expo defaults; introduce additional conf
 ## Jazz
 
 This project uses [Jazz](https://jazz.tools/) for sync/storage. Refer to `llms/jazz.md` for instructions when working with Jazz.
+
+## Application Domain & Rules
+
+### Core Concept
+An amateur radio application inspired by Pokemon Go. Users (amateur radio operators) compete to control territory on a map by logging radio contacts (QSOs).
+
+### Grid System
+- **Map Segmentation**: Lithuania is segmented into a 10"x10" coordinate grid, known as the **WAL grid**.
+- **Territory**: Each grid square represents a territory that can be controlled by a team.
+
+### Team Mechanics
+- **Teams**: Three teams: **Yellow**, **Green**, and **Red**.
+- **Assignment**: Users are randomly assigned to a team when they join a "season".
+
+### Gameplay & Scoring
+- **Logging**: Users log amateur radio contacts (QSOs) via a Log screen.
+- **Geolocation**: The app tracks user geolocation for each logged QSO.
+- **Points**: Each QSO adds **1 point** to the user's team basket for the specific grid square where the user is located.
+- **Control**: The team with the most points in a square "controls" it.
+- **Visualization**: Controlled squares are colored on the map in the controlling team's color.
+
+### Season Schedule
+- **Start**: Second Saturday of June at 09:00 UTC.
+- **End**: First Saturday of June at 09:00 UTC.
+- **Joining**: Users may join the season at any time.
+
+### Objective
+- **Season Goal**: The team with the most squares colored in their color at the end of the season wins.
