@@ -1,17 +1,13 @@
-import { useClerk } from "@clerk/clerk-expo";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "expo-router";
-import { Account } from "jazz-tools";
-import { useAccount } from "jazz-tools/expo";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Profile() {
-  const { me, logOut } = useAccount(Account, { resolve: { profile: true } });
-  const { signOut } = useClerk();
+  const { signOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
     try {
-      logOut();
       await signOut();
       router.replace("/");
     } catch (err) {
@@ -19,12 +15,10 @@ export default function Profile() {
     }
   };
 
-  const callsign = me?.profile.name.toUpperCase() ?? "-";
-
   return (
     <View style={styles.container}>
       <Text style={styles.callsignLabel}>Šaukinys</Text>
-      <Text style={styles.callsignValue}>{callsign}</Text>
+      {/* <Text style={styles.callsignValue}>{callsign}</Text> */}
       <TouchableOpacity
         onPress={handleSignOut}
         style={styles.signOutButton}

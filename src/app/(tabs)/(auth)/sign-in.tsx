@@ -1,4 +1,5 @@
-import { useSignIn } from "@clerk/clerk-expo";
+import { useAuth } from "@/hooks/useAuth";
+import { useSystem } from "@/lib/powersync/system";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,29 +14,28 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignIn() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+  const { supabase } = useAuth();
+  const system = useSystem();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSignIn = async () => {
-    if (!isLoaded) return;
-
     try {
-      const signInAttempt = await signIn.create({
-        identifier: emailAddress,
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailAddress,
         password,
       });
 
-      if (signInAttempt.status === "complete") {
-        await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
-      } else {
-        console.error(JSON.stringify(signInAttempt, null, 2));
+      if (error) {
+        throw error;
       }
+
+      await system.connectIfSignedIn();
+      router.replace("/");
     } catch (error) {
-      console.error(error);
+      console.error(JSON.stringify(error, null, 2));
     }
   };
 

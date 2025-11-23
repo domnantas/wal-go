@@ -1,5 +1,6 @@
-import { useSignUp } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
+import { useAuth } from "@/hooks/useAuth";
+import { useSystem } from "@/lib/powersync/system";
+import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -13,47 +14,36 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignUp() {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { supabase } = useAuth();
+  const system = useSystem();
   const router = useRouter();
 
   const [callsign, setCallsign] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState("");
 
   const handleSignUp = async () => {
-    if (!isLoaded) return;
-
     try {
-      await signUp.create({
-        emailAddress,
+      const { data, error } = await supabase.auth.signUp({
+        email: emailAddress,
         password,
-        username: callsign,
+        options: {
+          data: { callsign },
+        },
       });
 
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (error) {
+        throw error;
+      }
+
+      if (data.session) {
+        await system.connectIfSignedIn();
+        router.replace("/");
+        return;
+      }
 
       setPendingVerification(true);
-    } catch (err) {
-      console.error(JSON.stringify(err, null, 2));
-    }
-  };
-
-  const handleVerify = async () => {
-    if (!isLoaded) return;
-
-    try {
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-
-      if (signUpAttempt.status === "complete") {
-        await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace("/");
-      } else {
-        console.error(JSON.stringify(signUpAttempt, null, 2));
-      }
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     }
@@ -68,26 +58,12 @@ export default function SignUp() {
           <View style={styles.formCard}>
             <Text style={styles.heading}>Patikrinkite paštą</Text>
             <Text style={styles.subheading}>
-              Įveskite kodą, kurį gavote el. paštu, kad patvirtintumėte paskyrą
+              Patvirtinimo nuoroda išsiųsta. Atidarykite ją el. pašte, kad
+              užbaigtumėte registraciją.
             </Text>
-
-            <Text style={styles.label}>Patvirtinimo kodas</Text>
-            <TextInput
-              value={code}
-              placeholder="6 skaitmenų kodas"
-              placeholderTextColor="#9a9a9a"
-              keyboardType="number-pad"
-              onChangeText={(codeValue) => setCode(codeValue)}
-              style={styles.input}
-            />
-
-            <TouchableOpacity
-              onPress={handleVerify}
-              style={styles.button}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.buttonText}>Patvirtinti</Text>
-            </TouchableOpacity>
+            <Link href="/sign-in" style={styles.link}>
+              Grįžti į prisijungimą
+            </Link>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -204,5 +180,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.3,
+  },
+  link: {
+    color: "#2563eb",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 8,
   },
 });

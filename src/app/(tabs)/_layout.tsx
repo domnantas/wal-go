@@ -1,4 +1,4 @@
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "@/hooks/useAuth";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   Icon,

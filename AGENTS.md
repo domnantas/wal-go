@@ -31,9 +31,14 @@ Use concise, imperative commit subjects (`Add home tab icons`). Squash noisy fix
 
 Environment variables currently rely on Expo defaults; introduce additional config via `app.config.ts` when needed. Keep secrets out of the repo—use Expo’s secrets store for runtime keys. Update `app.json` and asset catalogs whenever branding or splash screens change, and verify `expo-env.d.ts` reflects any new module typings.
 
-## Jazz
+## Tech Stack
 
-This project uses [Jazz](https://jazz.tools/) for sync/storage. Refer to `llms/jazz.md` for instructions when working with Jazz.
+- **Database & Auth**: [Supabase](https://supabase.com) (Postgres)
+- **Offline Sync**: [PowerSync](https://powersync.com)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team)
+- **Map**: `@rnmapbox/maps`
+
+This project uses **Supabase** for the backend database and authentication. **PowerSync** is used to sync data to a local SQLite database on the device, enabling offline-first functionality. **Drizzle ORM** is used for type-safe database interactions.
 
 ## Application Domain & Rules
 

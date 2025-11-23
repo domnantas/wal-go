@@ -1,4 +1,4 @@
-import { useSignIn } from "@clerk/clerk-expo";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -39,34 +39,31 @@ const extractErrorMessage = (unknownError: unknown) => {
 };
 
 export default function ForgotPassword() {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const { supabase } = useAuth();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = useState("");
-  const [code, setCode] = useState("");
-  const [password, setPassword] = useState("");
-  const [pendingVerification, setPendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [requestComplete, setRequestComplete] = useState(false);
 
-  if (!isLoaded) {
-    return null;
-  }
-
-  const handleRequestCode = async () => {
+  const handleRequestLink = async () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     setStatusMessage(null);
 
     try {
-      await signIn.create({
-        strategy: "reset_password_email_code",
-        identifier: emailAddress,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        emailAddress
+      );
 
-      setPendingVerification(true);
-      setStatusMessage("Išsiuntėme kodą. Patikrinkite savo el. paštą.");
+      if (error) {
+        throw error;
+      }
+
+      setRequestComplete(true);
+      setStatusMessage("Išsiuntėme nuorodą. Patikrinkite savo el. paštą.");
     } catch (err) {
       setErrorMessage(extractErrorMessage(err));
     } finally {
@@ -74,39 +71,8 @@ export default function ForgotPassword() {
     }
   };
 
-  const handleResetPassword = async () => {
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    setStatusMessage(null);
-
-    try {
-      const signInAttempt = await signIn.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code,
-        password,
-      });
-
-      if (signInAttempt.status === "complete") {
-        await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
-        return;
-      }
-
-      if (signInAttempt.status === "needs_second_factor") {
-        setStatusMessage(
-          "Reikalinga papildoma autentifikacija. Prisijunkite naudodami kitą būdą."
-        );
-        return;
-      }
-
-      setStatusMessage(
-        "Patikriname jūsų informaciją. Bandykite dar kartą, jei nepavyko."
-      );
-    } catch (err) {
-      setErrorMessage(extractErrorMessage(err));
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleGoBack = () => {
+    router.replace("/sign-in");
   };
 
   return (
@@ -116,17 +82,17 @@ export default function ForgotPassword() {
       >
         <View style={styles.formCard}>
           <Text style={styles.heading}>
-            {pendingVerification
-              ? "Atkurkite slaptažodį"
+            {requestComplete
+              ? "Patikrinkite paštą"
               : "Pamiršote slaptažodį?"}
           </Text>
           <Text style={styles.subheading}>
-            {pendingVerification
-              ? "Įveskite naują slaptažodį ir patvirtinimo kodą."
-              : "Įrašykite el. paštą ir atsiųsime atkūrimo kodą."}
+            {requestComplete
+              ? "Atsiųsime nuorodą slaptažodžio atkūrimui. Atidarykite ją el. pašte."
+              : "Įrašykite el. paštą ir atsiųsime atkūrimo nuorodą."}
           </Text>
 
-          {!pendingVerification && (
+          {!requestComplete && (
             <>
               <Text style={styles.label}>El. paštas</Text>
               <TextInput
@@ -140,51 +106,27 @@ export default function ForgotPassword() {
               />
 
               <TouchableOpacity
-                onPress={handleRequestCode}
+                onPress={handleRequestLink}
                 style={[styles.button, isSubmitting && styles.buttonDisabled]}
                 activeOpacity={0.8}
                 disabled={isSubmitting}
               >
                 <Text style={styles.buttonText}>
-                  {isSubmitting ? "Siunčiame..." : "Siųsti kodą"}
+                  {isSubmitting ? "Siunčiame..." : "Siųsti nuorodą"}
                 </Text>
               </TouchableOpacity>
             </>
           )}
 
-          {pendingVerification && (
-            <>
-              <Text style={styles.label}>Naujas slaptažodis</Text>
-              <TextInput
-                value={password}
-                placeholder="Naujas slaptažodis"
-                placeholderTextColor="#9a9a9a"
-                secureTextEntry
-                onChangeText={setPassword}
-                style={styles.input}
-              />
-
-              <Text style={styles.label}>Patvirtinimo kodas</Text>
-              <TextInput
-                value={code}
-                placeholder="6 skaitmenų kodas"
-                placeholderTextColor="#9a9a9a"
-                keyboardType="number-pad"
-                onChangeText={setCode}
-                style={styles.input}
-              />
-
-              <TouchableOpacity
-                onPress={handleResetPassword}
-                style={[styles.button, isSubmitting && styles.buttonDisabled]}
-                activeOpacity={0.8}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.buttonText}>
-                  {isSubmitting ? "Tikriname..." : "Atkurti slaptažodį"}
-                </Text>
-              </TouchableOpacity>
-            </>
+          {requestComplete && (
+            <TouchableOpacity
+              onPress={handleGoBack}
+              style={[styles.button, isSubmitting && styles.buttonDisabled]}
+              activeOpacity={0.8}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.buttonText}>Grįžti į prisijungimą</Text>
+            </TouchableOpacity>
           )}
 
           {statusMessage ? (
@@ -269,16 +211,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 14,
     color: "#dc2626",
-  },
-  linkRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 24,
-  },
-  link: {
-    color: "#2563eb",
-    fontSize: 14,
-    fontWeight: "600",
   },
 });

@@ -1,15 +1,11 @@
 import { IconSymbol } from "@/components/IconSymbol";
-import { PartialQSO } from "@/lib/jazz/schema";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { Platform, Pressable } from "react-native";
 
 export default function LogLayout() {
   const router = useRouter();
-  const handleOpenForm = () => {
-    const newQSO = PartialQSO.create({});
-    router.navigate(`/log/form?id=${newQSO.$jazz.id}`);
-  };
+  const handleOpenForm = () => {};
   return (
     <Stack>
       <Stack.Screen

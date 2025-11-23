@@ -1,17 +1,14 @@
 import { Text } from "@/components/Text";
-import { LogFeed } from "@/lib/jazz/schema";
-import { useCoState } from "jazz-tools/expo";
+import { useSystem } from "@/lib/powersync/system";
+import { toCompilableQuery } from "@powersync/drizzle-driver";
+import { useQuery } from "@powersync/react-native";
 import { ScrollView, StyleSheet } from "react-native";
 
 export default function Log() {
-  const logFeed = useCoState(LogFeed, process.env.EXPO_PUBLIC_GLOBAL_LOG_FEED);
+  const {drizzle} = useSystem()
+  const {data} = useQuery(toCompilableQuery(drizzle.query.qsos.findMany()))
 
-  if (!logFeed.$isLoaded) return null;
-
-  const logs = Object.values(logFeed.perAccount).flatMap((accountFeed) =>
-    Array.from(accountFeed.all)
-  );
-
+  console.log(data)
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic">
       {/* {logs.map((entry) => {

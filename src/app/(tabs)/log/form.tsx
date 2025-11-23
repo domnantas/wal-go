@@ -1,44 +1,14 @@
 import { Text } from "@/components/Text";
-import { LogFeed, PartialQSO, QSO } from "@/lib/jazz/schema";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { useCoState } from "jazz-tools/expo";
-import { useCallback, useEffect, useRef } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { useNavigation } from "expo-router";
+import { useCallback, useEffect } from "react";
+import { Button, ScrollView, StyleSheet } from "react-native";
 
 export default function LogForm() {
-  const { id } = useLocalSearchParams();
-  const router = useRouter();
   const navigation = useNavigation();
-  const fallbackIdRef = useRef<string | null>(null);
-  const paramId = typeof id === "string" ? id : null;
 
-  if (!paramId && !fallbackIdRef.current) {
-    const draftQSO = PartialQSO.create({});
-    fallbackIdRef.current = draftQSO.$jazz.id;
-    router.replace(`/log/form?id=${draftQSO.$jazz.id}`);
-  }
-
-  const resolvedId = paramId ?? fallbackIdRef.current;
-  const globalLog = useCoState(
-    LogFeed,
-    process.env.EXPO_PUBLIC_GLOBAL_LOG_FEED
-  );
-  const newQSO = useCoState(PartialQSO, resolvedId!);
-
-  const handleSubmit = useCallback(() => {
-    if (!newQSO.$isLoaded || !globalLog.$isLoaded) return;
-    globalLog.$jazz.push(newQSO as QSO);
-    router.back();
-  }, [globalLog, newQSO, router]);
+  const handleSubmit = useCallback(() => {}, []);
 
   useEffect(() => {
-    if (!newQSO.$isLoaded) return;
     navigation.setOptions({
       headerRight: () => <Button title="Save" onPress={handleSubmit} />,
       unstable_headerRightItems: () => [
@@ -54,15 +24,7 @@ export default function LogForm() {
         },
       ],
     });
-  }, [handleSubmit, navigation, newQSO.$isLoaded]);
-
-  if (!newQSO.$isLoaded) {
-    return (
-      <View style={styles.loadingState}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
+  }, [handleSubmit, navigation]);
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
