@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const qsos = sqliteTable("qsos", {
-  id: text("id").primaryKey().notNull(),
+  id: text("id").primaryKey().notNull().default(sql`uuid()`),
   userId: text("user_id").notNull(),
   receivedCallsign: text("received_callsign"),
   receivedWAL: text("received_wal"),

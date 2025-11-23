@@ -1,12 +1,70 @@
-import { Text } from "@/components/Text";
-import { useNavigation } from "expo-router";
-import { useCallback, useEffect } from "react";
-import { Button, ScrollView, StyleSheet } from "react-native";
+import { useAuth } from "@/hooks/useAuth";
+import { qsos } from "@/lib/powersync/AppSchema";
+import { useSystem } from "@/lib/powersync/system";
+import { useNavigation, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Alert,
+  Button,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function LogForm() {
   const navigation = useNavigation();
+  const router = useRouter();
+  const { drizzle } = useSystem();
+  const { session } = useAuth();
 
-  const handleSubmit = useCallback(() => {}, []);
+  const [receivedCallsign, setReceivedCallsign] = useState("");
+  const [receivedWAL, setReceivedWAL] = useState("");
+  const [receivedRST, setReceivedRST] = useState("59");
+  const [sentWAL, setSentWAL] = useState("");
+  const [sentRST, setSentRST] = useState("59");
+  const [frequency, setFrequency] = useState("");
+  const [mode, setMode] = useState("SSB");
+
+  const handleSubmit = useCallback(async () => {
+    if (!session?.user.id) {
+      Alert.alert("Error", "You must be logged in to add a QSO.");
+      return;
+    }
+
+    if (!receivedCallsign) {
+      Alert.alert("Error", "Received callsign is required.");
+      return;
+    }
+
+    try {
+      await drizzle.insert(qsos).values({
+        userId: session.user.id,
+        receivedCallsign,
+        receivedWAL,
+        receivedRST,
+        sentWAL,
+        sentRST,
+        frequency,
+        mode,
+      });
+      router.back();
+    } catch (error) {
+      console.error("Failed to save QSO:", error);
+      Alert.alert("Error", "Failed to save QSO. Please try again.");
+    }
+  }, [
+    drizzle,
+    session?.user.id,
+    receivedCallsign,
+    receivedWAL,
+    receivedRST,
+    sentWAL,
+    sentRST,
+    frequency,
+    mode,
+    router,
+  ]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -28,21 +86,14 @@ export default function LogForm() {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <Text>Hello</Text>
-      <Text>Hello</Text>
-      <Text>Hello</Text>
-      <Text>Hello</Text>
-      <Text>Hello</Text>
-      <Text>Hello</Text>
-
-      {/* <View style={styles.card}>
+      <View style={styles.card}>
         <TextInput
           style={[styles.field, styles.fieldTop]}
           placeholder="Received callsign"
           placeholderTextColor="#8E8E93"
           autoCapitalize="characters"
-          value={newQSO.receivedCallsign ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("receivedCallsign", text)}
+          value={receivedCallsign}
+          onChangeText={setReceivedCallsign}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
@@ -51,18 +102,18 @@ export default function LogForm() {
           placeholder="Received WAL"
           placeholderTextColor="#8E8E93"
           autoCapitalize="characters"
-          value={newQSO.receivedWAL ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("receivedWAL", text)}
+          value={receivedWAL}
+          onChangeText={setReceivedWAL}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
         <TextInput
           style={[styles.field, styles.fieldBottom]}
-          placeholder="Received RST (e.g. 599)"
+          placeholder="Received RST (e.g. 59)"
           placeholderTextColor="#8E8E93"
           keyboardType="numeric"
-          value={newQSO.receivedRST ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("receivedRST", text)}
+          value={receivedRST}
+          onChangeText={setReceivedRST}
           clearButtonMode="while-editing"
         />
       </View>
@@ -73,18 +124,18 @@ export default function LogForm() {
           placeholder="Sent WAL"
           placeholderTextColor="#8E8E93"
           autoCapitalize="characters"
-          value={newQSO.sentWAL ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("sentWAL", text)}
+          value={sentWAL}
+          onChangeText={setSentWAL}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
         <TextInput
           style={[styles.field, styles.fieldBottom]}
-          placeholder="Sent RST (e.g. 599)"
+          placeholder="Sent RST (e.g. 59)"
           placeholderTextColor="#8E8E93"
           keyboardType="numeric"
-          value={newQSO.sentRST ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("sentRST", text)}
+          value={sentRST}
+          onChangeText={setSentRST}
           clearButtonMode="while-editing"
         />
       </View>
@@ -92,11 +143,11 @@ export default function LogForm() {
       <View style={styles.card}>
         <TextInput
           style={[styles.field, styles.fieldTop]}
-          placeholder="Band (20m, 40m…)"
+          placeholder="Frequency (MHz)"
           placeholderTextColor="#8E8E93"
-          autoCapitalize="none"
-          value={newQSO.band ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("band", text)}
+          keyboardType="numeric"
+          value={frequency}
+          onChangeText={setFrequency}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
@@ -105,17 +156,11 @@ export default function LogForm() {
           placeholder="Mode (SSB, CW…)"
           placeholderTextColor="#8E8E93"
           autoCapitalize="characters"
-          value={newQSO.mode ?? ""}
-          onChangeText={(text) => newQSO.$jazz.set("mode", text)}
+          value={mode}
+          onChangeText={setMode}
           clearButtonMode="while-editing"
         />
       </View>
-
-      {!globalLog.$isLoaded && (
-        <Text style={styles.syncHint}>
-          Syncing log… you can keep entering data.
-        </Text>
-      )} */}
     </ScrollView>
   );
 }
@@ -128,12 +173,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 24,
     gap: 16,
-  },
-  loadingState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#EFEFF4",
   },
   card: {
     backgroundColor: "#FFFFFF",
@@ -164,10 +203,5 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: "#E5E5EA",
     marginHorizontal: 18,
-  },
-  syncHint: {
-    textAlign: "center",
-    color: "#8E8E93",
-    fontSize: 13,
   },
 });

@@ -5,7 +5,9 @@ import { Platform, Pressable } from "react-native";
 
 export default function LogLayout() {
   const router = useRouter();
-  const handleOpenForm = () => {};
+  const handleOpenForm = () => {
+    router.push("/(tabs)/log/form");
+  };
   return (
     <Stack>
       <Stack.Screen
