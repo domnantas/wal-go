@@ -1,19 +1,18 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useColors } from "@/hooks/useColors";
 import { useSystem } from "@/lib/powersync/system";
 import { Link, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { z } from "zod";
 
 const callsignSchema = z
@@ -27,7 +26,7 @@ export default function SignUp() {
   const { supabase } = useAuth();
   const system = useSystem();
   const router = useRouter();
-  const colors = useColors();
+  const { theme } = useUnistyles();
 
   const [callsign, setCallsign] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
@@ -66,85 +65,19 @@ export default function SignUp() {
     }
   };
 
-  const dynamicStyles = useMemo(
-    () => ({
-      container: {
-        flex: 1,
-        backgroundColor: colors.background,
-      },
-      formCard: {
-        backgroundColor: colors.card,
-        borderRadius: 16,
-        padding: 24,
-        marginHorizontal: 24,
-        gap: 12,
-      },
-      heading: {
-        fontSize: 22,
-        fontWeight: "700" as const,
-        color: colors.text,
-        textAlign: "center" as const,
-      },
-      subheading: {
-        fontSize: 14,
-        color: colors.textSecondary,
-        textAlign: "center" as const,
-        marginTop: 4,
-        marginBottom: 16,
-      },
-      label: {
-        fontSize: 14,
-        fontWeight: "600" as const,
-        color: colors.textSecondary,
-      },
-      input: {
-        height: 48,
-        borderRadius: 12,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.separator,
-        paddingHorizontal: 16,
-        fontSize: 16,
-        color: colors.text,
-        backgroundColor: colors.background,
-      },
-      button: {
-        marginTop: 16,
-        height: 52,
-        borderRadius: 14,
-        backgroundColor: colors.tint,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-      },
-      buttonText: {
-        color: "#ffffff",
-        fontSize: 16,
-        fontWeight: "700" as const,
-        letterSpacing: 0.3,
-      },
-      link: {
-        color: colors.tint,
-        fontSize: 14,
-        fontWeight: "600" as const,
-        textAlign: "center" as const,
-        marginTop: 8,
-      },
-    }),
-    [colors]
-  );
-
   if (pendingVerification) {
     return (
-      <SafeAreaView style={dynamicStyles.container}>
+      <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.select({ ios: "padding", android: undefined })}
         >
-          <View style={dynamicStyles.formCard}>
-            <Text style={dynamicStyles.heading}>Patikrinkite paštą</Text>
-            <Text style={dynamicStyles.subheading}>
+          <View style={styles.formCard}>
+            <Text style={styles.heading}>Patikrinkite paštą</Text>
+            <Text style={styles.subheading}>
               Patvirtinimo nuoroda išsiųsta. Atidarykite ją el. pašte, kad
               užbaigtumėte registraciją.
             </Text>
-            <Link href="/sign-in" style={dynamicStyles.link}>
+            <Link href="/sign-in" style={styles.link}>
               Grįžti į prisijungimą
             </Link>
           </View>
@@ -154,52 +87,49 @@ export default function SignUp() {
   }
 
   return (
-    <SafeAreaView style={dynamicStyles.container}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: "padding", android: undefined })}
       >
-        <View style={dynamicStyles.formCard}>
-          <Text style={dynamicStyles.label}>Šaukinys</Text>
+        <View style={styles.formCard}>
+          <Text style={styles.label}>Šaukinys</Text>
           <TextInput
             autoCapitalize="characters"
             autoCorrect={false}
             value={callsign}
             placeholder="LY1ABC"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             onChangeText={setCallsign}
-            style={dynamicStyles.input}
+            style={styles.input}
           />
 
-          <Text style={dynamicStyles.label}>El. paštas</Text>
+          <Text style={styles.label}>El. paštas</Text>
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
             value={emailAddress}
             placeholder="el.pastas@pvz.lt"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             onChangeText={setEmailAddress}
-            style={dynamicStyles.input}
+            style={styles.input}
           />
 
-          <Text style={dynamicStyles.label}>Slaptažodis</Text>
+          <Text style={styles.label}>Slaptažodis</Text>
           <TextInput
             value={password}
             placeholder="Slaptažodis"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             secureTextEntry
             onChangeText={setPassword}
-            style={dynamicStyles.input}
+            style={styles.input}
           />
 
           <Pressable
             onPress={handleSignUp}
-            style={({ pressed }) => [
-              dynamicStyles.button,
-              pressed && styles.pressed,
-            ]}
+            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           >
-            <Text style={dynamicStyles.buttonText}>Užsiregistruoti</Text>
+            <Text style={styles.buttonText}>Užsiregistruoti</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -207,8 +137,68 @@ export default function SignUp() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  formCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 16,
+    padding: 24,
+    marginHorizontal: 24,
+    gap: 12,
+  },
+  heading: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: theme.colors.text,
+    textAlign: "center",
+  },
+  subheading: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: theme.colors.textSecondary,
+  },
+  input: {
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: theme.colors.separator,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.background,
+  },
+  button: {
+    marginTop: 16,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: theme.colors.tint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   pressed: {
     opacity: 0.7,
   },
-});
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  link: {
+    color: theme.colors.tint,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 8,
+  },
+}));

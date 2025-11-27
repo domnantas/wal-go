@@ -1,3 +1,4 @@
+import "@/lib/unistyles";
 import { useSystem } from "@/lib/powersync/system";
 import { PowerSyncContext } from "@powersync/react-native";
 import {

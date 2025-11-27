@@ -1,26 +1,25 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useColors } from "@/hooks/useColors";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Button,
   ScrollView,
-  StyleSheet,
   TextInput,
   View,
 } from "react-native";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 export default function LogForm() {
   const navigation = useNavigation();
   const router = useRouter();
   const { drizzle } = useSystem();
   const { session } = useAuth();
-  const colors = useColors();
+  const { theme } = useUnistyles();
 
   const [receivedCallsign, setReceivedCallsign] = useState("");
   const [receivedWAL, setReceivedWAL] = useState("");
@@ -93,71 +92,33 @@ export default function LogForm() {
     });
   }, [handleSubmit, navigation]);
 
-  const dynamicStyles = useMemo(
-    () => ({
-      scroll: {
-        flex: 1,
-        backgroundColor: colors.background,
-      },
-      card: {
-        backgroundColor: colors.card,
-        borderRadius: 10,
-        overflow: "hidden" as const,
-      },
-      field: {
-        fontSize: 17,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: colors.card,
-        color: colors.text,
-      },
-      divider: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: colors.separator,
-        marginLeft: 16,
-      },
-      picker: {
-        backgroundColor: colors.card,
-        height: 120,
-      },
-      pickerItem: {
-        color: colors.text,
-        height: 120,
-      },
-    }),
-    [colors]
-  );
-
   return (
-    <ScrollView
-      style={dynamicStyles.scroll}
-      contentContainerStyle={styles.content}
-    >
-      <View style={dynamicStyles.card}>
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <View style={styles.card}>
         <TextInput
-          style={dynamicStyles.field}
+          style={styles.field}
           placeholder="Šaukinys"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.colors.textSecondary}
           autoCapitalize="characters"
           value={receivedCallsign}
           onChangeText={setReceivedCallsign}
           clearButtonMode="while-editing"
         />
-        <View style={dynamicStyles.divider} />
+        <View style={styles.divider} />
         <TextInput
-          style={dynamicStyles.field}
+          style={styles.field}
           placeholder="Gautas WAL"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.colors.textSecondary}
           autoCapitalize="characters"
           value={receivedWAL}
           onChangeText={setReceivedWAL}
           clearButtonMode="while-editing"
         />
-        <View style={dynamicStyles.divider} />
+        <View style={styles.divider} />
         <TextInput
-          style={dynamicStyles.field}
+          style={styles.field}
           placeholder="Gautas RST"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.colors.textSecondary}
           keyboardType="numeric"
           value={receivedRST}
           onChangeText={setReceivedRST}
@@ -165,21 +126,21 @@ export default function LogForm() {
         />
       </View>
 
-      <View style={dynamicStyles.card}>
+      <View style={styles.card}>
         <TextInput
-          style={dynamicStyles.field}
+          style={styles.field}
           placeholder="Išsiųstas WAL"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.colors.textSecondary}
           autoCapitalize="characters"
           value={sentWAL}
           onChangeText={setSentWAL}
           clearButtonMode="while-editing"
         />
-        <View style={dynamicStyles.divider} />
+        <View style={styles.divider} />
         <TextInput
-          style={dynamicStyles.field}
+          style={styles.field}
           placeholder="Išsiųstas RST"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.colors.textSecondary}
           keyboardType="numeric"
           value={sentRST}
           onChangeText={setSentRST}
@@ -187,22 +148,22 @@ export default function LogForm() {
         />
       </View>
 
-      <View style={dynamicStyles.card}>
+      <View style={styles.card}>
         <TextInput
-          style={dynamicStyles.field}
+          style={styles.field}
           placeholder="Dažnis (MHz)"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={theme.colors.textSecondary}
           keyboardType="numeric"
           value={frequency}
           onChangeText={setFrequency}
           clearButtonMode="while-editing"
         />
-        <View style={dynamicStyles.divider} />
+        <View style={styles.divider} />
         <Picker
           selectedValue={mode}
           onValueChange={setMode}
-          style={dynamicStyles.picker}
-          itemStyle={dynamicStyles.pickerItem}
+          style={styles.picker}
+          itemStyle={styles.pickerItem}
         >
           <Picker.Item label="SSB" value="SSB" />
           <Picker.Item label="CW" value="CW" />
@@ -213,10 +174,39 @@ export default function LogForm() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
+  scroll: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
   content: {
     paddingHorizontal: 16,
     paddingVertical: 20,
     gap: 35,
   },
-});
+  card: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  field: {
+    fontSize: 17,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: theme.colors.card,
+    color: theme.colors.text,
+  },
+  divider: {
+    height: 0.5,
+    backgroundColor: theme.colors.separator,
+    marginLeft: 16,
+  },
+  picker: {
+    backgroundColor: theme.colors.card,
+    height: 120,
+  },
+  pickerItem: {
+    color: theme.colors.text,
+    height: 120,
+  },
+}));
