@@ -118,9 +118,11 @@ export default function LogForm() {
       },
       picker: {
         backgroundColor: colors.card,
+        height: 120,
       },
       pickerItem: {
         color: colors.text,
+        height: 120,
       },
     }),
     [colors]
