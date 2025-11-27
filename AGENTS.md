@@ -49,6 +49,10 @@ An amateur radio application inspired by Pokemon Go. Users (amateur radio operat
 - **Map Segmentation**: Lithuania is segmented into a 10"x10" coordinate grid, known as the **WAL grid**.
 - **Territory**: Each grid square represents a territory that can be controlled by a team.
 
+### Language
+
+Use Lithuanian language for all displayed text
+
 ### Team Mechanics
 
 - **Teams**: Three teams: **Yellow**, **Green**, and **Red**.

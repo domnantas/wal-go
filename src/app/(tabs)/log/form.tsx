@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useColors } from "@/hooks/useColors";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
+import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -27,34 +28,39 @@ export default function LogForm() {
   const [sentWAL, setSentWAL] = useState("");
   const [sentRST, setSentRST] = useState("");
   const [frequency, setFrequency] = useState("");
-  const [mode, setMode] = useState("SSB");
+  const [mode, setMode] = useState<(typeof VALID_MODES)[number]>("SSB");
 
   const handleSubmit = useCallback(async () => {
     if (!session?.user.id) {
-      Alert.alert("Error", "You must be logged in to add a QSO.");
+      Alert.alert("Klaida", "Turite būti prisijungę, kad pridėtumėte QSO.");
       return;
     }
 
-    if (!receivedCallsign) {
-      Alert.alert("Error", "Received callsign is required.");
+    const result = qsoSchema.safeParse({
+      receivedCallsign,
+      receivedWAL,
+      receivedRST,
+      sentWAL,
+      sentRST,
+      frequency,
+      mode,
+    });
+
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      Alert.alert("Validacijos klaida", firstError.message);
       return;
     }
 
     try {
       await drizzle.insert(qsos).values({
         userId: session.user.id,
-        receivedCallsign,
-        receivedWAL,
-        receivedRST,
-        sentWAL,
-        sentRST,
-        frequency,
-        mode,
+        ...result.data,
       });
       router.back();
     } catch (error) {
       console.error("Failed to save QSO:", error);
-      Alert.alert("Error", "Failed to save QSO. Please try again.");
+      Alert.alert("Klaida", "Nepavyko išsaugoti QSO. Bandykite dar kartą.");
     }
   }, [
     drizzle,
