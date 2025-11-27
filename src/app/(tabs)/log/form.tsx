@@ -1,8 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useColors } from "@/hooks/useColors";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { useNavigation, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -17,6 +18,7 @@ export default function LogForm() {
   const router = useRouter();
   const { drizzle } = useSystem();
   const { session } = useAuth();
+  const colors = useColors();
 
   const [receivedCallsign, setReceivedCallsign] = useState("");
   const [receivedWAL, setReceivedWAL] = useState("");
@@ -84,33 +86,63 @@ export default function LogForm() {
     });
   }, [handleSubmit, navigation]);
 
+  const dynamicStyles = useMemo(
+    () => ({
+      scroll: {
+        flex: 1,
+        backgroundColor: colors.background,
+      },
+      card: {
+        backgroundColor: colors.card,
+        borderRadius: 10,
+        overflow: "hidden" as const,
+      },
+      field: {
+        fontSize: 17,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.card,
+        color: colors.text,
+      },
+      divider: {
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: colors.separator,
+        marginLeft: 16,
+      },
+    }),
+    [colors]
+  );
+
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
+    <ScrollView
+      style={dynamicStyles.scroll}
+      contentContainerStyle={styles.content}
+    >
+      <View style={dynamicStyles.card}>
         <TextInput
-          style={[styles.field, styles.fieldTop]}
-          placeholder="Received callsign"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Šaukinys"
+          placeholderTextColor={colors.textSecondary}
           autoCapitalize="characters"
           value={receivedCallsign}
           onChangeText={setReceivedCallsign}
           clearButtonMode="while-editing"
         />
-        <View style={styles.divider} />
+        <View style={dynamicStyles.divider} />
         <TextInput
-          style={styles.field}
-          placeholder="Received WAL"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Gautas WAL"
+          placeholderTextColor={colors.textSecondary}
           autoCapitalize="characters"
           value={receivedWAL}
           onChangeText={setReceivedWAL}
           clearButtonMode="while-editing"
         />
-        <View style={styles.divider} />
+        <View style={dynamicStyles.divider} />
         <TextInput
-          style={[styles.field, styles.fieldBottom]}
-          placeholder="Received RST (e.g. 59)"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Gautas RST"
+          placeholderTextColor={colors.textSecondary}
           keyboardType="numeric"
           value={receivedRST}
           onChangeText={setReceivedRST}
@@ -118,21 +150,21 @@ export default function LogForm() {
         />
       </View>
 
-      <View style={styles.card}>
+      <View style={dynamicStyles.card}>
         <TextInput
-          style={[styles.field, styles.fieldTop]}
-          placeholder="Sent WAL"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Išsiųstas WAL"
+          placeholderTextColor={colors.textSecondary}
           autoCapitalize="characters"
           value={sentWAL}
           onChangeText={setSentWAL}
           clearButtonMode="while-editing"
         />
-        <View style={styles.divider} />
+        <View style={dynamicStyles.divider} />
         <TextInput
-          style={[styles.field, styles.fieldBottom]}
-          placeholder="Sent RST (e.g. 59)"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Išsiųstas RST"
+          placeholderTextColor={colors.textSecondary}
           keyboardType="numeric"
           value={sentRST}
           onChangeText={setSentRST}
@@ -140,21 +172,21 @@ export default function LogForm() {
         />
       </View>
 
-      <View style={styles.card}>
+      <View style={dynamicStyles.card}>
         <TextInput
-          style={[styles.field, styles.fieldTop]}
-          placeholder="Frequency (MHz)"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Dažnis (MHz)"
+          placeholderTextColor={colors.textSecondary}
           keyboardType="numeric"
           value={frequency}
           onChangeText={setFrequency}
           clearButtonMode="while-editing"
         />
-        <View style={styles.divider} />
+        <View style={dynamicStyles.divider} />
         <TextInput
-          style={[styles.field, styles.fieldBottom]}
-          placeholder="Mode (SSB, CW…)"
-          placeholderTextColor="#8E8E93"
+          style={dynamicStyles.field}
+          placeholder="Mode (SSB, CW...)"
+          placeholderTextColor={colors.textSecondary}
           autoCapitalize="characters"
           value={mode}
           onChangeText={setMode}
@@ -166,42 +198,9 @@ export default function LogForm() {
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    flex: 1,
-  },
   content: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    gap: 16,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#DADADA",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-  },
-  field: {
-    fontSize: 17,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    backgroundColor: "#FFFFFF",
-  },
-  fieldTop: {
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-  },
-  fieldBottom: {
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "#E5E5EA",
-    marginHorizontal: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 35,
   },
 });
