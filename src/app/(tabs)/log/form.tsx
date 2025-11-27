@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useColors } from "@/hooks/useColors";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
+import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -22,9 +23,9 @@ export default function LogForm() {
 
   const [receivedCallsign, setReceivedCallsign] = useState("");
   const [receivedWAL, setReceivedWAL] = useState("");
-  const [receivedRST, setReceivedRST] = useState("59");
+  const [receivedRST, setReceivedRST] = useState("");
   const [sentWAL, setSentWAL] = useState("");
-  const [sentRST, setSentRST] = useState("59");
+  const [sentRST, setSentRST] = useState("");
   const [frequency, setFrequency] = useState("");
   const [mode, setMode] = useState("SSB");
 
@@ -109,6 +110,12 @@ export default function LogForm() {
         backgroundColor: colors.separator,
         marginLeft: 16,
       },
+      picker: {
+        backgroundColor: colors.card,
+      },
+      pickerItem: {
+        color: colors.text,
+      },
     }),
     [colors]
   );
@@ -183,15 +190,16 @@ export default function LogForm() {
           clearButtonMode="while-editing"
         />
         <View style={dynamicStyles.divider} />
-        <TextInput
-          style={dynamicStyles.field}
-          placeholder="Mode (SSB, CW...)"
-          placeholderTextColor={colors.textSecondary}
-          autoCapitalize="characters"
-          value={mode}
-          onChangeText={setMode}
-          clearButtonMode="while-editing"
-        />
+        <Picker
+          selectedValue={mode}
+          onValueChange={setMode}
+          style={dynamicStyles.picker}
+          itemStyle={dynamicStyles.pickerItem}
+        >
+          <Picker.Item label="SSB" value="SSB" />
+          <Picker.Item label="CW" value="CW" />
+          <Picker.Item label="DIGI" value="DIGI" />
+        </Picker>
       </View>
     </ScrollView>
   );
