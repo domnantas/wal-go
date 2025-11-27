@@ -1,0 +1,119 @@
+{
+  "id": "bd2ca671-b48d-4692-a77a-84984cca14b7",
+  "prevId": "b89bcddf-606d-4a18-95c1-e5e377613bf1",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.qsos": {
+      "name": "qsos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_callsign": {
+          "name": "received_callsign",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_wal": {
+          "name": "received_wal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sent_wal": {
+          "name": "sent_wal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "received_rst": {
+          "name": "received_rst",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_rst": {
+          "name": "sent_rst",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "qsos_user_id_users_id_fk": {
+          "name": "qsos_user_id_users_id_fk",
+          "tableFrom": "qsos",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Authenticated can insert/select/update/delete own QSOs": {
+          "name": "Authenticated can insert/select/update/delete own QSOs",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "((select auth.uid()) is not null and (select auth.uid()) = \"qsos\".\"user_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

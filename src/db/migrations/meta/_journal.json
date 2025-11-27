@@ -15,6 +15,13 @@
       "when": 1763933271945,
       "tag": "0001_aberrant_ego",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763987246448,
+      "tag": "0002_perpetual_butterfly",
+      "breakpoints": true
     }
   ]
 }
