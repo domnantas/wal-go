@@ -1,22 +1,33 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useColors } from "@/hooks/useColors";
 import { useSystem } from "@/lib/powersync/system";
 import { Link, useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
+
+const callsignSchema = z
+  .string()
+  .min(1, "Šaukinys yra privalomas")
+  .min(3, "Šaukinys turi būti bent 3 simbolių")
+  .max(10, "Šaukinys negali viršyti 10 simbolių")
+  .regex(/^[A-Z0-9]+$/, "Šaukinys gali turėti tik raides ir skaičius");
 
 export default function SignUp() {
   const { supabase } = useAuth();
   const system = useSystem();
   const router = useRouter();
+  const colors = useColors();
 
   const [callsign, setCallsign] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
@@ -24,6 +35,12 @@ export default function SignUp() {
   const [pendingVerification, setPendingVerification] = useState(false);
 
   const handleSignUp = async () => {
+    const callsignResult = callsignSchema.safeParse(callsign);
+    if (!callsignResult.success) {
+      Alert.alert("Klaida", callsignResult.error.issues[0].message);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email: emailAddress,
@@ -49,19 +66,85 @@ export default function SignUp() {
     }
   };
 
+  const dynamicStyles = useMemo(
+    () => ({
+      container: {
+        flex: 1,
+        backgroundColor: colors.background,
+      },
+      formCard: {
+        backgroundColor: colors.card,
+        borderRadius: 16,
+        padding: 24,
+        marginHorizontal: 24,
+        gap: 12,
+      },
+      heading: {
+        fontSize: 22,
+        fontWeight: "700" as const,
+        color: colors.text,
+        textAlign: "center" as const,
+      },
+      subheading: {
+        fontSize: 14,
+        color: colors.textSecondary,
+        textAlign: "center" as const,
+        marginTop: 4,
+        marginBottom: 16,
+      },
+      label: {
+        fontSize: 14,
+        fontWeight: "600" as const,
+        color: colors.textSecondary,
+      },
+      input: {
+        height: 48,
+        borderRadius: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.separator,
+        paddingHorizontal: 16,
+        fontSize: 16,
+        color: colors.text,
+        backgroundColor: colors.background,
+      },
+      button: {
+        marginTop: 16,
+        height: 52,
+        borderRadius: 14,
+        backgroundColor: colors.tint,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+      },
+      buttonText: {
+        color: "#ffffff",
+        fontSize: 16,
+        fontWeight: "700" as const,
+        letterSpacing: 0.3,
+      },
+      link: {
+        color: colors.tint,
+        fontSize: 14,
+        fontWeight: "600" as const,
+        textAlign: "center" as const,
+        marginTop: 8,
+      },
+    }),
+    [colors]
+  );
+
   if (pendingVerification) {
     return (
-      <SafeAreaView>
+      <SafeAreaView style={dynamicStyles.container}>
         <KeyboardAvoidingView
           behavior={Platform.select({ ios: "padding", android: undefined })}
         >
-          <View style={styles.formCard}>
-            <Text style={styles.heading}>Patikrinkite paštą</Text>
-            <Text style={styles.subheading}>
+          <View style={dynamicStyles.formCard}>
+            <Text style={dynamicStyles.heading}>Patikrinkite paštą</Text>
+            <Text style={dynamicStyles.subheading}>
               Patvirtinimo nuoroda išsiųsta. Atidarykite ją el. pašte, kad
               užbaigtumėte registraciją.
             </Text>
-            <Link href="/sign-in" style={styles.link}>
+            <Link href="/sign-in" style={dynamicStyles.link}>
               Grįžti į prisijungimą
             </Link>
           </View>
@@ -71,54 +154,53 @@ export default function SignUp() {
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={dynamicStyles.container}>
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: "padding", android: undefined })}
       >
-        <View style={styles.formCard}>
-          <Text style={styles.label}>Šaukinys</Text>
+        <View style={dynamicStyles.formCard}>
+          <Text style={dynamicStyles.label}>Šaukinys</Text>
           <TextInput
-            autoCapitalize="none"
+            autoCapitalize="characters"
+            autoCorrect={false}
             value={callsign}
-            placeholder="Šaukinys"
-            placeholderTextColor="#9a9a9a"
-            onChangeText={(value) => {
-              const normalizedCallsign = value
-                .replace(/[^a-zA-Z0-9]/g, "")
-                .toUpperCase();
-              setCallsign(normalizedCallsign);
-            }}
-            style={styles.input}
+            placeholder="LY1ABC"
+            placeholderTextColor={colors.textSecondary}
+            onChangeText={setCallsign}
+            style={dynamicStyles.input}
           />
 
-          <Text style={styles.label}>El. paštas</Text>
+          <Text style={dynamicStyles.label}>El. paštas</Text>
           <TextInput
             autoCapitalize="none"
+            autoCorrect={false}
             keyboardType="email-address"
             value={emailAddress}
-            placeholder="El. paštas"
-            placeholderTextColor="#9a9a9a"
-            onChangeText={(email) => setEmailAddress(email)}
-            style={styles.input}
+            placeholder="el.pastas@pvz.lt"
+            placeholderTextColor={colors.textSecondary}
+            onChangeText={setEmailAddress}
+            style={dynamicStyles.input}
           />
 
-          <Text style={styles.label}>Slaptažodis</Text>
+          <Text style={dynamicStyles.label}>Slaptažodis</Text>
           <TextInput
             value={password}
             placeholder="Slaptažodis"
-            placeholderTextColor="#9a9a9a"
+            placeholderTextColor={colors.textSecondary}
             secureTextEntry
-            onChangeText={(passwordValue) => setPassword(passwordValue)}
-            style={styles.input}
+            onChangeText={setPassword}
+            style={dynamicStyles.input}
           />
 
-          <TouchableOpacity
+          <Pressable
             onPress={handleSignUp}
-            style={styles.button}
-            activeOpacity={0.8}
+            style={({ pressed }) => [
+              dynamicStyles.button,
+              pressed && styles.pressed,
+            ]}
           >
-            <Text style={styles.buttonText}>Užsiregistruoti</Text>
-          </TouchableOpacity>
+            <Text style={dynamicStyles.buttonText}>Užsiregistruoti</Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -126,66 +208,7 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
-  formCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 24,
-    marginLeft: 24,
-    marginRight: 24,
-    gap: 12,
-    shadowColor: "#111827",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-  },
-  subheading: {
-    fontSize: 14,
-    color: "#4b5563",
-    textAlign: "center",
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  input: {
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#f9fafb",
-  },
-  button: {
-    marginTop: 16,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: "#2563eb",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-  link: {
-    color: "#2563eb",
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-    marginTop: 8,
+  pressed: {
+    opacity: 0.7,
   },
 });

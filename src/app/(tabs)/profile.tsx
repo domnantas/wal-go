@@ -1,10 +1,19 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useColors } from "@/hooks/useColors";
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useMemo } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 export default function Profile() {
-  const { signOut } = useAuth();
+  const { session, signOut } = useAuth();
   const router = useRouter();
+  const colors = useColors();
 
   const handleSignOut = async () => {
     try {
@@ -15,50 +24,92 @@ export default function Profile() {
     }
   };
 
+  const dynamicStyles = useMemo(
+    () => ({
+      container: {
+        flex: 1,
+        backgroundColor: colors.background,
+      },
+      card: {
+        backgroundColor: colors.card,
+        borderRadius: 10,
+        overflow: "hidden" as const,
+      },
+      row: {
+        flexDirection: "row" as const,
+        justifyContent: "space-between" as const,
+        alignItems: "center" as const,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.card,
+      },
+      label: {
+        fontSize: 17,
+        color: colors.text,
+      },
+      value: {
+        fontSize: 17,
+        color: colors.textSecondary,
+      },
+      divider: {
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: colors.separator,
+        marginLeft: 16,
+      },
+      signOutButton: {
+        backgroundColor: colors.card,
+        borderRadius: 10,
+        alignItems: "center" as const,
+        justifyContent: "center" as const,
+        paddingVertical: 12,
+      },
+      signOutText: {
+        fontSize: 17,
+        color: colors.destructive,
+      },
+    }),
+    [colors]
+  );
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.callsignLabel}>Šaukinys</Text>
-      {/* <Text style={styles.callsignValue}>{callsign}</Text> */}
-      <TouchableOpacity
+    <ScrollView
+      style={dynamicStyles.container}
+      contentContainerStyle={styles.content}
+    >
+      <View style={dynamicStyles.card}>
+        <View style={dynamicStyles.row}>
+          <Text style={dynamicStyles.label}>Šaukinys</Text>
+          <Text style={dynamicStyles.value}>
+            {session?.user.user_metadata?.callsign}
+          </Text>
+        </View>
+        <View style={dynamicStyles.divider} />
+        <View style={dynamicStyles.row}>
+          <Text style={dynamicStyles.label}>El. paštas</Text>
+          <Text style={dynamicStyles.value}>{session?.user.email}</Text>
+        </View>
+      </View>
+
+      <Pressable
         onPress={handleSignOut}
-        style={styles.signOutButton}
-        activeOpacity={0.8}
+        style={({ pressed }) => [
+          dynamicStyles.signOutButton,
+          pressed && styles.pressed,
+        ]}
       >
-        <Text style={styles.signOutText}>Atsijungti</Text>
-      </TouchableOpacity>
-    </View>
+        <Text style={dynamicStyles.signOutText}>Atsijungti</Text>
+      </Pressable>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  content: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 35,
   },
-  callsignLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  callsignValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 4,
-    marginBottom: 24,
-    color: "#111827",
-  },
-  signOutButton: {
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: "#2563eb",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-  },
-  signOutText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#ffffff",
+  pressed: {
+    opacity: 0.7,
   },
 });
