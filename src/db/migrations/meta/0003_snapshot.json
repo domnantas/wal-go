@@ -1,0 +1,324 @@
+{
+  "id": "8458ce68-15a5-46cb-808e-689476b17e38",
+  "prevId": "bd2ca671-b48d-4692-a77a-84984cca14b7",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.qsos": {
+      "name": "qsos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season_id": {
+          "name": "season_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_callsign": {
+          "name": "received_callsign",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "received_wal": {
+          "name": "received_wal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sent_wal": {
+          "name": "sent_wal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "received_rst": {
+          "name": "received_rst",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_rst": {
+          "name": "sent_rst",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "qsos_user_id_users_id_fk": {
+          "name": "qsos_user_id_users_id_fk",
+          "tableFrom": "qsos",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "qsos_season_id_seasons_id_fk": {
+          "name": "qsos_season_id_seasons_id_fk",
+          "tableFrom": "qsos",
+          "tableTo": "seasons",
+          "columnsFrom": [
+            "season_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Authenticated can insert/select/update/delete own QSOs": {
+          "name": "Authenticated can insert/select/update/delete own QSOs",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "authenticated"
+          ],
+          "using": "((select auth.uid()) is not null and (select auth.uid()) = \"qsos\".\"user_id\")"
+        }
+      },
+      "checkConstraints": {
+        "callsign_format": {
+          "name": "callsign_format",
+          "value": "length(\"qsos\".\"received_callsign\") >= 3 AND length(\"qsos\".\"received_callsign\") <= 10"
+        },
+        "received_wal_format": {
+          "name": "received_wal_format",
+          "value": "\"qsos\".\"received_wal\" IS NULL OR \"qsos\".\"received_wal\" = '' OR \"qsos\".\"received_wal\" ~ '^[A-P][0-9]{2}$'"
+        },
+        "sent_wal_format": {
+          "name": "sent_wal_format",
+          "value": "\"qsos\".\"sent_wal\" IS NULL OR \"qsos\".\"sent_wal\" = '' OR \"qsos\".\"sent_wal\" ~ '^[A-P][0-9]{2}$'"
+        },
+        "received_rst_format": {
+          "name": "received_rst_format",
+          "value": "\"qsos\".\"received_rst\" ~ '^[1-5][1-9][1-9]?$'"
+        },
+        "sent_rst_format": {
+          "name": "sent_rst_format",
+          "value": "\"qsos\".\"sent_rst\" ~ '^[1-5][1-9][1-9]?$'"
+        },
+        "mode_valid": {
+          "name": "mode_valid",
+          "value": "\"qsos\".\"mode\" IN ('SSB', 'CW', 'DIGI')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.season_participants": {
+      "name": "season_participants",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season_id": {
+          "name": "season_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team": {
+          "name": "team",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "joined_at": {
+          "name": "joined_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "season_participants_user_id_users_id_fk": {
+          "name": "season_participants_user_id_users_id_fk",
+          "tableFrom": "season_participants",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "season_participants_season_id_seasons_id_fk": {
+          "name": "season_participants_season_id_seasons_id_fk",
+          "tableFrom": "season_participants",
+          "tableTo": "seasons",
+          "columnsFrom": [
+            "season_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_season_unique": {
+          "name": "user_season_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "season_id"
+          ]
+        }
+      },
+      "policies": {
+        "Authenticated can select all participants": {
+          "name": "Authenticated can select all participants",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) is not null"
+        },
+        "Authenticated can insert own participation": {
+          "name": "Authenticated can insert own participation",
+          "as": "PERMISSIVE",
+          "for": "INSERT",
+          "to": [
+            "authenticated"
+          ],
+          "withCheck": "((select auth.uid()) is not null and (select auth.uid()) = \"season_participants\".\"user_id\")"
+        }
+      },
+      "checkConstraints": {
+        "team_valid": {
+          "name": "team_valid",
+          "value": "\"season_participants\".\"team\" IN ('yellow', 'green', 'red')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.seasons": {
+      "name": "seasons",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "Authenticated can select seasons": {
+          "name": "Authenticated can select seasons",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "(select auth.uid()) is not null"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -1,3 +1,4 @@
+import { useActiveSeason } from "@/hooks/useActiveSeason";
 import { useAuth } from "@/hooks/useAuth";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
@@ -13,6 +14,7 @@ export default function LogForm() {
   const router = useRouter();
   const { drizzle } = useSystem();
   const { session } = useAuth();
+  const { activeSeason } = useActiveSeason();
   const { theme } = useUnistyles();
 
   const [receivedCallsign, setReceivedCallsign] = useState("");
@@ -26,6 +28,11 @@ export default function LogForm() {
   const handleSubmit = useCallback(async () => {
     if (!session?.user.id) {
       Alert.alert("Klaida", "Turite būti prisijungę, kad pridėtumėte QSO.");
+      return;
+    }
+
+    if (!activeSeason) {
+      Alert.alert("Klaida", "Šiuo metu nėra aktyvaus sezono.");
       return;
     }
 
@@ -48,6 +55,7 @@ export default function LogForm() {
     try {
       await drizzle.insert(qsos).values({
         userId: session.user.id,
+        seasonId: activeSeason.id,
         ...result.data,
       });
       router.back();
@@ -58,6 +66,7 @@ export default function LogForm() {
   }, [
     drizzle,
     session?.user.id,
+    activeSeason,
     receivedCallsign,
     receivedWAL,
     receivedRST,

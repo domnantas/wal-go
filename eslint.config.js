@@ -2,10 +2,4 @@
 const { defineConfig } = require("eslint/config");
 const expoConfig = require("eslint-config-expo/flat");
 
-module.exports = defineConfig([
-  expoConfig,
-  { extends: ["plugin:import/typescript"] },
-  {
-    ignores: ["dist/*"],
-  },
-]);
+module.exports = defineConfig([expoConfig]);

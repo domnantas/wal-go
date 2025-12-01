@@ -5,9 +5,61 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 import { authUid, authUsers, authenticatedRole } from "drizzle-orm/supabase";
+
+export const seasons = pgTable(
+  "seasons",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  () => [
+    pgPolicy("Authenticated can select seasons", {
+      for: "select",
+      to: authenticatedRole,
+      using: isNotNull(authUid),
+    }),
+  ]
+);
+
+export const seasonParticipants = pgTable(
+  "season_participants",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    seasonId: uuid("season_id")
+      .notNull()
+      .references(() => seasons.id, { onDelete: "cascade" }),
+    team: text("team").notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("user_season_unique").on(table.userId, table.seasonId),
+    check("team_valid", sql`${table.team} IN ('yellow', 'green', 'red')`),
+    pgPolicy("Authenticated can select all participants", {
+      for: "select",
+      to: authenticatedRole,
+      using: isNotNull(authUid),
+    }),
+    pgPolicy("Authenticated can insert own participation", {
+      for: "insert",
+      to: authenticatedRole,
+      withCheck: and(isNotNull(authUid), eq(authUid, table.userId)),
+    }),
+  ]
+);
 
 export const qsos = pgTable(
   "qsos",
@@ -16,6 +68,9 @@ export const qsos = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => authUsers.id, { onDelete: "cascade" }),
+    seasonId: uuid("season_id")
+      .notNull()
+      .references(() => seasons.id),
     receivedCallsign: text("received_callsign").notNull(),
     receivedWAL: text("received_wal"),
     sentWAL: text("sent_wal"),

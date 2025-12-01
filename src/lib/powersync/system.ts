@@ -1,7 +1,10 @@
 import "@azure/core-asynciterator-polyfill";
 
 import { SupabaseStorageAdapter } from "@/lib/storage/SupabaseStorageAdapter";
-import { PowerSyncSQLiteDatabase, wrapPowerSyncWithDrizzle } from "@powersync/drizzle-driver";
+import {
+  PowerSyncSQLiteDatabase,
+  wrapPowerSyncWithDrizzle,
+} from "@powersync/drizzle-driver";
 import {
   createBaseLogger,
   LogLevel,
@@ -37,9 +40,12 @@ export class System {
       },
       logger,
     });
-    this.drizzle = wrapPowerSyncWithDrizzle<typeof drizzleAppSchema>(this.powersync, {
-      schema: drizzleAppSchema,
-    });
+    this.drizzle = wrapPowerSyncWithDrizzle<typeof drizzleAppSchema>(
+      this.powersync,
+      {
+        schema: drizzleAppSchema,
+      }
+    );
     /**
      * The snippet below uses OP-SQLite as the default database adapter.
      * You will have to uninstall `@journeyapps/react-native-quick-sqlite` and
@@ -84,6 +90,9 @@ export class System {
     this.connectPromise = this.powersync
       .connect(this.supabaseConnector, {
         clientImplementation: SyncClientImplementation.RUST,
+        params: {
+          season_id: "96fde063-b521-4ff9-8df3-3a43937faf25",
+        },
       })
       .finally(() => {
         this.connectPromise = null;

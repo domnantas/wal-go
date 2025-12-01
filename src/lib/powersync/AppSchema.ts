@@ -2,6 +2,28 @@ import { DrizzleAppSchema } from "@powersync/drizzle-driver";
 import { sql } from "drizzle-orm";
 import { check, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+export const seasons = sqliteTable("seasons", {
+  id: text("id").primaryKey().notNull(),
+  name: text("name").notNull(),
+  startsAt: text("starts_at").notNull(),
+  endsAt: text("ends_at").notNull(),
+  createdAt: text("created_at").default(sql`(current_timestamp)`),
+});
+
+export const seasonParticipants = sqliteTable(
+  "season_participants",
+  {
+    id: text("id").primaryKey().notNull(),
+    userId: text("user_id").notNull(),
+    seasonId: text("season_id").notNull(),
+    team: text("team").notNull(),
+    joinedAt: text("joined_at").default(sql`(current_timestamp)`),
+  },
+  (table) => [
+    check("team_valid", sql`${table.team} IN ('yellow', 'green', 'red')`),
+  ]
+);
+
 export const qsos = sqliteTable(
   "qsos",
   {
@@ -10,6 +32,7 @@ export const qsos = sqliteTable(
       .notNull()
       .default(sql`uuid()`),
     userId: text("user_id").notNull(),
+    seasonId: text("season_id").notNull(),
     receivedCallsign: text("received_callsign").notNull(),
     receivedWAL: text("received_wal"),
     sentWAL: text("sent_wal"),
@@ -48,10 +71,14 @@ export const qsos = sqliteTable(
 );
 
 export const drizzleAppSchema = {
+  seasons,
+  seasonParticipants,
   qsos,
 };
 
 export const AppSchema = new DrizzleAppSchema(drizzleAppSchema);
 
 export type Database = (typeof AppSchema)["types"];
+export type SeasonRecord = Database["seasons"];
+export type SeasonParticipantRecord = Database["season_participants"];
 export type QSORecord = Database["qsos"];
