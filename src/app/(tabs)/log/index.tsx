@@ -2,7 +2,8 @@ import { Text } from "@/components/Text";
 import { useSystem } from "@/lib/powersync/system";
 import { toCompilableQuery } from "@powersync/drizzle-driver";
 import { useQuery } from "@powersync/react-native";
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 
 export default function Log() {
   const { drizzle } = useSystem();

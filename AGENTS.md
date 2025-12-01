@@ -1,5 +1,7 @@
 # Repository Guidelines
 
+**IMPORTANT**: When architectural or technical conventions change (e.g., adopting a new styling system, changing state management approach, or switching libraries), update this file immediately to reflect the current state of the codebase. This ensures AI agents and developers always follow the latest conventions.
+
 ## Project Structure & Module Organization
 
 `app/` hosts Expo Router screens; co-locate screen-specific styles beside the route file. Shared UI lives in `components/`, reusable logic in `hooks/`, and constants in `constants/`. Static media sits under `assets/`. Keep scripts for release automation in `scripts/`, and manage Expo metadata via `app.json`. Prefer module aliases provided by Expo Router over deep relative paths.
@@ -13,7 +15,46 @@
 
 ## Coding Style & Naming Conventions
 
-TypeScript is mandatory; extend new files with `.ts` or `.tsx`. Follow Expo’s ESLint flat config, 2-space indentation, and double quotes. Name screens with PascalCase (e.g., `ProfileScreen.tsx`), hooks with `use` prefix, and constants in SCREAMING_SNAKE_CASE. Keep component files small; extract shared styles into `StyleSheet.create` blocks exported from local modules when reuse is needed.
+TypeScript is mandatory; extend new files with `.ts` or `.tsx`. Follow Expo's ESLint flat config, 2-space indentation, and double quotes. Name screens with PascalCase (e.g., `ProfileScreen.tsx`), hooks with `use` prefix, and constants in SCREAMING_SNAKE_CASE. Keep component files small.
+
+### Styling
+
+This project uses **[react-native-unistyles](https://reactnativeunistyles.vercel.app/)** for styling with theme support. **Never use React Native's built-in `StyleSheet` from `react-native`**.
+
+**Required approach:**
+```typescript
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
+
+// In your component:
+const { theme } = useUnistyles();
+
+// At the bottom of the file:
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    backgroundColor: theme.colors.background,
+    padding: 16,
+  },
+  text: {
+    color: theme.colors.text,
+  },
+}));
+```
+
+**Theme colors available:**
+- `theme.colors.background` - Main background color
+- `theme.colors.card` - Card/surface background
+- `theme.colors.text` - Primary text color
+- `theme.colors.textSecondary` - Secondary text color (also use for placeholder text)
+- `theme.colors.separator` - Border/divider color
+- `theme.colors.tint` - Primary brand color
+- `theme.colors.destructive` - Error/destructive action color
+- `theme.mapLightPreset` - Map theme preset ("day" or "night")
+
+**Additional conventions:**
+- Use `Pressable` instead of `TouchableOpacity` for interactive elements
+- Apply pressed states: `style={({ pressed }) => [styles.button, pressed && styles.pressed]}`
+- Avoid hardcoded colors - always use theme colors for consistency
+- Extract shared styles into separate files when needed
 
 ## Testing Guidelines
 

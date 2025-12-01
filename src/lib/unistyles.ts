@@ -10,6 +10,7 @@ const lightTheme = {
     tint: "#007AFF",
     destructive: "#FF3B30",
   },
+  mapLightPreset: "day" as const,
 };
 
 const darkTheme = {
@@ -22,6 +23,7 @@ const darkTheme = {
     tint: "#0A84FF",
     destructive: "#FF453A",
   },
+  mapLightPreset: "night" as const,
 };
 
 type AppThemes = {

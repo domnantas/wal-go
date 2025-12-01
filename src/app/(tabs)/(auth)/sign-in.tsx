@@ -5,18 +5,19 @@ import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
+  Pressable,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 export default function SignIn() {
   const { supabase } = useAuth();
   const system = useSystem();
   const router = useRouter();
+  const { theme } = useUnistyles();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -51,7 +52,7 @@ export default function SignIn() {
             keyboardType="email-address"
             value={emailAddress}
             placeholder="El. paštas"
-            placeholderTextColor="#9a9a9a"
+            placeholderTextColor={theme.colors.textSecondary}
             onChangeText={(emailAddressValue) =>
               setEmailAddress(emailAddressValue)
             }
@@ -62,19 +63,18 @@ export default function SignIn() {
           <TextInput
             value={password}
             placeholder="Slaptažodis"
-            placeholderTextColor="#9a9a9a"
+            placeholderTextColor={theme.colors.textSecondary}
             secureTextEntry
             onChangeText={(passwordValue) => setPassword(passwordValue)}
             style={styles.input}
           />
 
-          <TouchableOpacity
+          <Pressable
             onPress={handleSignIn}
-            style={styles.button}
-            activeOpacity={0.8}
+            style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           >
             <Text style={styles.buttonText}>Prisijungti</Text>
-          </TouchableOpacity>
+          </Pressable>
 
           <Link href="/forgot-password" style={styles.secondaryLink}>
             Pamiršote slaptažodį?
@@ -92,45 +92,43 @@ export default function SignIn() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     padding: 24,
   },
   formCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 24,
     marginLeft: 24,
     marginRight: 24,
     gap: 12,
-    shadowColor: "#111827",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: theme.colors.textSecondary,
   },
   input: {
     height: 48,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderWidth: 0.5,
+    borderColor: theme.colors.separator,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#f9fafb",
+    color: theme.colors.text,
+    backgroundColor: theme.colors.background,
   },
   button: {
     marginTop: 16,
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#2563eb",
+    backgroundColor: theme.colors.tint,
     alignItems: "center",
     justifyContent: "center",
+  },
+  pressed: {
+    opacity: 0.7,
   },
   buttonText: {
     color: "#ffffff",
@@ -146,19 +144,19 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   linkPrompt: {
-    color: "#4b5563",
+    color: theme.colors.textSecondary,
     fontSize: 14,
   },
   link: {
-    color: "#2563eb",
+    color: theme.colors.tint,
     fontSize: 14,
     fontWeight: "600",
   },
   secondaryLink: {
     marginTop: 12,
-    color: "#2563eb",
+    color: theme.colors.tint,
     fontSize: 14,
     fontWeight: "600",
     textAlign: "center",
   },
-});
+}));

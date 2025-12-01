@@ -4,13 +4,13 @@ import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
+  Pressable,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 const FALLBACK_ERROR = "Įvyko klaida. Pabandykite dar kartą.";
 
@@ -41,6 +41,7 @@ const extractErrorMessage = (unknownError: unknown) => {
 export default function ForgotPassword() {
   const { supabase } = useAuth();
   const router = useRouter();
+  const { theme } = useUnistyles();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,33 +101,39 @@ export default function ForgotPassword() {
                 keyboardType="email-address"
                 value={emailAddress}
                 placeholder="El. paštas"
-                placeholderTextColor="#9a9a9a"
+                placeholderTextColor={theme.colors.textSecondary}
                 onChangeText={setEmailAddress}
                 style={styles.input}
               />
 
-              <TouchableOpacity
+              <Pressable
                 onPress={handleRequestLink}
-                style={[styles.button, isSubmitting && styles.buttonDisabled]}
-                activeOpacity={0.8}
+                style={({ pressed }) => [
+                  styles.button,
+                  isSubmitting && styles.buttonDisabled,
+                  pressed && styles.pressed,
+                ]}
                 disabled={isSubmitting}
               >
                 <Text style={styles.buttonText}>
                   {isSubmitting ? "Siunčiame..." : "Siųsti nuorodą"}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </>
           )}
 
           {requestComplete && (
-            <TouchableOpacity
+            <Pressable
               onPress={handleGoBack}
-              style={[styles.button, isSubmitting && styles.buttonDisabled]}
-              activeOpacity={0.8}
+              style={({ pressed }) => [
+                styles.button,
+                isSubmitting && styles.buttonDisabled,
+                pressed && styles.pressed,
+              ]}
               disabled={isSubmitting}
             >
               <Text style={styles.buttonText}>Grįžti į prisijungimą</Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
 
           {statusMessage ? (
@@ -141,29 +148,24 @@ export default function ForgotPassword() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   formCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: theme.colors.card,
     borderRadius: 16,
     padding: 24,
     marginLeft: 24,
     marginRight: 24,
     gap: 12,
-    shadowColor: "#111827",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
   },
   heading: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#111827",
+    color: theme.colors.text,
     textAlign: "center",
   },
   subheading: {
     fontSize: 14,
-    color: "#4b5563",
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 4,
     marginBottom: 16,
@@ -171,28 +173,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#374151",
+    color: theme.colors.textSecondary,
   },
   input: {
     height: 48,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderWidth: 0.5,
+    borderColor: theme.colors.separator,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#f9fafb",
+    color: theme.colors.text,
+    backgroundColor: theme.colors.background,
   },
   button: {
     marginTop: 16,
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#2563eb",
+    backgroundColor: theme.colors.tint,
     alignItems: "center",
     justifyContent: "center",
   },
   buttonDisabled: {
-    backgroundColor: "#93c5fd",
+    opacity: 0.5,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   buttonText: {
     color: "#ffffff",
@@ -210,6 +215,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: "center",
     fontSize: 14,
-    color: "#dc2626",
+    color: theme.colors.destructive,
   },
-});
+}));

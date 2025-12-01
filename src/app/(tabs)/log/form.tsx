@@ -5,13 +5,7 @@ import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Button, ScrollView, TextInput, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 export default function LogForm() {
