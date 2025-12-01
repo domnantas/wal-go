@@ -19,28 +19,10 @@ TypeScript is mandatory; extend new files with `.ts` or `.tsx`. Follow Expo's ES
 
 ### Styling
 
-This project uses **[react-native-unistyles](https://reactnativeunistyles.vercel.app/)** for styling with theme support. **Never use React Native's built-in `StyleSheet` from `react-native`**.
-
-**Required approach:**
-```typescript
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
-
-// In your component:
-const { theme } = useUnistyles();
-
-// At the bottom of the file:
-const styles = StyleSheet.create((theme) => ({
-  container: {
-    backgroundColor: theme.colors.background,
-    padding: 16,
-  },
-  text: {
-    color: theme.colors.text,
-  },
-}));
-```
+This project uses **[react-native-unistyles](https://reactnativeunistyles.vercel.app/)** for styling with theme support. **Avoid using React Native's built-in `StyleSheet` from `react-native`**.
 
 **Theme colors available:**
+
 - `theme.colors.background` - Main background color
 - `theme.colors.card` - Card/surface background
 - `theme.colors.text` - Primary text color
@@ -51,6 +33,7 @@ const styles = StyleSheet.create((theme) => ({
 - `theme.mapLightPreset` - Map theme preset ("day" or "night")
 
 **Additional conventions:**
+
 - Use `Pressable` instead of `TouchableOpacity` for interactive elements
 - Apply pressed states: `style={({ pressed }) => [styles.button, pressed && styles.pressed]}`
 - Avoid hardcoded colors - always use theme colors for consistency
