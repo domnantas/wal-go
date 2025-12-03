@@ -38,6 +38,8 @@ This project uses **[react-native-unistyles](https://reactnativeunistyles.vercel
 - Apply pressed states: `style={({ pressed }) => [styles.button, pressed && styles.pressed]}`
 - Avoid hardcoded colors - always use theme colors for consistency
 - Extract shared styles into separate files when needed
+- In order to use theme variables in StyleSheets, use the unistyles function notation: `StyleSheet.create((theme) => ({...})`.
+- Avoid using `useUnistyles` hook. Use StyleSheet as the primary option. If that's not possible, use `withUnistyles` factory. If that's not an option either, only then consider using `useUnistyles`.
 
 ## Testing Guidelines
 

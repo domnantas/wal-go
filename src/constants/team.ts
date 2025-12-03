@@ -2,6 +2,8 @@ export const TEAMS = ["yellow", "green", "red"] as const;
 
 export type Team = (typeof TEAMS)[number];
 
-export function isValidTeam(value: string): value is Team {
-  return TEAMS.includes(value as Team);
-}
+export const TEAM_LABELS: Record<Team, string> = {
+  yellow: "Geltona",
+  green: "Žalia",
+  red: "Raudona",
+};

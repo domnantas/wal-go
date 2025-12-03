@@ -1,4 +1,4 @@
-import { seasons, SeasonRecord } from "@/lib/powersync/AppSchema";
+import { SeasonRecord } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { toCompilableQuery } from "@powersync/drizzle-driver";
 import { useQuery } from "@powersync/react-native";

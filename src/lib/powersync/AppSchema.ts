@@ -3,21 +3,31 @@ import { sql } from "drizzle-orm";
 import { check, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const seasons = sqliteTable("seasons", {
-  id: text("id").primaryKey().notNull(),
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .default(sql`uuid()`),
   name: text("name").notNull(),
   startsAt: text("starts_at").notNull(),
   endsAt: text("ends_at").notNull(),
-  createdAt: text("created_at").default(sql`(current_timestamp)`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
 });
 
 export const seasonParticipants = sqliteTable(
   "season_participants",
   {
-    id: text("id").primaryKey().notNull(),
+    id: text("id")
+      .primaryKey()
+      .notNull()
+      .default(sql`uuid()`),
     userId: text("user_id").notNull(),
     seasonId: text("season_id").notNull(),
-    team: text("team").notNull(),
-    joinedAt: text("joined_at").default(sql`(current_timestamp)`),
+    team: text("team", { enum: ["yellow", "green", "red"] }).notNull(),
+    joinedAt: text("joined_at")
+      .notNull()
+      .default(sql`(current_timestamp)`),
   },
   (table) => [
     check("team_valid", sql`${table.team} IN ('yellow', 'green', 'red')`),
@@ -39,7 +49,7 @@ export const qsos = sqliteTable(
     receivedRST: text("received_rst").notNull(),
     sentRST: text("sent_rst").notNull(),
     frequency: text("frequency").notNull(),
-    mode: text("mode").notNull(),
+    mode: text("mode", { enum: ["SSB", "CW", "DIGI"] }).notNull(),
     createdAt: text("created_at").default(sql`(current_timestamp)`),
   },
   (table) => [
@@ -63,10 +73,7 @@ export const qsos = sqliteTable(
       "sent_rst_format",
       sql`${table.sentRST} GLOB '[1-5][1-9]' OR ${table.sentRST} GLOB '[1-5][1-9][1-9]'`
     ),
-    check(
-      "mode_valid",
-      sql`${table.mode} IN ('SSB', 'CW', 'DIGI')`
-    ),
+    check("mode_valid", sql`${table.mode} IN ('SSB', 'CW', 'DIGI')`),
   ]
 );
 

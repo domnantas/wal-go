@@ -1,11 +1,21 @@
 import { IconSymbol } from "@/components/IconSymbol";
+import { useSeasonParticipation } from "@/hooks/useSeasonParticipation";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
-import { Platform, Pressable } from "react-native";
+import { Alert, Platform, Pressable } from "react-native";
 
 export default function LogLayout() {
   const router = useRouter();
+  const { userParticipatingInActiveSeason } = useSeasonParticipation();
+
   const handleOpenForm = () => {
+    if (!userParticipatingInActiveSeason) {
+      Alert.alert(
+        "Prisijunkite prie sezono prieš pridedant QSO",
+        "Profilis → Prisijungti prie sezono."
+      );
+      return;
+    }
     router.push("/(tabs)/log/form");
   };
   return (

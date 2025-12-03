@@ -1,6 +1,7 @@
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import {
   check,
+  pgEnum,
   pgPolicy,
   pgTable,
   text,
@@ -9,6 +10,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { authUid, authUsers, authenticatedRole } from "drizzle-orm/supabase";
+
+export const teamEnum = pgEnum("team", ["yellow", "green", "red"]);
 
 export const seasons = pgTable(
   "seasons",
@@ -40,7 +43,7 @@ export const seasonParticipants = pgTable(
     seasonId: uuid("season_id")
       .notNull()
       .references(() => seasons.id, { onDelete: "cascade" }),
-    team: text("team").notNull(),
+    team: teamEnum().notNull(),
     joinedAt: timestamp("joined_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -61,6 +64,8 @@ export const seasonParticipants = pgTable(
   ]
 );
 
+const modeEnum = pgEnum("mode", ["SSB", "CW", "DIGI"]);
+
 export const qsos = pgTable(
   "qsos",
   {
@@ -77,7 +82,7 @@ export const qsos = pgTable(
     receivedRST: text("received_rst").notNull(),
     sentRST: text("sent_rst").notNull(),
     frequency: text("frequency").notNull(),
-    mode: text("mode").notNull(),
+    mode: modeEnum().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -104,13 +109,7 @@ export const qsos = pgTable(
       "received_rst_format",
       sql`${table.receivedRST} ~ '^[1-5][1-9][1-9]?$'`
     ),
-    check(
-      "sent_rst_format",
-      sql`${table.sentRST} ~ '^[1-5][1-9][1-9]?$'`
-    ),
-    check(
-      "mode_valid",
-      sql`${table.mode} IN ('SSB', 'CW', 'DIGI')`
-    ),
+    check("sent_rst_format", sql`${table.sentRST} ~ '^[1-5][1-9][1-9]?$'`),
+    check("mode_valid", sql`${table.mode} IN ('SSB', 'CW', 'DIGI')`),
   ]
 );

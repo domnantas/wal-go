@@ -1,5 +1,6 @@
 import { useActiveSeason } from "@/hooks/useActiveSeason";
 import { useAuth } from "@/hooks/useAuth";
+import { useSeasonParticipation } from "@/hooks/useSeasonParticipation";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
@@ -15,6 +16,7 @@ export default function LogForm() {
   const { drizzle } = useSystem();
   const { session } = useAuth();
   const { activeSeason } = useActiveSeason();
+  const { userParticipatingInActiveSeason } = useSeasonParticipation();
   const { theme } = useUnistyles();
 
   const [receivedCallsign, setReceivedCallsign] = useState("");
@@ -33,6 +35,14 @@ export default function LogForm() {
 
     if (!activeSeason) {
       Alert.alert("Klaida", "Šiuo metu nėra aktyvaus sezono.");
+      return;
+    }
+
+    if (!userParticipatingInActiveSeason) {
+      Alert.alert(
+        "Klaida",
+        "Turite prisijungti prie sezono prieš pridedant QSO."
+      );
       return;
     }
 
@@ -67,6 +77,7 @@ export default function LogForm() {
     drizzle,
     session?.user.id,
     activeSeason,
+    userParticipatingInActiveSeason,
     receivedCallsign,
     receivedWAL,
     receivedRST,

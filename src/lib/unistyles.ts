@@ -9,6 +9,9 @@ const lightTheme = {
     separator: "#C6C6C8",
     tint: "#007AFF",
     destructive: "#FF3B30",
+    teamYellow: "#ebb016",
+    teamGreen: "#618028",
+    teamRed: "#ce4323",
   },
   mapLightPreset: "day" as const,
 };
@@ -22,6 +25,9 @@ const darkTheme = {
     separator: "#38383A",
     tint: "#0A84FF",
     destructive: "#FF453A",
+    teamYellow: "#ebb016",
+    teamGreen: "#618028",
+    teamRed: "#ce4323",
   },
   mapLightPreset: "night" as const,
 };
