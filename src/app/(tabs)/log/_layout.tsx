@@ -6,9 +6,14 @@ import { Alert, Platform, Pressable } from "react-native";
 
 export default function LogLayout() {
   const router = useRouter();
-  const { userParticipatingInActiveSeason } = useSeasonParticipation();
+  const { userParticipatingInActiveSeason, isLoading: isLoadingParticipation } =
+    useSeasonParticipation();
 
   const handleOpenForm = () => {
+    if (isLoadingParticipation) {
+      return;
+    }
+
     if (!userParticipatingInActiveSeason) {
       Alert.alert(
         "Prisijunkite prie sezono prieš pridedant QSO",
