@@ -53,13 +53,10 @@ export default function Map() {
           id="wal-grid-labels"
           style={{
             textField: ["get", "id"],
-            textSize: ["interpolate", ["linear"], ["zoom"], 7, 13, 20, 250],
+            textSize: ["interpolate", ["linear"], ["zoom"], 7, 10, 20, 250],
             textColor: theme.colors.tint,
-            textHaloColor: theme.colors.background,
-            textHaloWidth: 1,
             textAllowOverlap: true,
           }}
-          minZoomLevel={7}
         />
       </ShapeSource>
     </MapView>
