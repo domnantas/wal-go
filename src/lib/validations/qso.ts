@@ -5,12 +5,25 @@ export const VALID_MODES = ["SSB", "CW", "DIGI"] as const;
 
 const callsignRegex = /^[A-Z0-9]{3,10}$/;
 const rstRegex = /^[1-5][1-9][1-9]?$/;
-const frequencyRegex = /^\d+(\.\d+)?$/;
+const frequencyRegex = /^\d+([.,]\d+)?$/;
+const WALRegex = /^[A-Z][0-9]{2}$/;
+const WAL_FORMAT_ERROR = "Neteisingas WAL formatas (pvz., A05)";
+const WAL_NONEXISTENT_ERROR = "Neegzistuojantis WAL kvadratas";
 
 const walSchema = z
   .string()
+  .regex(WALRegex, WAL_FORMAT_ERROR)
+  .refine((val) => isValidWAL(val), {
+    error: WAL_NONEXISTENT_ERROR,
+  });
+
+const optionalWalSchema = z
+  .string()
+  .refine((val) => val === "" || WALRegex.test(val), {
+    error: WAL_FORMAT_ERROR,
+  })
   .refine((val) => val === "" || isValidWAL(val), {
-    message: "Neteisingas WAL formatas (pvz., A05)",
+    error: WAL_NONEXISTENT_ERROR,
   });
 
 export const qsoSchema = z.object({
@@ -18,7 +31,7 @@ export const qsoSchema = z.object({
     .string()
     .min(1, "Šaukinys yra privalomas")
     .regex(callsignRegex, "Neteisingas šaukinio formatas"),
-  receivedWAL: walSchema,
+  receivedWAL: optionalWalSchema,
   sentWAL: walSchema,
   receivedRST: z
     .string()
@@ -31,8 +44,11 @@ export const qsoSchema = z.object({
   frequency: z
     .string()
     .min(1, "Dažnis yra privalomas")
-    .regex(frequencyRegex, "Neteisingas dažnio formatas"),
-  mode: z.enum(VALID_MODES, { message: "Moduliacija turi būti SSB, CW arba DIGI" }),
+    .regex(frequencyRegex, "Neteisingas dažnio formatas")
+    .transform((val) => val.replace(/,/g, ".")),
+  mode: z.enum(VALID_MODES, {
+    error: "Moduliacija turi būti SSB, CW arba DIGI",
+  }),
 });
 
 export type QSOFormData = z.infer<typeof qsoSchema>;

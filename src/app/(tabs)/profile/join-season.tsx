@@ -12,7 +12,7 @@ import { StyleSheet } from "react-native-unistyles";
 
 export default function JoinSeason() {
   const { drizzle } = useSystem();
-  const { session } = useAuth();
+  const { isSignedIn, userId } = useAuth();
   const { activeSeason } = useActiveSeason();
   const { userParticipatingInActiveSeason, team } = useSeasonParticipation();
 
@@ -28,14 +28,14 @@ export default function JoinSeason() {
         return;
       }
 
-      if (!session?.user.id) {
+      if (!isSignedIn || !userId) {
         Alert.alert("Klaida", "Turite būti prisijungę.");
         return;
       }
 
       try {
         await drizzle.insert(seasonParticipants).values({
-          userId: session.user.id,
+          userId,
           seasonId: activeSeason.id,
           team,
         });
@@ -47,7 +47,7 @@ export default function JoinSeason() {
         );
       }
     },
-    [activeSeason, session?.user.id, drizzle, userParticipatingInActiveSeason]
+    [userParticipatingInActiveSeason, activeSeason, isSignedIn, userId, drizzle]
   );
 
   if (!activeSeason) {

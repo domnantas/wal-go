@@ -14,7 +14,7 @@ export default function LogForm() {
   const navigation = useNavigation();
   const router = useRouter();
   const { drizzle } = useSystem();
-  const { session } = useAuth();
+  const { userId, isSignedIn } = useAuth();
   const { activeSeason } = useActiveSeason();
   const { userParticipatingInActiveSeason } = useSeasonParticipation();
   const { theme } = useUnistyles();
@@ -28,7 +28,7 @@ export default function LogForm() {
   const [mode, setMode] = useState<(typeof VALID_MODES)[number]>("SSB");
 
   const handleSubmit = useCallback(async () => {
-    if (!session?.user.id) {
+    if (!isSignedIn || !userId) {
       Alert.alert("Klaida", "Turite būti prisijungę, kad pridėtumėte QSO.");
       return;
     }
@@ -64,7 +64,7 @@ export default function LogForm() {
 
     try {
       await drizzle.insert(qsos).values({
-        userId: session.user.id,
+        userId,
         seasonId: activeSeason.id,
         ...result.data,
       });
@@ -74,8 +74,8 @@ export default function LogForm() {
       Alert.alert("Klaida", "Nepavyko išsaugoti QSO. Bandykite dar kartą.");
     }
   }, [
-    drizzle,
-    session?.user.id,
+    isSignedIn,
+    userId,
     activeSeason,
     userParticipatingInActiveSeason,
     receivedCallsign,
@@ -85,6 +85,7 @@ export default function LogForm() {
     sentRST,
     frequency,
     mode,
+    drizzle,
     router,
   ]);
 
@@ -133,7 +134,7 @@ export default function LogForm() {
           style={styles.field}
           placeholder="Gautas RST"
           placeholderTextColor={theme.colors.textSecondary}
-          keyboardType="numeric"
+          inputMode="numeric"
           value={receivedRST}
           onChangeText={setReceivedRST}
           clearButtonMode="while-editing"
@@ -155,7 +156,7 @@ export default function LogForm() {
           style={styles.field}
           placeholder="Išsiųstas RST"
           placeholderTextColor={theme.colors.textSecondary}
-          keyboardType="numeric"
+          inputMode="numeric"
           value={sentRST}
           onChangeText={setSentRST}
           clearButtonMode="while-editing"
@@ -167,7 +168,7 @@ export default function LogForm() {
           style={styles.field}
           placeholder="Dažnis (MHz)"
           placeholderTextColor={theme.colors.textSecondary}
-          keyboardType="numeric"
+          inputMode="numeric"
           value={frequency}
           onChangeText={setFrequency}
           clearButtonMode="while-editing"

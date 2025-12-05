@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm";
 
 export function useSeasonParticipation() {
   const { drizzle } = useSystem();
-  const { session } = useAuth();
+  const { userId } = useAuth();
   const { activeSeason, isLoading: isSeasonLoading } = useActiveSeason();
 
   const { data, isLoading: isParticipantsLoading } = useQuery(
@@ -16,7 +16,7 @@ export function useSeasonParticipation() {
       drizzle.query.seasonParticipants.findFirst({
         where: and(
           eq(seasonParticipants.seasonId, activeSeason?.id ?? ""),
-          eq(seasonParticipants.userId, session?.user.id ?? "")
+          eq(seasonParticipants.userId, userId ?? "")
         ),
       })
     )

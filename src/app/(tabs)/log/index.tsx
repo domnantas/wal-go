@@ -1,12 +1,16 @@
+import { qsos } from "@/db/schema";
+import { useActiveSeason } from "@/hooks/useActiveSeason";
+import { useAuth } from "@/hooks/useAuth";
 import { useSystem } from "@/lib/powersync/system";
 import { toCompilableQuery } from "@powersync/drizzle-driver";
 import { useQuery } from "@powersync/react-native";
+import { and, eq } from "drizzle-orm";
 import { FlatList, Text, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 
 const MODE_COLORS: Record<string, string> = {
-  SSB: "#007AFF",  // Blue
-  CW: "#FF9500",   // Orange
+  SSB: "#007AFF", // Blue
+  CW: "#FF9500", // Orange
   DIGI: "#34C759", // Green
 };
 
@@ -21,8 +25,19 @@ function formatDate(dateString: string): string {
 }
 
 export default function Log() {
+  const { userId } = useAuth();
+  const { activeSeason } = useActiveSeason();
   const { drizzle } = useSystem();
-  const { data } = useQuery(toCompilableQuery(drizzle.query.qsos.findMany()));
+  const { data } = useQuery(
+    toCompilableQuery(
+      drizzle.query.qsos.findMany({
+        where:
+          userId && activeSeason?.id
+            ? and(eq(qsos.userId, userId), eq(qsos.seasonId, activeSeason.id))
+            : undefined,
+      })
+    )
+  );
 
   const sortedData = [...data].sort((a, b) => {
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
