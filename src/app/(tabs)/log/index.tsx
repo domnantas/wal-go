@@ -1,6 +1,6 @@
-import { qsos } from "@/db/schema";
 import { useActiveSeason } from "@/hooks/useActiveSeason";
 import { useAuth } from "@/hooks/useAuth";
+import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { toCompilableQuery } from "@powersync/drizzle-driver";
 import { useQuery } from "@powersync/react-native";
