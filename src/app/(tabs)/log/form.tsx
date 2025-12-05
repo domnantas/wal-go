@@ -114,9 +114,11 @@ export default function LogForm() {
           style={styles.field}
           placeholder="Šaukinys"
           placeholderTextColor={theme.colors.textSecondary}
+          autoComplete="off"
+          autoCorrect={false}
           autoCapitalize="characters"
           value={receivedCallsign}
-          onChangeText={setReceivedCallsign}
+          onChangeText={(text) => setReceivedCallsign(text.toUpperCase())}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
@@ -124,9 +126,11 @@ export default function LogForm() {
           style={styles.field}
           placeholder="Gautas WAL"
           placeholderTextColor={theme.colors.textSecondary}
+          autoComplete="off"
+          autoCorrect={false}
           autoCapitalize="characters"
           value={receivedWAL}
-          onChangeText={setReceivedWAL}
+          onChangeText={(text) => setReceivedWAL(text.toUpperCase())}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
@@ -146,9 +150,11 @@ export default function LogForm() {
           style={styles.field}
           placeholder="Išsiųstas WAL"
           placeholderTextColor={theme.colors.textSecondary}
+          autoComplete="off"
+          autoCorrect={false}
           autoCapitalize="characters"
           value={sentWAL}
-          onChangeText={setSentWAL}
+          onChangeText={(text) => setSentWAL(text.toUpperCase())}
           clearButtonMode="while-editing"
         />
         <View style={styles.divider} />
