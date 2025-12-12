@@ -118,6 +118,7 @@ export default function Map() {
       style={styles.map}
       projection="globe"
       styleURL="mapbox://styles/mapbox/standard"
+      gestureSettings={{ pitchEnabled: false }}
     >
       <StyleImport
         id="basemap"

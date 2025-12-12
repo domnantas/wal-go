@@ -49,6 +49,9 @@ export default function LogForm() {
     return VALID_WAL.includes(wal as WALCode) ? wal : null;
   }, [coordinates]);
 
+  // User has coordinates but is outside any valid WAL square
+  const isOutsideWALGrid = coordinates !== null && walCode === null;
+
   // Auto-fill sentWAL when walCode changes
   useEffect(() => {
     if (walCode) {
@@ -74,6 +77,14 @@ export default function LogForm() {
       Alert.alert(
         "Klaida",
         "Turite prisijungti prie sezono prieš pridedant QSO."
+      );
+      return;
+    }
+
+    if (isOutsideWALGrid) {
+      Alert.alert(
+        "Klaida",
+        "Jūs esate už WAL tinklelio ribų. Galite registruoti QSO tik būdami Lietuvoje."
       );
       return;
     }
@@ -110,6 +121,7 @@ export default function LogForm() {
     userId,
     activeSeason,
     userParticipatingInActiveSeason,
+    isOutsideWALGrid,
     receivedCallsign,
     receivedWAL,
     receivedRST,
