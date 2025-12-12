@@ -16,6 +16,8 @@ import Mapbox, {
 } from "@rnmapbox/maps";
 import { and, eq, isNotNull, ne, sql, sum } from "drizzle-orm";
 import { useMemo } from "react";
+import { Pressable, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { useActiveSeason } from "@/hooks/useActiveSeason";
@@ -38,6 +40,7 @@ export default function Map() {
   const { theme } = useUnistyles();
   const { drizzle } = useSystem();
   const { activeSeason } = useActiveSeason();
+  const insets = useSafeAreaInsets();
 
   const { data: scores } = useQuery(
     toCompilableQuery(
@@ -113,113 +116,187 @@ export default function Map() {
     return { type: "FeatureCollection" as const, features };
   }, [gridPolygons]);
 
+  const teamTotals = useMemo(
+    () =>
+      controlledSquares.features.reduce(
+        (acc, f) => ({
+          ...acc,
+          [f.properties.team]: acc[f.properties.team as Team] + 1,
+        }),
+        { yellow: 0, green: 0, red: 0 }
+      ),
+    [controlledSquares]
+  );
+
   return (
-    <MapView
-      style={styles.map}
-      projection="globe"
-      styleURL="mapbox://styles/mapbox/standard"
-      gestureSettings={{ pitchEnabled: false }}
-    >
-      <StyleImport
-        id="basemap"
-        existing
-        config={{ lightPreset: theme.mapLightPreset }}
-      />
-      <Camera
-        followUserLocation={true}
-        followUserMode={UserTrackingMode.Follow}
-        followZoomLevel={8}
-        zoomLevel={6}
-        centerCoordinate={[23.8813, 55.1694]}
-        maxBounds={{
-          ne: [27.835556, 57.450278],
-          sw: [19.970833, 52.896667],
-        }}
-      />
-      <LocationPuck
-        pulsing={"default"}
-        puckBearing="heading"
-        puckBearingEnabled
-      />
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        projection="globe"
+        styleURL="mapbox://styles/mapbox/standard"
+        gestureSettings={{ pitchEnabled: false }}
+        scaleBarPosition={{ top: insets.top, left: 10 }}
+      >
+        <StyleImport
+          id="basemap"
+          existing
+          config={{ lightPreset: theme.mapLightPreset }}
+        />
+        <Camera
+          followUserLocation={true}
+          followUserMode={UserTrackingMode.Follow}
+          followZoomLevel={8}
+          zoomLevel={6}
+          centerCoordinate={[23.8813, 55.1694]}
+          maxBounds={{
+            ne: [27.835556, 57.450278],
+            sw: [19.970833, 52.896667],
+          }}
+        />
+        <LocationPuck
+          pulsing={"default"}
+          puckBearing="heading"
+          puckBearingEnabled
+        />
 
-      <ShapeSource id="controlled-squares" shape={controlledSquares}>
-        <FillLayer
-          id="controlled-fill"
-          style={{
-            fillColor: [
-              "match",
-              ["get", "team"],
-              "yellow",
-              theme.colors.teamYellow,
-              "green",
-              theme.colors.teamGreen,
-              "red",
-              theme.colors.teamRed,
-              "transparent",
-            ],
-            fillOpacity: 0.5,
-            fillEmissiveStrength: 0.8,
-          }}
-        />
-      </ShapeSource>
+        <ShapeSource id="controlled-squares" shape={controlledSquares}>
+          <FillLayer
+            id="controlled-fill"
+            style={{
+              fillColor: [
+                "match",
+                ["get", "team"],
+                "yellow",
+                theme.colors.teamYellow,
+                "green",
+                theme.colors.teamGreen,
+                "red",
+                theme.colors.teamRed,
+                "transparent",
+              ],
+              fillOpacity: 0.5,
+              fillEmissiveStrength: 0.8,
+            }}
+          />
+        </ShapeSource>
 
-      <ShapeSource id="wal-grid" shape={gridPolygons}>
-        <LineLayer
-          id="wal-grid-lines"
-          style={{
-            lineColor: theme.colors.tint,
-            lineWidth: 1,
-            lineOpacity: 0.4,
-            lineEmissiveStrength: 0.6,
-          }}
-        />
-        <SymbolLayer
-          id="wal-grid-labels"
-          style={{
-            textField: ["get", "id"],
-            textSize: ["interpolate", ["linear"], ["zoom"], 7, 10, 20, 250],
-            textColor: theme.colors.tint,
-            textOffset: [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              8.9,
-              [0, 0],
-              9,
-              [0, -0.5],
-            ],
-            textAllowOverlap: true,
-          }}
-        />
-        <SymbolLayer
-          id="wal-grid-scores"
-          minZoomLevel={9}
-          style={{
-            textField: [
-              "format",
-              ["get", "yellowScore"],
-              { "text-color": theme.colors.teamYellow },
-              "\n",
-              {},
-              ["get", "greenScore"],
-              { "text-color": theme.colors.teamGreen },
-              "\n",
-              {},
-              ["get", "redScore"],
-              { "text-color": theme.colors.teamRed },
-            ],
-            textSize: ["interpolate", ["linear"], ["zoom"], 8, 12, 20, 180],
-            textOffset: [0, 2],
-            textAllowOverlap: true,
-          }}
-        />
-      </ShapeSource>
-    </MapView>
+        <ShapeSource id="wal-grid" shape={gridPolygons}>
+          <LineLayer
+            id="wal-grid-lines"
+            style={{
+              lineColor: theme.colors.tint,
+              lineWidth: 1,
+              lineOpacity: 0.4,
+              lineEmissiveStrength: 0.6,
+            }}
+          />
+          <SymbolLayer
+            id="wal-grid-labels"
+            style={{
+              textField: ["get", "id"],
+              textSize: ["interpolate", ["linear"], ["zoom"], 7, 10, 20, 250],
+              textColor: theme.colors.tint,
+              textOffset: [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                8.9,
+                [0, 0],
+                9,
+                [0, -0.5],
+              ],
+              textAllowOverlap: true,
+            }}
+          />
+          <SymbolLayer
+            id="wal-grid-scores"
+            minZoomLevel={9}
+            style={{
+              textField: [
+                "format",
+                ["get", "yellowScore"],
+                { "text-color": theme.colors.teamYellow },
+                "\n",
+                {},
+                ["get", "greenScore"],
+                { "text-color": theme.colors.teamGreen },
+                "\n",
+                {},
+                ["get", "redScore"],
+                { "text-color": theme.colors.teamRed },
+              ],
+              textSize: ["interpolate", ["linear"], ["zoom"], 8, 12, 20, 180],
+              textOffset: [0, 2],
+              textAllowOverlap: true,
+            }}
+          />
+        </ShapeSource>
+      </MapView>
+
+      <View style={[styles.dashboardContainer, { top: insets.top + 40 }]}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.dashboardCard,
+            pressed && styles.dashboardCardPressed,
+          ]}
+        >
+          <View style={[styles.teamScore, styles.teamScoreYellow]}>
+            <Text style={styles.scoreValue}>{teamTotals.yellow}</Text>
+          </View>
+          <View style={[styles.teamScore, styles.teamScoreGreen]}>
+            <Text style={styles.scoreValue}>{teamTotals.green}</Text>
+          </View>
+          <View style={[styles.teamScore, styles.teamScoreRed]}>
+            <Text style={styles.scoreValue}>{teamTotals.red}</Text>
+          </View>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
-const styles = StyleSheet.create(() => ({
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+  },
   map: {
     flex: 1,
+  },
+  dashboardContainer: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    alignItems: "center",
+  },
+  dashboardCard: {
+    flexDirection: "row",
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    padding: 8,
+    gap: 8,
+  },
+  dashboardCardPressed: {
+    opacity: 0.8,
+  },
+  teamScore: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 60,
+    alignItems: "center",
+  },
+  teamScoreYellow: {
+    backgroundColor: theme.colors.teamYellow,
+  },
+  teamScoreGreen: {
+    backgroundColor: theme.colors.teamGreen,
+  },
+  teamScoreRed: {
+    backgroundColor: theme.colors.teamRed,
+  },
+  scoreValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#ffffff",
   },
 }));
