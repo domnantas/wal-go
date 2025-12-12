@@ -7,7 +7,7 @@ import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
 import { calculateWAL } from "@/lib/wal-grid";
-import { Picker } from "@react-native-picker/picker";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -58,9 +58,6 @@ export default function LogForm() {
       setSentWAL(walCode);
     }
   }, [walCode]);
-
-  // Determine if the sentWAL field should be editable
-  const isSentWALEditable = !permissionResponse?.granted || !coordinates;
 
   const handleSubmit = useCallback(async () => {
     if (!isSignedIn || !userId) {
@@ -171,9 +168,21 @@ export default function LogForm() {
         </Pressable>
       )}
 
-      <View style={styles.card}>
+      {/* Outside WAL grid warning banner */}
+      {isOutsideWALGrid && (
+        <View style={styles.outsideGridBanner}>
+          <Text style={styles.outsideGridTitle}>
+            Esate už WAL tinklelio ribų
+          </Text>
+          <Text style={styles.outsideGridDescription}>
+            QSO registruoti galima tik būnant Lietuvoje
+          </Text>
+        </View>
+      )}
+
+      <View style={[styles.card]}>
         <TextInput
-          style={styles.field}
+          style={[styles.field]}
           placeholder="Šaukinys"
           placeholderTextColor={theme.colors.textSecondary}
           autoComplete="off"
@@ -182,10 +191,11 @@ export default function LogForm() {
           value={receivedCallsign}
           onChangeText={(text) => setReceivedCallsign(text.toUpperCase())}
           clearButtonMode="while-editing"
+          editable={!isOutsideWALGrid}
         />
         <View style={styles.divider} />
         <TextInput
-          style={styles.field}
+          style={[styles.field]}
           placeholder="Gautas WAL"
           placeholderTextColor={theme.colors.textSecondary}
           autoComplete="off"
@@ -194,76 +204,62 @@ export default function LogForm() {
           value={receivedWAL}
           onChangeText={(text) => setReceivedWAL(text.toUpperCase())}
           clearButtonMode="while-editing"
+          editable={!isOutsideWALGrid}
         />
         <View style={styles.divider} />
         <TextInput
-          style={styles.field}
+          style={[styles.field]}
           placeholder="Gautas RST"
           placeholderTextColor={theme.colors.textSecondary}
           inputMode="numeric"
           value={receivedRST}
           onChangeText={setReceivedRST}
           clearButtonMode="while-editing"
+          editable={!isOutsideWALGrid}
         />
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.fieldContainer}>
-          <TextInput
-            style={[styles.field, !isSentWALEditable && styles.fieldDisabled]}
-            placeholder={
-              isLoadingLocation ? "Nustatoma buvimo vieta..." : "Išsiųstas WAL"
-            }
-            placeholderTextColor={theme.colors.textSecondary}
-            autoComplete="off"
-            autoCorrect={false}
-            autoCapitalize="characters"
-            value={sentWAL}
-            onChangeText={(text) => setSentWAL(text.toUpperCase())}
-            clearButtonMode="while-editing"
-            editable={isSentWALEditable}
-          />
-          {isLoadingLocation && (
-            <ActivityIndicator
-              style={styles.loadingIndicator}
-              color={theme.colors.tint}
-            />
+      <View style={[styles.card]}>
+        <View style={styles.labeledField}>
+          <Text style={styles.fieldLabel}>Išsiųstas WAL</Text>
+          {isLoadingLocation ? (
+            <ActivityIndicator color={theme.colors.tint} />
+          ) : (
+            <Text style={styles.fieldValue}>{sentWAL || "—"}</Text>
           )}
         </View>
         <View style={styles.divider} />
         <TextInput
-          style={styles.field}
+          style={[styles.field]}
           placeholder="Išsiųstas RST"
           placeholderTextColor={theme.colors.textSecondary}
           inputMode="numeric"
           value={sentRST}
           onChangeText={setSentRST}
           clearButtonMode="while-editing"
+          editable={!isOutsideWALGrid}
         />
       </View>
 
-      <View style={styles.card}>
+      <View style={[styles.card]}>
         <TextInput
-          style={styles.field}
+          style={[styles.field]}
           placeholder="Dažnis (MHz)"
           placeholderTextColor={theme.colors.textSecondary}
           inputMode="numeric"
           value={frequency}
           onChangeText={setFrequency}
           clearButtonMode="while-editing"
+          editable={!isOutsideWALGrid}
         />
-        <View style={styles.divider} />
-        <Picker
-          selectedValue={mode}
-          onValueChange={setMode}
-          style={styles.picker}
-          itemStyle={styles.pickerItem}
-        >
-          <Picker.Item label="SSB" value="SSB" />
-          <Picker.Item label="CW" value="CW" />
-          <Picker.Item label="DIGI" value="DIGI" />
-        </Picker>
       </View>
+
+      <SegmentedControl
+        values={VALID_MODES}
+        onValueChange={setMode}
+        selectedIndex={0}
+        enabled={!isOutsideWALGrid}
+      />
     </ScrollView>
   );
 }
@@ -276,6 +272,7 @@ const styles = StyleSheet.create((theme) => ({
   content: {
     paddingHorizontal: 16,
     paddingVertical: 20,
+    marginBottom: 50,
     gap: 35,
   },
   permissionBanner: {
@@ -295,6 +292,24 @@ const styles = StyleSheet.create((theme) => ({
     marginBottom: 4,
   },
   permissionDescription: {
+    fontSize: 14,
+    color: "#ffffff",
+    opacity: 0.9,
+  },
+  outsideGridBanner: {
+    backgroundColor: theme.colors.destructive,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: -20,
+  },
+  outsideGridTitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#ffffff",
+    marginBottom: 4,
+  },
+  outsideGridDescription: {
     fontSize: 14,
     color: "#ffffff",
     opacity: 0.9,
@@ -338,13 +353,21 @@ const styles = StyleSheet.create((theme) => ({
     height: 0.5,
     backgroundColor: theme.colors.separator,
     marginLeft: 16,
+    marginRight: 16,
   },
-  picker: {
-    backgroundColor: theme.colors.card,
-    height: 120,
+  labeledField: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  pickerItem: {
+  fieldLabel: {
+    fontSize: 17,
     color: theme.colors.text,
-    height: 120,
+  },
+  fieldValue: {
+    fontSize: 17,
+    color: theme.colors.textSecondary,
   },
 }));
