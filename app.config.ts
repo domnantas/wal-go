@@ -54,7 +54,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       "expo-location",
       {
-        locationWhenInUsePermission: "Show current location on map.",
+        locationWhenInUsePermission:
+          "Show current location on map and determine WAL square.",
       },
     ],
   ],

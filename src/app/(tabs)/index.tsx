@@ -1,10 +1,12 @@
 import Mapbox, {
   Camera,
   LineLayer,
+  LocationPuck,
   MapView,
   ShapeSource,
   StyleImport,
   SymbolLayer,
+  UserTrackingMode,
 } from "@rnmapbox/maps";
 import { useMemo } from "react";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
@@ -32,12 +34,20 @@ export default function Map() {
         config={{ lightPreset: theme.mapLightPreset }}
       />
       <Camera
+        followUserLocation={true}
+        followUserMode={UserTrackingMode.Follow}
+        followZoomLevel={8}
         zoomLevel={6}
         centerCoordinate={[23.8813, 55.1694]}
         maxBounds={{
           ne: [27.835556, 57.450278],
           sw: [19.970833, 52.896667],
         }}
+      />
+      <LocationPuck
+        pulsing={"default"}
+        puckBearing="heading"
+        puckBearingEnabled
       />
 
       <ShapeSource id="wal-grid" shape={gridPolygons}>

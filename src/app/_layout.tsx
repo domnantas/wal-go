@@ -1,5 +1,6 @@
-import "@/lib/unistyles";
+import { useLocation } from "@/hooks/useLocation";
 import { useSystem } from "@/lib/powersync/system";
+import "@/lib/unistyles";
 import { PowerSyncContext } from "@powersync/react-native";
 import {
   DarkTheme,
@@ -20,11 +21,13 @@ export default function RootLayout() {
   const system = useSystem();
   const db = useMemo(() => {
     return system.powersync;
-  }, []);
+  }, [system.powersync]);
+
+  const { permissionResponse } = useLocation();
 
   useEffect(() => {
     system.init();
-  }, []);
+  }, [system]);
 
   return (
     <PowerSyncContext.Provider value={db}>
@@ -33,7 +36,15 @@ export default function RootLayout() {
           <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
             <StatusBar style="auto" />
             <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Protected guard={!!permissionResponse?.granted}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              </Stack.Protected>
+              <Stack.Protected guard={!permissionResponse?.granted}>
+                <Stack.Screen
+                  name="location-permission"
+                  options={{ headerShown: false }}
+                />
+              </Stack.Protected>
             </Stack>
           </ThemeProvider>
         </KeyboardProvider>

@@ -11,7 +11,7 @@
 - `npm install` resolves JS/TS dependencies. Rerun after pulling lockfile updates.
 - `npm run start` launches the Expo dev server with hot reload.
 - `npm run android|ios|web` targets a specific platform simulator or browser.
-- `npm run lint` executes `expo lint` and should pass before committing.
+- `npm run lint` executes `expo lint`. **Do not run this command** — linting is handled automatically by the IDE.
 
 ## Coding Style & Naming Conventions
 

@@ -1,13 +1,25 @@
+import { VALID_WAL, type WALCode } from "@/constants/wal";
 import { useActiveSeason } from "@/hooks/useActiveSeason";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "@/hooks/useLocation";
 import { useSeasonParticipation } from "@/hooks/useSeasonParticipation";
 import { qsos } from "@/lib/powersync/AppSchema";
 import { useSystem } from "@/lib/powersync/system";
 import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
+import { calculateWAL } from "@/lib/wal-grid";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { Alert, Button, ScrollView, TextInput, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Button,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 export default function LogForm() {
@@ -18,6 +30,7 @@ export default function LogForm() {
   const { activeSeason } = useActiveSeason();
   const { userParticipatingInActiveSeason } = useSeasonParticipation();
   const { theme } = useUnistyles();
+  const { coordinates, requestPermission, permissionResponse } = useLocation();
 
   const [receivedCallsign, setReceivedCallsign] = useState("");
   const [receivedWAL, setReceivedWAL] = useState("");
@@ -26,6 +39,25 @@ export default function LogForm() {
   const [sentRST, setSentRST] = useState("");
   const [frequency, setFrequency] = useState("");
   const [mode, setMode] = useState<(typeof VALID_MODES)[number]>("SSB");
+
+  const isLoadingLocation = permissionResponse?.granted && !coordinates;
+
+  // Calculate WAL code from coordinates
+  const walCode = useMemo(() => {
+    if (!coordinates) return null;
+    const wal = calculateWAL(coordinates.latitude, coordinates.longitude);
+    return VALID_WAL.includes(wal as WALCode) ? wal : null;
+  }, [coordinates]);
+
+  // Auto-fill sentWAL when walCode changes
+  useEffect(() => {
+    if (walCode) {
+      setSentWAL(walCode);
+    }
+  }, [walCode]);
+
+  // Determine if the sentWAL field should be editable
+  const isSentWALEditable = !permissionResponse?.granted || !coordinates;
 
   const handleSubmit = useCallback(async () => {
     if (!isSignedIn || !userId) {
@@ -109,6 +141,24 @@ export default function LogForm() {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      {/* Permission request banner */}
+      {!permissionResponse?.granted && (
+        <Pressable
+          style={({ pressed }) => [
+            styles.permissionBanner,
+            pressed && styles.permissionBannerPressed,
+          ]}
+          onPress={requestPermission}
+        >
+          <Text style={styles.permissionTitle}>
+            Įjungti buvimo vietos nustatymą
+          </Text>
+          <Text style={styles.permissionDescription}>
+            Automatiškai nustatyti WAL pagal buvimo vietą
+          </Text>
+        </Pressable>
+      )}
+
       <View style={styles.card}>
         <TextInput
           style={styles.field}
@@ -146,17 +196,28 @@ export default function LogForm() {
       </View>
 
       <View style={styles.card}>
-        <TextInput
-          style={styles.field}
-          placeholder="Išsiųstas WAL"
-          placeholderTextColor={theme.colors.textSecondary}
-          autoComplete="off"
-          autoCorrect={false}
-          autoCapitalize="characters"
-          value={sentWAL}
-          onChangeText={(text) => setSentWAL(text.toUpperCase())}
-          clearButtonMode="while-editing"
-        />
+        <View style={styles.fieldContainer}>
+          <TextInput
+            style={[styles.field, !isSentWALEditable && styles.fieldDisabled]}
+            placeholder={
+              isLoadingLocation ? "Nustatoma buvimo vieta..." : "Išsiųstas WAL"
+            }
+            placeholderTextColor={theme.colors.textSecondary}
+            autoComplete="off"
+            autoCorrect={false}
+            autoCapitalize="characters"
+            value={sentWAL}
+            onChangeText={(text) => setSentWAL(text.toUpperCase())}
+            clearButtonMode="while-editing"
+            editable={isSentWALEditable}
+          />
+          {isLoadingLocation && (
+            <ActivityIndicator
+              style={styles.loadingIndicator}
+              color={theme.colors.tint}
+            />
+          )}
+        </View>
         <View style={styles.divider} />
         <TextInput
           style={styles.field}
@@ -205,10 +266,45 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 20,
     gap: 35,
   },
+  permissionBanner: {
+    backgroundColor: theme.colors.tint,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: -20,
+  },
+  permissionBannerPressed: {
+    opacity: 0.8,
+  },
+  permissionTitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#ffffff",
+    marginBottom: 4,
+  },
+  permissionDescription: {
+    fontSize: 14,
+    color: "#ffffff",
+    opacity: 0.9,
+  },
+  errorBanner: {
+    backgroundColor: theme.colors.destructive,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: -20,
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#ffffff",
+  },
   card: {
     backgroundColor: theme.colors.card,
     borderRadius: 10,
     overflow: "hidden",
+  },
+  fieldContainer: {
+    position: "relative",
   },
   field: {
     fontSize: 17,
@@ -216,6 +312,15 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: 12,
     backgroundColor: theme.colors.card,
     color: theme.colors.text,
+  },
+  fieldDisabled: {
+    backgroundColor: theme.colors.separator,
+    opacity: 0.6,
+  },
+  loadingIndicator: {
+    position: "absolute",
+    right: 16,
+    top: 12,
   },
   divider: {
     height: 0.5,
