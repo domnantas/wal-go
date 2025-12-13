@@ -35,7 +35,6 @@ export default function LogForm() {
   const [receivedCallsign, setReceivedCallsign] = useState("");
   const [receivedWAL, setReceivedWAL] = useState("");
   const [receivedRST, setReceivedRST] = useState("");
-  const [sentWAL, setSentWAL] = useState("");
   const [sentRST, setSentRST] = useState("");
   const [frequency, setFrequency] = useState("");
   const [mode, setMode] = useState<(typeof VALID_MODES)[number]>("SSB");
@@ -51,13 +50,6 @@ export default function LogForm() {
 
   // User has coordinates but is outside any valid WAL square
   const isOutsideWALGrid = coordinates !== null && walCode === null;
-
-  // Auto-fill sentWAL when walCode changes
-  useEffect(() => {
-    if (walCode) {
-      setSentWAL(walCode);
-    }
-  }, [walCode]);
 
   const handleSubmit = useCallback(async () => {
     if (!isSignedIn || !userId) {
@@ -90,7 +82,7 @@ export default function LogForm() {
       receivedCallsign,
       receivedWAL,
       receivedRST,
-      sentWAL,
+      sentWAL: walCode ?? "",
       sentRST,
       frequency,
       mode,
@@ -122,7 +114,7 @@ export default function LogForm() {
     receivedCallsign,
     receivedWAL,
     receivedRST,
-    sentWAL,
+    walCode,
     sentRST,
     frequency,
     mode,
@@ -225,7 +217,7 @@ export default function LogForm() {
           {isLoadingLocation ? (
             <ActivityIndicator color={theme.colors.tint} />
           ) : (
-            <Text style={styles.fieldValue}>{sentWAL || "—"}</Text>
+            <Text style={styles.fieldValue}>{walCode || "—"}</Text>
           )}
         </View>
         <View style={styles.divider} />
@@ -255,9 +247,9 @@ export default function LogForm() {
       </View>
 
       <SegmentedControl
-        values={VALID_MODES}
-        onValueChange={setMode}
-        selectedIndex={0}
+        values={[...VALID_MODES]}
+        onValueChange={(value) => setMode(value as (typeof VALID_MODES)[number])}
+        selectedIndex={VALID_MODES.indexOf(mode)}
         enabled={!isOutsideWALGrid}
       />
     </ScrollView>

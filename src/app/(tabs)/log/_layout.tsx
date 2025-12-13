@@ -3,6 +3,7 @@ import { useSeasonParticipation } from "@/hooks/useSeasonParticipation";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useRouter } from "expo-router";
 import { Alert, Platform, Pressable } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 
 export default function LogLayout() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function LogLayout() {
               onPress={handleOpenForm}
               hitSlop={8}
             >
-              <IconSymbol name="plus" size={32} />
+              <IconSymbol name="plus" size={32} style={styles.iconButton} />
             </Pressable>
           ),
           unstable_headerRightItems: () => [
@@ -60,13 +61,16 @@ export default function LogLayout() {
         name="form"
         options={{
           title: "Naujas QSO",
-          presentation: "formSheet",
+          presentation: Platform.OS === "ios" ? "formSheet" : "modal",
           headerLargeTitle: false,
           headerTransparent: Platform.OS === "ios",
           headerBlurEffect: isLiquidGlassAvailable()
             ? "none"
             : "systemMaterial",
-          sheetAllowedDetents: "fitToContents",
+          ...(Platform.OS === "ios" && {
+            sheetAllowedDetents: "fitToContents",
+            sheetGrabberVisible: true,
+          }),
           unstable_headerLeftItems: () => [
             {
               type: "button",
@@ -78,9 +82,14 @@ export default function LogLayout() {
               onPress: () => router.back(),
             },
           ],
-          sheetGrabberVisible: true,
         }}
       />
     </Stack>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  iconButton: {
+    color: theme.colors.tint,
+  },
+}));

@@ -1,7 +1,7 @@
 import { isValidWAL } from "@/constants/wal";
 import { z } from "zod";
 
-export const VALID_MODES = ["SSB", "CW", "DIGI"];
+export const VALID_MODES = ["SSB", "CW", "DIGI"] as const;
 
 const callsignRegex = /^[A-Z0-9]{3,10}$/;
 const rstRegex = /^[1-5][1-9][1-9]?$/;
