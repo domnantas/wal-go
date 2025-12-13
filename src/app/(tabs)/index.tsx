@@ -135,7 +135,7 @@ export default function Map() {
         projection="globe"
         styleURL="mapbox://styles/mapbox/standard"
         gestureSettings={{ pitchEnabled: false }}
-        scaleBarPosition={{ top: insets.top, left: 10 }}
+        scaleBarEnabled={false}
       >
         <StyleImport
           id="basemap"
@@ -233,7 +233,7 @@ export default function Map() {
         </ShapeSource>
       </MapView>
 
-      <View style={[styles.dashboardContainer, { top: insets.top + 40 }]}>
+      <View style={[styles.dashboardContainer, { top: insets.top + 20 }]}>
         <Pressable
           style={({ pressed }) => [
             styles.dashboardCard,
