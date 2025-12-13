@@ -8,12 +8,15 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo } from "react";
 import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import "../polyfills";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const scheme = useColorScheme();
@@ -29,6 +32,17 @@ export default function RootLayout() {
     system.init();
   }, [system]);
 
+  useEffect(() => {
+    if (permissionResponse !== null) {
+      SplashScreen.hideAsync();
+    }
+  }, [permissionResponse]);
+
+  // Don't render routes until permission status is known
+  if (permissionResponse === null) {
+    return null;
+  }
+
   return (
     <PowerSyncContext.Provider value={db}>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -36,10 +50,10 @@ export default function RootLayout() {
           <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
             <StatusBar style="auto" />
             <Stack>
-              <Stack.Protected guard={!!permissionResponse?.granted}>
+              <Stack.Protected guard={permissionResponse.granted}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               </Stack.Protected>
-              <Stack.Protected guard={!permissionResponse?.granted}>
+              <Stack.Protected guard={!permissionResponse.granted}>
                 <Stack.Screen
                   name="location-permission"
                   options={{ headerShown: false }}
