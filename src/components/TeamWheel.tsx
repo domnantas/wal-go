@@ -15,10 +15,9 @@ const ITEM_HEIGHT = 84;
 const VISIBLE_ITEMS = 3;
 const SPIN_DEADZONE_TRANSLATION = 28;
 const SPIN_VELOCITY_THRESHOLD = 900;
-const BASE_SPIN_CYCLES = 5;
-const MAX_EXTRA_CYCLES = 7;
-const BASE_SPIN_DURATION = 1200;
-const HAPTIC_BEAT_MS = 260;
+const BASE_SPIN_CYCLES = 8;
+const MAX_EXTRA_CYCLES = 12;
+const BASE_SPIN_DURATION = 2200;
 const REEL_LENGTH_MULTIPLIER = 40;
 
 type TimerSet = Set<ReturnType<typeof setTimeout>>;
@@ -48,7 +47,8 @@ export function TeamWheel({ onTeamSelected, disabled }: TeamWheelProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const completionTimers = useRef<TimerSet>(new Set());
-  const hapticIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hapticTimers = useRef<TimerSet>(new Set());
+  const lastHapticIndex = useRef<number>(centerIndex);
 
   const reelStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -69,19 +69,51 @@ export function TeamWheel({ onTeamSelected, disabled }: TeamWheelProps) {
   }, []);
 
   const stopSpinHaptics = useCallback(() => {
-    if (hapticIntervalRef.current) {
-      clearInterval(hapticIntervalRef.current);
-      hapticIntervalRef.current = null;
-    }
+    hapticTimers.current.forEach((timer) => clearTimeout(timer));
+    hapticTimers.current.clear();
   }, []);
 
-  const startSpinHaptics = useCallback(() => {
-    stopSpinHaptics();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    hapticIntervalRef.current = setInterval(() => {
-      Haptics.selectionAsync();
-    }, HAPTIC_BEAT_MS);
-  }, [stopSpinHaptics]);
+  // Schedule haptics that follow the cubic-out easing curve
+  // Haptics fire when crossing item boundaries, feeling faster at start and slower at end
+  const scheduleSpinHaptics = useCallback(
+    (totalTravel: number, duration: number) => {
+      stopSpinHaptics();
+
+      const itemsCrossed = Math.floor(Math.abs(totalTravel) / ITEM_HEIGHT);
+      if (itemsCrossed === 0) return;
+
+      // Initial impact
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // For cubic-out easing: progress = 1 - (1 - t)^3
+      // To find t for a given progress: t = 1 - (1 - progress)^(1/3)
+      const getTimeForProgress = (progress: number) => {
+        return 1 - Math.pow(1 - progress, 1 / 3);
+      };
+
+      // Schedule a haptic for each item boundary crossing
+      for (let i = 1; i <= itemsCrossed; i++) {
+        const progress = i / itemsCrossed;
+        const normalizedTime = getTimeForProgress(progress);
+        const timeMs = normalizedTime * duration;
+
+        // Use lighter haptics for fast movement, heavier as it slows
+        const timer = setTimeout(() => {
+          hapticTimers.current.delete(timer);
+          if (progress > 0.85) {
+            // Final few items - heavier feedback
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          } else {
+            // Fast spinning - light clicks
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }
+        }, timeMs);
+
+        hapticTimers.current.add(timer);
+      }
+    },
+    [stopSpinHaptics]
+  );
 
   useEffect(() => {
     return () => {
@@ -150,22 +182,23 @@ export function TeamWheel({ onTeamSelected, disabled }: TeamWheelProps) {
       if (disabled || isSpinning) return;
 
       setIsSpinning(true);
-      startSpinHaptics();
 
       const normalizedStrength = Math.min(Math.max(strength, 0.7), 5);
       const extraCycles = Math.round(
-        Math.min(normalizedStrength * 1.6, MAX_EXTRA_CYCLES)
+        Math.min(normalizedStrength * 2.4, MAX_EXTRA_CYCLES)
       );
       const randomDrift = (Math.random() - 0.5) * ITEM_HEIGHT;
       const totalCycles = BASE_SPIN_CYCLES + extraCycles;
       const travel = direction * (totalCycles * ITEM_HEIGHT + randomDrift);
       const duration =
-        BASE_SPIN_DURATION + Math.min(normalizedStrength * 500, 1600);
+        BASE_SPIN_DURATION + Math.min(normalizedStrength * 600, 2400);
+
+      scheduleSpinHaptics(travel, duration);
 
       const spinTarget = offsetRef.current + travel;
       animateTo(spinTarget, duration, () => snapToNearest(spinTarget, true));
     },
-    [animateTo, disabled, isSpinning, snapToNearest, startSpinHaptics]
+    [animateTo, disabled, isSpinning, scheduleSpinHaptics, snapToNearest]
   );
 
   const handleGestureEnd = useCallback(
@@ -204,7 +237,7 @@ export function TeamWheel({ onTeamSelected, disabled }: TeamWheelProps) {
           ? 1
           : -1;
 
-      const strengthFromVelocity = velocity / 900;
+      const strengthFromVelocity = velocity / 200;
       const strengthFromTravel = travel / ITEM_HEIGHT;
       const spinStrength = Math.max(
         strengthFromVelocity,
@@ -224,11 +257,21 @@ export function TeamWheel({ onTeamSelected, disabled }: TeamWheelProps) {
         .onBegin(() => {
           setIsDragging(true);
           dragStartRef.current = offsetRef.current;
+          lastHapticIndex.current = Math.round(
+            -offsetRef.current / ITEM_HEIGHT
+          );
         })
         .onUpdate((event) => {
           const nextOffset = dragStartRef.current + event.translationY;
           translateY.value = nextOffset;
           offsetRef.current = nextOffset;
+
+          // Check if we crossed an item boundary
+          const currentIndex = Math.round(-nextOffset / ITEM_HEIGHT);
+          if (currentIndex !== lastHapticIndex.current) {
+            lastHapticIndex.current = currentIndex;
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }
         })
         .onEnd((event) => {
           handleGestureEnd(event.velocityY, event.translationY);

@@ -16,6 +16,7 @@ import {
   Button,
   Pressable,
   ScrollView,
+  Switch,
   Text,
   TextInput,
   View,
@@ -38,6 +39,7 @@ export default function LogForm() {
   const [sentRST, setSentRST] = useState("");
   const [frequency, setFrequency] = useState("");
   const [mode, setMode] = useState<(typeof VALID_MODES)[number]>("SSB");
+  const [keepOpen, setKeepOpen] = useState(false);
 
   const isLoadingLocation = permissionResponse?.granted && !coordinates;
 
@@ -100,7 +102,16 @@ export default function LogForm() {
         seasonId: activeSeason.id,
         ...result.data,
       });
-      router.back();
+
+      if (keepOpen) {
+        // Clear fields except mode and frequency
+        setReceivedCallsign("");
+        setReceivedWAL("");
+        setReceivedRST("");
+        setSentRST("");
+      } else {
+        router.back();
+      }
     } catch (error) {
       console.error("Failed to save QSO:", error);
       Alert.alert("Klaida", "Nepavyko išsaugoti QSO. Bandykite dar kartą.");
@@ -118,6 +129,7 @@ export default function LogForm() {
     sentRST,
     frequency,
     mode,
+    keepOpen,
     drizzle,
     router,
   ]);
@@ -252,6 +264,13 @@ export default function LogForm() {
         selectedIndex={VALID_MODES.indexOf(mode)}
         enabled={!isOutsideWALGrid}
       />
+
+      <View style={styles.card}>
+        <View style={styles.switchRow}>
+          <Text style={styles.fieldLabel}>Palikti formą atidarytą</Text>
+          <Switch value={keepOpen} onValueChange={setKeepOpen} />
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -353,6 +372,13 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   fieldLabel: {
     fontSize: 17,
