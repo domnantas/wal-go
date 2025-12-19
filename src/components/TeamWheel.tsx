@@ -183,15 +183,16 @@ export function TeamWheel({ onTeamSelected, disabled }: TeamWheelProps) {
 
       setIsSpinning(true);
 
-      const normalizedStrength = Math.min(Math.max(strength, 0.7), 5);
+      const normalizedStrength = Math.min(Math.max(strength, 0.7), 12);
       const extraCycles = Math.round(
         Math.min(normalizedStrength * 2.4, MAX_EXTRA_CYCLES)
       );
       const randomDrift = (Math.random() - 0.5) * ITEM_HEIGHT;
       const totalCycles = BASE_SPIN_CYCLES + extraCycles;
       const travel = direction * (totalCycles * ITEM_HEIGHT + randomDrift);
-      const duration =
-        BASE_SPIN_DURATION + Math.min(normalizedStrength * 600, 2400);
+
+      const durationBonus = Math.sqrt(normalizedStrength) * 800;
+      const duration = BASE_SPIN_DURATION + Math.min(durationBonus, 2400);
 
       scheduleSpinHaptics(travel, duration);
 
