@@ -32,6 +32,7 @@
     "@supabase/supabase-js": "^2.84.0",
     "@turf/turf": "^7.3.1",
     "base64-arraybuffer": "^1.0.2",
+    "burnt": "^0.13.0",
     "drizzle-orm": "^0.44.7",
     "expo": "~54.0.23",
     "expo-blur": "^15.0.7",

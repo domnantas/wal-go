@@ -8,6 +8,7 @@ import { useSystem } from "@/lib/powersync/system";
 import { qsoSchema, VALID_MODES } from "@/lib/validations/qso";
 import { calculateWAL } from "@/lib/wal-grid";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { toast } from "burnt";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -104,6 +105,12 @@ export default function LogForm() {
       });
 
       if (keepOpen) {
+        toast({
+          title: "QSO išsaugotas",
+          preset: "done",
+          haptic: "success",
+        });
+
         // Clear fields except mode and frequency
         setReceivedCallsign("");
         setReceivedWAL("");
@@ -200,7 +207,7 @@ export default function LogForm() {
         <View style={styles.divider} />
         <TextInput
           style={[styles.field]}
-          placeholder="Gautas WAL"
+          placeholder="Gautas WAL (nebūtina)"
           placeholderTextColor={theme.colors.textSecondary}
           autoComplete="off"
           autoCorrect={false}
@@ -213,7 +220,7 @@ export default function LogForm() {
         <View style={styles.divider} />
         <TextInput
           style={[styles.field]}
-          placeholder="Gautas RST"
+          placeholder="Gautas RS(T)"
           placeholderTextColor={theme.colors.textSecondary}
           inputMode="numeric"
           value={receivedRST}
@@ -235,7 +242,7 @@ export default function LogForm() {
         <View style={styles.divider} />
         <TextInput
           style={[styles.field]}
-          placeholder="Išsiųstas RST"
+          placeholder="Išsiųstas RS(T)"
           placeholderTextColor={theme.colors.textSecondary}
           inputMode="numeric"
           value={sentRST}
@@ -250,7 +257,7 @@ export default function LogForm() {
           style={[styles.field]}
           placeholder="Dažnis (MHz)"
           placeholderTextColor={theme.colors.textSecondary}
-          inputMode="numeric"
+          inputMode="decimal"
           value={frequency}
           onChangeText={setFrequency}
           clearButtonMode="while-editing"
@@ -260,7 +267,9 @@ export default function LogForm() {
 
       <SegmentedControl
         values={[...VALID_MODES]}
-        onValueChange={(value) => setMode(value as (typeof VALID_MODES)[number])}
+        onValueChange={(value) =>
+          setMode(value as (typeof VALID_MODES)[number])
+        }
         selectedIndex={VALID_MODES.indexOf(mode)}
         enabled={!isOutsideWALGrid}
       />
