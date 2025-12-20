@@ -61,7 +61,7 @@ export default function LogLayout() {
         name="form"
         options={{
           title: "Naujas QSO",
-          presentation: Platform.OS === "ios" ? "formSheet" : "modal",
+          presentation: "modal",
           headerLargeTitle: false,
           headerTransparent: Platform.OS === "ios",
           headerBlurEffect: isLiquidGlassAvailable()

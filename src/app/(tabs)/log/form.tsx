@@ -16,12 +16,16 @@ import {
   Alert,
   Button,
   Pressable,
-  ScrollView,
   Switch,
   Text,
   TextInput,
   View,
 } from "react-native";
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+  KeyboardToolbar,
+} from "react-native-keyboard-controller";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 export default function LogForm() {
@@ -143,7 +147,7 @@ export default function LogForm() {
 
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => <Button title="Save" onPress={handleSubmit} />,
+      headerRight: () => <Button title="Išsaugoti" onPress={handleSubmit} />,
       unstable_headerRightItems: () => [
         {
           type: "button",
@@ -160,127 +164,137 @@ export default function LogForm() {
   }, [handleSubmit, navigation]);
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      {/* Permission request banner */}
-      {!permissionResponse?.granted && (
-        <Pressable
-          style={({ pressed }) => [
-            styles.permissionBanner,
-            pressed && styles.permissionBannerPressed,
-          ]}
-          onPress={requestPermission}
-        >
-          <Text style={styles.permissionTitle}>
-            Įjungti buvimo vietos nustatymą
-          </Text>
-          <Text style={styles.permissionDescription}>
-            Automatiškai nustatyti WAL pagal buvimo vietą
-          </Text>
-        </Pressable>
-      )}
+    <KeyboardProvider>
+      <KeyboardAwareScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+      >
+        {/* Permission request banner */}
+        {!permissionResponse?.granted && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.permissionBanner,
+              pressed && styles.permissionBannerPressed,
+            ]}
+            onPress={requestPermission}
+          >
+            <Text style={styles.permissionTitle}>
+              Įjungti buvimo vietos nustatymą
+            </Text>
+            <Text style={styles.permissionDescription}>
+              Automatiškai nustatyti WAL pagal buvimo vietą
+            </Text>
+          </Pressable>
+        )}
 
-      {/* Outside WAL grid warning banner */}
-      {isOutsideWALGrid && (
-        <View style={styles.outsideGridBanner}>
-          <Text style={styles.outsideGridTitle}>
-            Esate už WAL tinklelio ribų
-          </Text>
-          <Text style={styles.outsideGridDescription}>
-            QSO registruoti galima tik būnant Lietuvoje
-          </Text>
+        {/* Outside WAL grid warning banner */}
+        {isOutsideWALGrid && (
+          <View style={styles.outsideGridBanner}>
+            <Text style={styles.outsideGridTitle}>
+              Esate už WAL tinklelio ribų
+            </Text>
+            <Text style={styles.outsideGridDescription}>
+              QSO registruoti galima tik būnant Lietuvoje
+            </Text>
+          </View>
+        )}
+
+        <View style={[styles.card]}>
+          <TextInput
+            style={[styles.field]}
+            placeholder="Šaukinys"
+            placeholderTextColor={theme.colors.textSecondary}
+            autoComplete="off"
+            autoCorrect={false}
+            autoCapitalize="characters"
+            value={receivedCallsign}
+            onChangeText={(text) => setReceivedCallsign(text.toUpperCase())}
+            clearButtonMode="while-editing"
+            editable={!isOutsideWALGrid}
+          />
+          <View style={styles.divider} />
+          <TextInput
+            style={[styles.field]}
+            placeholder="Gautas WAL (nebūtina)"
+            placeholderTextColor={theme.colors.textSecondary}
+            autoComplete="off"
+            autoCorrect={false}
+            autoCapitalize="characters"
+            value={receivedWAL}
+            onChangeText={(text) => setReceivedWAL(text.toUpperCase())}
+            clearButtonMode="while-editing"
+            editable={!isOutsideWALGrid}
+          />
+          <View style={styles.divider} />
+          <TextInput
+            style={[styles.field]}
+            placeholder="Gautas RS(T)"
+            placeholderTextColor={theme.colors.textSecondary}
+            inputMode="numeric"
+            value={receivedRST}
+            onChangeText={setReceivedRST}
+            clearButtonMode="while-editing"
+            editable={!isOutsideWALGrid}
+          />
         </View>
-      )}
 
-      <View style={[styles.card]}>
-        <TextInput
-          style={[styles.field]}
-          placeholder="Šaukinys"
-          placeholderTextColor={theme.colors.textSecondary}
-          autoComplete="off"
-          autoCorrect={false}
-          autoCapitalize="characters"
-          value={receivedCallsign}
-          onChangeText={(text) => setReceivedCallsign(text.toUpperCase())}
-          clearButtonMode="while-editing"
-          editable={!isOutsideWALGrid}
-        />
-        <View style={styles.divider} />
-        <TextInput
-          style={[styles.field]}
-          placeholder="Gautas WAL (nebūtina)"
-          placeholderTextColor={theme.colors.textSecondary}
-          autoComplete="off"
-          autoCorrect={false}
-          autoCapitalize="characters"
-          value={receivedWAL}
-          onChangeText={(text) => setReceivedWAL(text.toUpperCase())}
-          clearButtonMode="while-editing"
-          editable={!isOutsideWALGrid}
-        />
-        <View style={styles.divider} />
-        <TextInput
-          style={[styles.field]}
-          placeholder="Gautas RS(T)"
-          placeholderTextColor={theme.colors.textSecondary}
-          inputMode="numeric"
-          value={receivedRST}
-          onChangeText={setReceivedRST}
-          clearButtonMode="while-editing"
-          editable={!isOutsideWALGrid}
-        />
-      </View>
-
-      <View style={[styles.card]}>
-        <View style={styles.labeledField}>
-          <Text style={styles.fieldLabel}>Išsiųstas WAL</Text>
-          {isLoadingLocation ? (
-            <ActivityIndicator color={theme.colors.tint} />
-          ) : (
-            <Text style={styles.fieldValue}>{walCode || "—"}</Text>
-          )}
+        <View style={[styles.card]}>
+          <View style={styles.labeledField}>
+            <Text style={styles.fieldLabel}>Išsiųstas WAL</Text>
+            {isLoadingLocation ? (
+              <ActivityIndicator color={theme.colors.tint} />
+            ) : (
+              <Text style={styles.fieldValue}>{walCode || "—"}</Text>
+            )}
+          </View>
+          <View style={styles.divider} />
+          <TextInput
+            style={[styles.field]}
+            placeholder="Išsiųstas RS(T)"
+            placeholderTextColor={theme.colors.textSecondary}
+            inputMode="numeric"
+            value={sentRST}
+            onChangeText={setSentRST}
+            clearButtonMode="while-editing"
+            editable={!isOutsideWALGrid}
+          />
         </View>
-        <View style={styles.divider} />
-        <TextInput
-          style={[styles.field]}
-          placeholder="Išsiųstas RS(T)"
-          placeholderTextColor={theme.colors.textSecondary}
-          inputMode="numeric"
-          value={sentRST}
-          onChangeText={setSentRST}
-          clearButtonMode="while-editing"
-          editable={!isOutsideWALGrid}
-        />
-      </View>
 
-      <View style={[styles.card]}>
-        <TextInput
-          style={[styles.field]}
-          placeholder="Dažnis (MHz)"
-          placeholderTextColor={theme.colors.textSecondary}
-          inputMode="decimal"
-          value={frequency}
-          onChangeText={setFrequency}
-          clearButtonMode="while-editing"
-          editable={!isOutsideWALGrid}
-        />
-      </View>
-
-      <SegmentedControl
-        values={[...VALID_MODES]}
-        onValueChange={(value) =>
-          setMode(value as (typeof VALID_MODES)[number])
-        }
-        selectedIndex={VALID_MODES.indexOf(mode)}
-        enabled={!isOutsideWALGrid}
-      />
-
-      <View style={styles.card}>
-        <View style={styles.switchRow}>
-          <Text style={styles.fieldLabel}>Palikti formą atidarytą</Text>
-          <Switch value={keepOpen} onValueChange={setKeepOpen} />
+        <View style={[styles.card]}>
+          <TextInput
+            style={[styles.field]}
+            placeholder="Dažnis (MHz)"
+            placeholderTextColor={theme.colors.textSecondary}
+            inputMode="decimal"
+            value={frequency}
+            onChangeText={setFrequency}
+            clearButtonMode="while-editing"
+            editable={!isOutsideWALGrid}
+          />
         </View>
-      </View>
-    </ScrollView>
+
+        <SegmentedControl
+          values={[...VALID_MODES]}
+          onValueChange={(value) =>
+            setMode(value as (typeof VALID_MODES)[number])
+          }
+          selectedIndex={VALID_MODES.indexOf(mode)}
+          enabled={!isOutsideWALGrid}
+        />
+
+        <View style={styles.card}>
+          <View style={styles.switchRow}>
+            <Text style={styles.fieldLabel}>Palikti formą atidarytą</Text>
+            <Switch value={keepOpen} onValueChange={setKeepOpen} />
+          </View>
+        </View>
+      </KeyboardAwareScrollView>
+      <KeyboardToolbar>
+        <KeyboardToolbar.Prev />
+        <KeyboardToolbar.Next />
+        <KeyboardToolbar.Done />
+      </KeyboardToolbar>
+    </KeyboardProvider>
   );
 }
 
