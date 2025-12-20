@@ -5,7 +5,8 @@ import { useSystem } from "@/lib/powersync/system";
 import { toCompilableQuery } from "@powersync/drizzle-driver";
 import { useQuery } from "@powersync/react-native";
 import { and, eq } from "drizzle-orm";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Platform, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native-unistyles";
 
 const MODE_COLORS: Record<string, string> = {
@@ -28,6 +29,7 @@ export default function Log() {
   const { userId } = useAuth();
   const { activeSeason } = useActiveSeason();
   const { drizzle } = useSystem();
+  const insets = useSafeAreaInsets();
   const { data } = useQuery(
     toCompilableQuery(
       drizzle.query.qsos.findMany({
@@ -49,7 +51,15 @@ export default function Log() {
     <FlatList
       data={sortedData}
       keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.list}
+      contentContainerStyle={[
+        styles.list,
+        {
+          paddingBottom: Platform.select({
+            android: 100 + insets.bottom,
+            default: insets.bottom,
+          }),
+        },
+      ]}
       contentInsetAdjustmentBehavior="automatic"
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       ListEmptyComponent={
