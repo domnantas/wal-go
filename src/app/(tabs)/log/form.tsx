@@ -104,13 +104,13 @@ export default function LogForm() {
         ...result.data,
       });
 
-      if (keepOpen) {
-        toast({
-          title: "QSO išsaugotas",
-          preset: "done",
-          haptic: "success",
-        });
+      toast({
+        title: "QSO išsaugotas",
+        preset: "done",
+        haptic: "success",
+      });
 
+      if (keepOpen) {
         // Clear fields except mode and frequency
         setReceivedCallsign("");
         setReceivedWAL("");
