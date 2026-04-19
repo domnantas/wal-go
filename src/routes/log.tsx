@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAuthFn } from "../server/auth";
 
-export const Route = createFileRoute("/log")({ component: LogPage });
+export const Route = createFileRoute("/log")({
+  beforeLoad: async () => await requireAuthFn(),
+  component: LogPage,
+});
 
 function LogPage() {
   return (

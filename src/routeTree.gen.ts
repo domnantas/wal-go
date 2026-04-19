@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as JoinSeasonRouteImport } from './routes/join-season'
@@ -25,6 +26,11 @@ const UploadRoute = UploadRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/admin/seasons': typeof AdminSeasonsRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/admin/seasons': typeof AdminSeasonsRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/admin/seasons': typeof AdminSeasonsRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/log'
     | '/login'
+    | '/onboarding'
     | '/signup'
     | '/upload'
     | '/admin/seasons'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/log'
     | '/login'
+    | '/onboarding'
     | '/signup'
     | '/upload'
     | '/admin/seasons'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/log'
     | '/login'
+    | '/onboarding'
     | '/signup'
     | '/upload'
     | '/admin/seasons'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   JoinSeasonRoute: typeof JoinSeasonRoute
   LogRoute: typeof LogRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   UploadRoute: typeof UploadRoute
   AdminSeasonsRoute: typeof AdminSeasonsRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinSeasonRoute: JoinSeasonRoute,
   LogRoute: LogRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   UploadRoute: UploadRoute,
   AdminSeasonsRoute: AdminSeasonsRoute,
@@ -189,10 +210,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAuthFn } from "../server/auth";
 
-export const Route = createFileRoute("/upload")({ component: UploadPage });
+export const Route = createFileRoute("/upload")({
+  beforeLoad: async () => await requireAuthFn(),
+  component: UploadPage,
+});
 
 function UploadPage() {
   return (

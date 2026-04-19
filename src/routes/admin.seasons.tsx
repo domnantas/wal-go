@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAdminFn } from "../server/auth";
 
 export const Route = createFileRoute("/admin/seasons")({
+  beforeLoad: async () => await requireAdminFn(),
   component: AdminSeasonsPage,
 });
 

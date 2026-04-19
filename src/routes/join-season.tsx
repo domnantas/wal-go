@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAuthFn } from "../server/auth";
 
 export const Route = createFileRoute("/join-season")({
+  beforeLoad: async () => await requireAuthFn(),
   component: JoinSeasonPage,
 });
 
