@@ -1,4 +1,5 @@
 import { createDb } from "@WAL-GO/db";
+// biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
 import * as schema from "@WAL-GO/db/schema/auth";
 import { env } from "@WAL-GO/env/server";
 import { betterAuth } from "better-auth";
@@ -11,7 +12,6 @@ export function createAuth() {
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: "pg",
-
 			schema,
 		}),
 		trustedOrigins: [env.CORS_ORIGIN],
