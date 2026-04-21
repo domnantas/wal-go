@@ -4,6 +4,7 @@ import { Button } from "@WAL-GO/ui/components/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -123,9 +124,11 @@ export function UserButton({
 			>
 				{session && (
 					<>
-						<DropdownMenuLabel className="font-normal text-sm">
-							<UserView />
-						</DropdownMenuLabel>
+						<DropdownMenuGroup>
+							<DropdownMenuLabel className="font-normal text-sm">
+								<UserView />
+							</DropdownMenuLabel>
+						</DropdownMenuGroup>
 
 						<DropdownMenuSeparator />
 					</>

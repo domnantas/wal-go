@@ -8,12 +8,10 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-
+import { ThemeProvider } from "tanstack-theme-kit";
 import type { orpc } from "@/utils/orpc";
-
 import Header from "../components/header";
 import { Providers } from "../components/providers";
-
 import appCss from "../index.css?url";
 export interface RouterAppContext {
 	orpc: typeof orpc;
@@ -52,16 +50,21 @@ function RootDocument() {
 				<HeadContent />
 			</head>
 			<body>
-				<Providers>
-					<div className="grid h-svh grid-rows-[auto_1fr]">
-						<Header />
-						<Outlet />
-					</div>
-				</Providers>
-				<Toaster richColors />
-				<TanStackRouterDevtools position="bottom-left" />
-				<ReactQueryDevtools buttonPosition="bottom-right" position="bottom" />
-				<Scripts />
+				<ThemeProvider attribute="class">
+					<Providers>
+						<div className="grid h-svh grid-rows-[auto_1fr]">
+							<Header />
+							<Outlet />
+						</div>
+						<Toaster richColors />
+						<TanStackRouterDevtools position="bottom-left" />
+						<ReactQueryDevtools
+							buttonPosition="bottom-right"
+							position="bottom"
+						/>
+						<Scripts />
+					</Providers>
+				</ThemeProvider>
 			</body>
 		</html>
 	);
