@@ -1,204 +1,130 @@
-Welcome to your new TanStack Start app! 
+# WAL-GO
 
-# Getting Started
+This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
 
-To run this application:
+## Features
+
+- **TypeScript** - For type safety and improved developer experience
+- **TanStack Start** - SSR framework with TanStack Router
+- **TailwindCSS** - Utility-first CSS for rapid UI development
+- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
+- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
+- **Drizzle** - TypeScript-first ORM
+- **PostgreSQL** - Database engine
+- **Authentication** - Better-Auth
+- **Biome** - Linting and formatting
+- **Turborepo** - Optimized monorepo build system
+
+## Getting Started
+
+First, install the dependencies:
 
 ```bash
 pnpm install
-pnpm dev
 ```
 
-# Building For Production
-
-To build this application for production:
+Copy `apps/web/.env.example` to `apps/web/.env` — it's pre-configured to connect to this local instance. Generate `BETTER_AUTH_SECRET` with `openssl rand -base64 32``.
 
 ```bash
-pnpm build
+cp apps/web/.env.example apps/web/.env
 ```
 
-## Testing
+## Database Setup
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+This project uses PostgreSQL with Drizzle ORM.
+
+### Local development (Docker)
+
+Start Postgres locally:
 
 ```bash
-pnpm test
+docker compose up -d
 ```
 
-## Styling
+This runs Postgres on `localhost:5432` with:
+- User: `postgres`
+- Password: `postgres`
+- Database: `wal-go`
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `pnpm add @tailwindcss/vite tailwindcss --dev`
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
+Stop the database:
 
 ```bash
-pnpm lint
-pnpm format
-pnpm check
+docker compose down
 ```
 
+### Apply schema
 
+```bash
+pnpm run db:push
+```
 
-## Routing
+Then, run the development server:
 
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
+```bash
+pnpm run dev
+```
 
-### Adding A Route
+Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
 
-To add a new route to your application just add a new file in the `./src/routes` directory.
+## UI Customization
 
-TanStack will automatically generate the content of the route file for you.
+React web apps in this stack share shadcn/ui primitives through `packages/ui`.
 
-Now that you have two routes you can use a `Link` component to navigate between them.
+- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
+- Update shared primitives in `packages/ui/src/components/*`
+- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
 
-### Adding Links
+### Add more shared components
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+Run this from the project root to add more primitives to the shared UI package:
+
+```bash
+npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
+```
+
+Import shared components like this:
 
 ```tsx
-import { Link } from "@tanstack/react-router";
+import { Button } from "@WAL-GO/ui/components/button";
 ```
 
-Then anywhere in your JSX you can use it like so:
+### Add app-specific blocks
 
-```tsx
-<Link to="/about">About</Link>
+If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
+
+## Deployment (Cloudflare via Alchemy)
+
+- Dev: cd apps/web && pnpm run alchemy dev
+- Deploy: cd apps/web && pnpm run deploy
+- Destroy: cd apps/web && pnpm run destroy
+
+For more details, see the guide on [Deploying to Cloudflare with Alchemy](https://www.better-t-stack.dev/docs/guides/cloudflare-alchemy).
+
+## Git Hooks and Formatting
+
+- Format and lint fix: `pnpm run check`
+
+## Project Structure
+
+```
+WAL-GO/
+├── apps/
+│   └── web/         # Fullstack application (React + TanStack Start)
+├── packages/
+│   ├── ui/          # Shared shadcn/ui components and styles
+│   ├── api/         # API layer / business logic
+│   ├── auth/        # Authentication configuration & logic
+│   └── db/          # Database schema & queries
 ```
 
-This will create a link that will navigate to the `/about` route.
+## Available Scripts
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+- `pnpm run dev`: Start all applications in development mode
+- `pnpm run build`: Build all applications
+- `pnpm run dev:web`: Start only the web application
+- `pnpm run check-types`: Check TypeScript types across all apps
+- `pnpm run db:push`: Push schema changes to database
+- `pnpm run db:generate`: Generate database client/types
+- `pnpm run db:migrate`: Run database migrations
+- `pnpm run db:studio`: Open database studio UI
+- `pnpm run check`: Run Biome formatting and linting

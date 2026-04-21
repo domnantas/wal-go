@@ -1,0 +1,24 @@
+{
+  "name": "@WAL-GO/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@WAL-GO/db": "workspace:*",
+    "@WAL-GO/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@WAL-GO/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

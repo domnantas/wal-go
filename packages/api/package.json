@@ -1,0 +1,30 @@
+{
+  "name": "@WAL-GO/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@WAL-GO/auth": "workspace:*",
+    "@WAL-GO/db": "workspace:*",
+    "@WAL-GO/env": "workspace:*",
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "@types/pg": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@WAL-GO/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
