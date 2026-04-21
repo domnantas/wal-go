@@ -1,85 +1,59 @@
-import { Show, UserButton, useUser } from "@clerk/tanstack-react-start";
 import { Link } from "@tanstack/react-router";
-import ThemeToggle from "./ThemeToggle";
+import { authClient } from "../lib/auth";
+import { UserButton } from "./user/user-button";
 
 export default function Header() {
-  const { user } = useUser();
-  const callsign = user?.username;
+	const { data } = authClient.useSession();
+	const session = data?.session;
 
-  return (
-    <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
-      <nav className="page-wrap flex flex-wrap items-center gap-x-3 gap-y-2 py-3 sm:py-4">
-        <h2 className="m-0 flex-shrink-0 text-base font-semibold tracking-tight">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm text-[var(--sea-ink)] no-underline shadow-[0_8px_24px_rgba(30,90,72,0.08)] sm:px-4 sm:py-2"
-          >
-            <span className="h-2 w-2 rounded-full bg-[linear-gradient(90deg,#f4c430,#56c6be)]" />
-            WAL-GO
-          </Link>
-        </h2>
+	return (
+		<header className="h-14 bg-white border-b border-border flex items-center px-5 gap-4 shrink-0 shadow-[0_1px_4px_rgba(28,16,7,0.05)]">
+			<Link to="/" activeProps={{}}>
+				<img
+					src="/wal-go-logo-transparent.png"
+					alt="WAL GO"
+					className="h-7 w-auto"
+				/>
+			</Link>
 
-        <div className="ml-auto flex items-center gap-1.5 sm:ml-0 sm:gap-2">
-          <ThemeToggle />
-          <Show when="signed-in">
-            {callsign && (
-              <span className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-2.5 py-1 font-mono text-xs font-semibold text-[var(--sea-ink)]">
-                {callsign}
-              </span>
-            )}
-            <UserButton />
-          </Show>
-        </div>
+			<nav className="flex gap-1 ml-auto mr-2">
+				<Link
+					to="/"
+					className="px-3.5 py-1.5 rounded-md text-sm font-medium text-brown2 flex items-center gap-1.5 transition-colors hover:bg-cream2 hover:text-brown no-underline data-[status=active]:bg-cream2 data-[status=active]:text-brown data-[status=active]:font-semibold"
+					activeOptions={{ exact: true }}
+				>
+					Žemėlapis
+				</Link>
+				{session && (
+					<Link
+						to="/log"
+						className="px-3.5 py-1.5 rounded-md text-sm font-medium text-brown2 flex items-center gap-1.5 transition-colors hover:bg-cream2 hover:text-brown no-underline data-[status=active]:bg-cream2 data-[status=active]:text-brown data-[status=active]:font-semibold"
+					>
+						Žurnalas
+					</Link>
+				)}
+			</nav>
 
-        <div className="order-3 flex w-full flex-wrap items-center gap-x-4 gap-y-1 pb-1 text-sm font-semibold sm:order-2 sm:w-auto sm:flex-nowrap sm:pb-0">
-          <Link
-            to="/"
-            className="nav-link"
-            activeProps={{ className: "nav-link is-active" }}
-          >
-            Map
-          </Link>
-          <Show when="signed-in">
-            <Link
-              to="/upload"
-              className="nav-link"
-              activeProps={{ className: "nav-link is-active" }}
-            >
-              Upload
-            </Link>
-            <Link
-              to="/log"
-              className="nav-link"
-              activeProps={{ className: "nav-link is-active" }}
-            >
-              Log
-            </Link>
-            <Link
-              to="/join-season"
-              className="nav-link"
-              activeProps={{ className: "nav-link is-active" }}
-            >
-              Join season
-            </Link>
-          </Show>
-          <Show when="signed-out">
-            <Link
-              to="/login"
-              className="nav-link"
-              activeProps={{ className: "nav-link is-active" }}
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="nav-link"
-              activeProps={{ className: "nav-link is-active" }}
-            >
-              Sign up
-            </Link>
-          </Show>
-        </div>
-      </nav>
-    </header>
-  );
+			{session ? (
+				<UserButton />
+			) : (
+				<div className="flex gap-2">
+					<Link
+						to="/auth/$pathname"
+						params={{ pathname: "sign-in" }}
+						className="px-3.5 py-1.5 rounded-md text-sm font-medium text-brown2 flex items-center gap-1.5 transition-colors hover:bg-cream2 hover:text-brown no-underline"
+					>
+						Prisijungti
+					</Link>
+					<Link
+						to="/auth/$pathname"
+						params={{ pathname: "sign-up" }}
+						className="py-1.5 px-4 bg-brown text-white rounded-md text-sm font-semibold no-underline flex items-center hover:opacity-90 transition-opacity"
+					>
+						Registruotis
+					</Link>
+				</div>
+			)}
+		</header>
+	);
 }

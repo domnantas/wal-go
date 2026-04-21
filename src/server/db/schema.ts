@@ -19,7 +19,7 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    clerkId: text("clerk_id").unique(),
+    authId: text("auth_id").unique(),
     callsign: text("callsign").notNull().unique(),
     email: text("email").notNull().unique(),
     displayName: text("display_name"),

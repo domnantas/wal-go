@@ -9,33 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as UploadRouteImport } from './routes/upload'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as JoinSeasonRouteImport } from './routes/join-season'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthPathnameRouteImport } from './routes/auth.$pathname'
 import { Route as AdminSeasonsRouteImport } from './routes/admin.seasons'
+import { Route as AccountPathnameRouteImport } from './routes/account.$pathname'
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -53,9 +43,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthPathnameRoute = AuthPathnameRouteImport.update({
+  id: '/auth/$pathname',
+  path: '/auth/$pathname',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSeasonsRoute = AdminSeasonsRouteImport.update({
   id: '/admin/seasons',
   path: '/admin/seasons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountPathnameRoute = AccountPathnameRouteImport.update({
+  id: '/account/$pathname',
+  path: '/account/$pathname',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -63,32 +63,32 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
-  '/login': typeof LoginRoute
-  '/onboarding': typeof OnboardingRoute
-  '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/account/$pathname': typeof AccountPathnameRoute
   '/admin/seasons': typeof AdminSeasonsRoute
+  '/auth/$pathname': typeof AuthPathnameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
-  '/login': typeof LoginRoute
-  '/onboarding': typeof OnboardingRoute
-  '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/account/$pathname': typeof AccountPathnameRoute
   '/admin/seasons': typeof AdminSeasonsRoute
+  '/auth/$pathname': typeof AuthPathnameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
-  '/login': typeof LoginRoute
-  '/onboarding': typeof OnboardingRoute
-  '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/account/$pathname': typeof AccountPathnameRoute
   '/admin/seasons': typeof AdminSeasonsRoute
+  '/auth/$pathname': typeof AuthPathnameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,72 +96,58 @@ export interface FileRouteTypes {
     | '/'
     | '/join-season'
     | '/log'
-    | '/login'
-    | '/onboarding'
-    | '/signup'
     | '/upload'
+    | '/verify-email'
+    | '/account/$pathname'
     | '/admin/seasons'
+    | '/auth/$pathname'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/join-season'
     | '/log'
-    | '/login'
-    | '/onboarding'
-    | '/signup'
     | '/upload'
+    | '/verify-email'
+    | '/account/$pathname'
     | '/admin/seasons'
+    | '/auth/$pathname'
   id:
     | '__root__'
     | '/'
     | '/join-season'
     | '/log'
-    | '/login'
-    | '/onboarding'
-    | '/signup'
     | '/upload'
+    | '/verify-email'
+    | '/account/$pathname'
     | '/admin/seasons'
+    | '/auth/$pathname'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JoinSeasonRoute: typeof JoinSeasonRoute
   LogRoute: typeof LogRoute
-  LoginRoute: typeof LoginRoute
-  OnboardingRoute: typeof OnboardingRoute
-  SignupRoute: typeof SignupRoute
   UploadRoute: typeof UploadRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
+  AccountPathnameRoute: typeof AccountPathnameRoute
   AdminSeasonsRoute: typeof AdminSeasonsRoute
+  AuthPathnameRoute: typeof AuthPathnameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/upload': {
       id: '/upload'
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -185,11 +171,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/$pathname': {
+      id: '/auth/$pathname'
+      path: '/auth/$pathname'
+      fullPath: '/auth/$pathname'
+      preLoaderRoute: typeof AuthPathnameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/seasons': {
       id: '/admin/seasons'
       path: '/admin/seasons'
       fullPath: '/admin/seasons'
       preLoaderRoute: typeof AdminSeasonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/$pathname': {
+      id: '/account/$pathname'
+      path: '/account/$pathname'
+      fullPath: '/account/$pathname'
+      preLoaderRoute: typeof AccountPathnameRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -199,11 +199,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JoinSeasonRoute: JoinSeasonRoute,
   LogRoute: LogRoute,
-  LoginRoute: LoginRoute,
-  OnboardingRoute: OnboardingRoute,
-  SignupRoute: SignupRoute,
   UploadRoute: UploadRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
+  AccountPathnameRoute: AccountPathnameRoute,
   AdminSeasonsRoute: AdminSeasonsRoute,
+  AuthPathnameRoute: AuthPathnameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

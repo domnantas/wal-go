@@ -1,23 +1,45 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { requireAdminFn } from "../server/auth";
+import { useAuthenticate } from "@better-auth-ui/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/seasons")({
-  beforeLoad: async () => await requireAdminFn(),
-  component: AdminSeasonsPage,
+	component: AdminSeasonsPage,
 });
 
 function AdminSeasonsPage() {
-  return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in rounded-[2rem] px-6 py-10 sm:px-10">
-        <p className="island-kicker mb-3">Admin</p>
-        <h1 className="display-title mb-5 text-3xl font-bold text-[var(--sea-ink)]">
-          Seasons
-        </h1>
-        <p className="text-sm text-[var(--sea-ink-soft)]">
-          Create / edit / delete seasons. Overlap prevention enforced.
-        </p>
-      </section>
-    </main>
-  );
+	const { data } = useAuthenticate();
+	const navigate = useNavigate();
+	if (!data?.session) return null;
+
+	if (!data.user.emailVerified) {
+		navigate({ to: "/verify-email" });
+		return null;
+	}
+
+	return (
+		<div className="w-full h-full overflow-y-auto px-8 py-7 bg-cream">
+			<div className="flex items-start justify-between mb-6">
+				<div>
+					<h2 className="font-serif text-2xl mb-1">Sezonai</h2>
+					<p className="text-brown3 text-sm">
+						Administruokite sezono datas ir nustatymus
+					</p>
+				</div>
+				<button
+					type="button"
+					className="px-5 py-2.5 bg-brown text-white rounded-md text-sm font-semibold tracking-wide transition-opacity hover:opacity-90 active:scale-[0.985] cursor-pointer border-none"
+				>
+					+ Naujas sezonas
+				</button>
+			</div>
+			<div className="bg-white rounded-lg border border-border overflow-hidden shadow-card">
+				<div className="px-5 py-15 text-center text-brown3">
+					<div className="text-5xl mb-3">📅</div>
+					<h3 className="font-serif text-lg mb-1.5 text-brown2">
+						Sezonų nėra
+					</h3>
+					<p className="text-sm">Sukurkite pirmąjį sezoną</p>
+				</div>
+			</div>
+		</div>
+	);
 }

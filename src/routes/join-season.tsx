@@ -1,28 +1,69 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { requireAuthFn } from "../server/auth";
+import { useAuthenticate } from "@better-auth-ui/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/join-season")({
-  beforeLoad: async () => await requireAuthFn(),
-  component: JoinSeasonPage,
+	component: JoinSeasonPage,
 });
 
+const TEAMS = [
+	{
+		name: "Geltona",
+		bg: "bg-yellow-bg",
+		border: "border-yellow/25",
+		dark: "text-yellow-dark",
+	},
+	{
+		name: "Žalia",
+		bg: "bg-green-bg",
+		border: "border-green/25",
+		dark: "text-green-dark",
+	},
+	{
+		name: "Raudona",
+		bg: "bg-red-bg",
+		border: "border-red/25",
+		dark: "text-red-dark",
+	},
+];
+
 function JoinSeasonPage() {
-  return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in max-w-xl rounded-[2rem] px-6 py-10 sm:px-10">
-        <p className="island-kicker mb-3">Sezonas</p>
-        <h1 className="display-title mb-5 text-3xl font-bold text-[var(--sea-ink)]">
-          Spin roulette
-        </h1>
-        <p className="mb-6 text-sm text-[var(--sea-ink-soft)]">
-          Team roulette (yellow / green / red). One spin, permanent assignment.
-        </p>
-        <div className="flex gap-3">
-          <span className="inline-block h-8 w-8 rounded-full bg-yellow-400" />
-          <span className="inline-block h-8 w-8 rounded-full bg-green-500" />
-          <span className="inline-block h-8 w-8 rounded-full bg-red-500" />
-        </div>
-      </section>
-    </main>
-  );
+	const { data } = useAuthenticate();
+	const navigate = useNavigate();
+	if (!data?.session) return null;
+
+	if (!data.user.emailVerified) {
+		navigate({ to: "/verify-email" });
+		return null;
+	}
+
+	return (
+		<div className="min-h-full flex items-center justify-center flex-col bg-cream p-10">
+			<div className="text-center mb-10">
+				<h1 className="font-serif text-4xl mb-2">
+					Prisijungti prie sezono
+				</h1>
+				<p className="text-brown2 text-base max-w-[420px] mx-auto">
+					Sukite ruletę ir sužinokite, kuriai komandai priklausote. Komanda
+					bus priskirta vienąkart ir nekeičiama.
+				</p>
+			</div>
+
+			<div className="flex gap-4 mb-8 justify-center">
+				{TEAMS.map((team) => (
+					<div
+						key={team.name}
+						className={`${team.bg} rounded-xl px-5 py-4 border-[1.5px] ${team.border} text-center min-w-[100px]`}
+					>
+						<div className={`font-bold text-[15px] ${team.dark}`}>
+							{team.name}
+						</div>
+					</div>
+				))}
+			</div>
+
+			<button className="px-12 py-3.5 bg-brown text-white rounded-full text-[17px] font-semibold transition-opacity hover:opacity-90 active:scale-[0.985] cursor-pointer border-none">
+				Sukti ruletę
+			</button>
+		</div>
+	);
 }
