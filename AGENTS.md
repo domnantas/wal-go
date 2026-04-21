@@ -1,3 +1,15 @@
+# WAL GO
+
+Lithuanian amateur radio territory competition web app.
+
+## Language
+
+UI text is in Lithuanian.
+
+## AGENTS.md
+
+Update AGENTS.md when project details change
+
 # Ultracite Code Standards
 
 This project uses **Ultracite**, a zero-config preset that enforces strict code quality standards through automated formatting and linting.
