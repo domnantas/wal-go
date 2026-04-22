@@ -11,14 +11,16 @@
     "prefix": ""
   },
   "iconLibrary": "lucide",
+  "menuColor": "default",
+  "menuAccent": "subtle",
   "aliases": {
     "components": "@WAL-GO/ui/components",
     "utils": "@WAL-GO/ui/lib/utils",
-    "hooks": "@WAL-GO/ui/hooks",
+    "ui": "@WAL-GO/ui/components",
     "lib": "@WAL-GO/ui/lib",
-    "ui": "@WAL-GO/ui/components"
+    "hooks": "@WAL-GO/ui/hooks"
   },
-  "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {}
+  "registries": {
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
+  }
 }

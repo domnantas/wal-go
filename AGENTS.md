@@ -10,6 +10,10 @@ UI text is in Lithuanian.
 
 Update AGENTS.md when project details change
 
+## Development
+
+Do not run the dev server to check if changes are valid.
+
 # Ultracite Code Standards
 
 This project uses **Ultracite**, a zero-config preset that enforces strict code quality standards through automated formatting and linting.
