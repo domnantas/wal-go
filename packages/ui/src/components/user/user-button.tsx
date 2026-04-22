@@ -21,6 +21,7 @@ import {
 	LogOut,
 	Monitor,
 	Moon,
+	Paintbrush,
 	Settings,
 	Sun,
 	UserPlus2,
@@ -159,17 +160,20 @@ export function UserButton({
 						{themeToggle && theme && setTheme && !!themes?.length && (
 							<>
 								<DropdownMenuItem
-									className="cursor-default! justify-between py-0.75 hover:bg-transparent!"
+									className="cursor-default! justify-between py-0.75 hover:bg-transparent! focus:bg-transparent! focus:text-foreground! focus:**:text-inherit!"
 									onSelect={(e) => e.preventDefault()}
 								>
-									{localization.settings.theme}
+									<div className="flex items-center gap-2.5">
+										<Paintbrush className="size-4 text-muted-foreground" />
+										{localization.settings.theme}
+									</div>
 
 									<Tabs onValueChange={setTheme} value={theme}>
-										<TabsList className="h-6!">
+										<TabsList className="h-6! gap-0.5">
 											{themes.includes("system") && (
 												<TabsTrigger
 													aria-label={localization.settings.system}
-													className="size-5 p-0"
+													className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
 													value="system"
 												>
 													<Monitor className="size-3" />
@@ -178,7 +182,7 @@ export function UserButton({
 											{themes.includes("light") && (
 												<TabsTrigger
 													aria-label={localization.settings.light}
-													className="size-5 p-0"
+													className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
 													value="light"
 												>
 													<Sun className="size-3" />
@@ -187,7 +191,7 @@ export function UserButton({
 											{themes.includes("dark") && (
 												<TabsTrigger
 													aria-label={localization.settings.dark}
-													className="size-5 p-0"
+													className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
 													value="dark"
 												>
 													<Moon className="size-3" />
