@@ -14,11 +14,7 @@ import {
 } from "@WAL-GO/ui/components/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@WAL-GO/ui/components/tabs";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import {
-	useAuth,
-	useSession,
-	useSetActiveSession,
-} from "@better-auth-ui/react";
+import { useAuth, useSession } from "@better-auth-ui/react";
 import {
 	ChevronsUpDown,
 	LogIn,
@@ -80,7 +76,6 @@ export function UserButton({
 		appearance: { theme, setTheme, themes },
 	} = useAuth();
 
-	const { isPending: settingActiveSession } = useSetActiveSession();
 	const { data: session, isPending: sessionPending } = useSession();
 
 	return (
@@ -99,8 +94,8 @@ export function UserButton({
 						size="lg"
 						variant={variant}
 					>
-						{session || sessionPending || settingActiveSession ? (
-							<UserView isPending={!!settingActiveSession} />
+						{session || sessionPending ? (
+							<UserView isPending={!!sessionPending} />
 						) : (
 							<>
 								<UserAvatar />
