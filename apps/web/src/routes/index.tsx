@@ -28,16 +28,12 @@ function HomeComponent() {
 				</div>
 
 				<div className="flex flex-col gap-3 sm:flex-row">
-					<Button className="px-6" render={<Link to="/dashboard" />} size="lg">
-						Pradėti
-					</Button>
 					<Button
 						className="px-6"
-						render={<Link to="/dashboard" />}
+						render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
 						size="lg"
-						variant="outline"
 					>
-						Sužinoti daugiau
+						Prisijungti
 					</Button>
 				</div>
 			</section>

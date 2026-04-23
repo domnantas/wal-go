@@ -156,63 +156,6 @@ export function UserButton({
 						)}
 
 						<DropdownMenuSeparator />
-
-						{themeToggle && theme && setTheme && !!themes?.length && (
-							<>
-								<DropdownMenuItem
-									className="cursor-default! justify-between py-0.75 hover:bg-transparent! focus:bg-transparent! focus:text-foreground! focus:**:text-inherit!"
-									onSelect={(e) => e.preventDefault()}
-								>
-									<div className="flex items-center gap-2.5">
-										<Paintbrush className="size-4 text-muted-foreground" />
-										{localization.settings.theme}
-									</div>
-
-									<Tabs onValueChange={setTheme} value={theme}>
-										<TabsList className="h-6! gap-0.5">
-											{themes.includes("system") && (
-												<TabsTrigger
-													aria-label={localization.settings.system}
-													className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
-													value="system"
-												>
-													<Monitor className="size-3" />
-												</TabsTrigger>
-											)}
-											{themes.includes("light") && (
-												<TabsTrigger
-													aria-label={localization.settings.light}
-													className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
-													value="light"
-												>
-													<Sun className="size-3" />
-												</TabsTrigger>
-											)}
-											{themes.includes("dark") && (
-												<TabsTrigger
-													aria-label={localization.settings.dark}
-													className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
-													value="dark"
-												>
-													<Moon className="size-3" />
-												</TabsTrigger>
-											)}
-										</TabsList>
-									</Tabs>
-								</DropdownMenuItem>
-
-								<DropdownMenuSeparator />
-							</>
-						)}
-
-						<DropdownMenuItem
-							render={
-								<Link href={`${basePaths.auth}/${viewPaths.auth.signOut}`} />
-							}
-						>
-							<LogOut className="text-muted-foreground" />
-							{localization.auth.signOut}
-						</DropdownMenuItem>
 					</>
 				) : (
 					<>
@@ -232,6 +175,69 @@ export function UserButton({
 						>
 							<UserPlus2 className="text-muted-foreground" />
 							{localization.auth.signUp}
+						</DropdownMenuItem>
+
+						<DropdownMenuSeparator />
+					</>
+				)}
+
+				{themeToggle && theme && setTheme && !!themes?.length && (
+					<>
+						<DropdownMenuItem
+							className="cursor-default! justify-between py-0.75 hover:bg-transparent! focus:bg-transparent! focus:text-foreground! focus:**:text-inherit!"
+							onSelect={(e) => e.preventDefault()}
+						>
+							<div className="flex items-center gap-2.5">
+								<Paintbrush className="size-4 text-muted-foreground" />
+								{localization.settings.theme}
+							</div>
+
+							<Tabs onValueChange={setTheme} value={theme}>
+								<TabsList className="h-6! gap-0.5">
+									{themes.includes("system") && (
+										<TabsTrigger
+											aria-label={localization.settings.system}
+											className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
+											value="system"
+										>
+											<Monitor className="size-3" />
+										</TabsTrigger>
+									)}
+									{themes.includes("light") && (
+										<TabsTrigger
+											aria-label={localization.settings.light}
+											className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
+											value="light"
+										>
+											<Sun className="size-3" />
+										</TabsTrigger>
+									)}
+									{themes.includes("dark") && (
+										<TabsTrigger
+											aria-label={localization.settings.dark}
+											className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
+											value="dark"
+										>
+											<Moon className="size-3" />
+										</TabsTrigger>
+									)}
+								</TabsList>
+							</Tabs>
+						</DropdownMenuItem>
+					</>
+				)}
+
+				{session && (
+					<>
+						<DropdownMenuSeparator />
+
+						<DropdownMenuItem
+							render={
+								<Link href={`${basePaths.auth}/${viewPaths.auth.signOut}`} />
+							}
+						>
+							<LogOut className="text-muted-foreground" />
+							{localization.auth.signOut}
 						</DropdownMenuItem>
 					</>
 				)}

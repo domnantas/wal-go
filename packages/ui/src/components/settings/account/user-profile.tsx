@@ -82,18 +82,10 @@ export function UserProfile({ className }: UserProfileProps) {
 		onSuccess: () => toast.success(localization.settings.profileUpdatedSuccess),
 	});
 
-	const [fieldErrors, setFieldErrors] = useState<{
-		name?: string;
-	}>({});
-
 	function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
 		e.preventDefault();
 
-		const formData = new FormData(e.currentTarget);
-		const name = formData.get("name") as string;
-
 		updateUser({
-			name,
 			...(usernameConfig?.enabled
 				? {
 						username: username.trim(),
@@ -175,44 +167,6 @@ export function UserProfile({ className }: UserProfileProps) {
 								</FieldError>
 							</Field>
 						)}
-
-						<Field data-invalid={!!fieldErrors.name}>
-							<Label htmlFor="name">{localization.auth.name}</Label>
-
-							{session ? (
-								<Input
-									aria-invalid={!!fieldErrors.name}
-									autoComplete="name"
-									defaultValue={session?.user.name}
-									disabled={isPending}
-									id="name"
-									key={session?.user.name}
-									name="name"
-									onChange={() => {
-										setFieldErrors((prev) => ({
-											...prev,
-											name: undefined,
-										}));
-									}}
-									onInvalid={(e) => {
-										e.preventDefault();
-
-										setFieldErrors((prev) => ({
-											...prev,
-											name: (e.target as HTMLInputElement).validationMessage,
-										}));
-									}}
-									placeholder={localization.auth.name}
-									required
-								/>
-							) : (
-								<Skeleton>
-									<Input className="invisible" />
-								</Skeleton>
-							)}
-
-							<FieldError>{fieldErrors.name}</FieldError>
-						</Field>
 					</CardContent>
 
 					<CardFooter>

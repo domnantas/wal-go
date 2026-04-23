@@ -4,7 +4,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
-	Outlet,
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -40,10 +39,10 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 		],
 	}),
 
-	component: RootDocument,
+	shellComponent: RootDocument,
 });
 
-function RootDocument() {
+function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="lt">
 			<head>
@@ -54,7 +53,7 @@ function RootDocument() {
 					<Providers>
 						<div className="grid h-svh grid-rows-[auto_1fr]">
 							<Header />
-							<Outlet />
+							{children}
 						</div>
 						<Toaster richColors />
 						<TanStackRouterDevtools position="bottom-left" />

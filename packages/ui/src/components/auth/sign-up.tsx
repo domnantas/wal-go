@@ -34,6 +34,17 @@ import { toast } from "sonner";
 import { MagicLinkButton } from "./magic-link-button";
 import { ProviderButtons, type SocialLayout } from "./provider-buttons";
 
+const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
+
+function validateCallsign(value: string): string | undefined {
+	if (!value.trim()) {
+		return "Šaukinys yra privalomas";
+	}
+	if (!CALLSIGN_REGEX.test(value.toUpperCase())) {
+		return "Šaukinys turi atitikti LY formatą (pvz. LY1AB)";
+	}
+}
+
 export interface SignUpProps {
 	className?: string;
 	socialLayout?: SocialLayout;
@@ -140,6 +151,12 @@ export function SignUp({
 		const name = formData.get("name") as string;
 		const email = formData.get("email") as string;
 
+		const nameError = validateCallsign(name);
+		if (nameError) {
+			setFieldErrors((prev) => ({ ...prev, name: nameError }));
+			return;
+		}
+
 		if (emailAndPassword?.confirmPassword && password !== confirmPassword) {
 			toast.error(localization.auth.passwordsDoNotMatch);
 			setPassword("");
@@ -201,25 +218,26 @@ export function SignUp({
 									<Input
 										aria-invalid={!!fieldErrors.name}
 										autoComplete="name"
+										className="uppercase"
 										disabled={isPending}
 										id="name"
 										name="name"
+										onBlur={(e) => {
+											const val = e.target.value;
+											if (val.trim()) {
+												const error = validateCallsign(val);
+												if (error) {
+													setFieldErrors((prev) => ({ ...prev, name: error }));
+												}
+											}
+										}}
 										onChange={() => {
 											setFieldErrors((prev) => ({
 												...prev,
 												name: undefined,
 											}));
 										}}
-										onInvalid={(e) => {
-											e.preventDefault();
-
-											setFieldErrors((prev) => ({
-												...prev,
-												name: (e.target as HTMLInputElement).validationMessage,
-											}));
-										}}
 										placeholder={localization.auth.namePlaceholder}
-										required
 										type="text"
 									/>
 

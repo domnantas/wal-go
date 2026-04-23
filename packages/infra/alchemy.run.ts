@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: It's ok for envs */
 import alchemy from "alchemy";
 import { TanStackStart } from "alchemy/cloudflare";
 import { config } from "dotenv";
