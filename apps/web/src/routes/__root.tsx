@@ -44,12 +44,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="lt">
+		<html lang="lt" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				<ThemeProvider attribute="class">
+				<ThemeProvider attribute="class" disableTransitionOnChange>
 					<Providers>
 						<div className="grid h-svh grid-rows-[auto_1fr]">
 							<Header />

@@ -13,9 +13,10 @@
   "dependencies": {
     "@WAL-GO/db": "workspace:*",
     "@WAL-GO/env": "workspace:*",
+    "@better-auth/i18n": "^1.6.8",
     "better-auth": "catalog:",
-    "drizzle-orm": "catalog:",
     "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -71,7 +71,7 @@ export function UserAvatar({
 				src={resolvedUser?.image ?? undefined}
 			/>
 
-			<AvatarFallback delayMs={resolvedUser?.image ? 600 : undefined}>
+			<AvatarFallback delay={resolvedUser?.image ? 600 : undefined}>
 				{fallback || initials || <User2 className="size-4" />}
 			</AvatarFallback>
 		</Avatar>

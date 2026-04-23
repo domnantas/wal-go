@@ -116,7 +116,7 @@ export function Providers({ children }: { children: ReactNode }) {
 						"Dar neturite slaptažodžio. Paprašykite atkūrimo nuorodos, kad galėtumėte jį nustatyti.",
 					security: "Saugumas",
 					settings: "Nustatymai",
-					system: "Sisteminė",
+					system: "Sistemos",
 					theme: "Tema",
 					unlinkProvider: "Atsieti {{provider}}",
 					updateEmail: "Atnaujinti el. paštą",
