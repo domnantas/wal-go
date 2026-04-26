@@ -1,11 +1,14 @@
 import { Settings } from "@WAL-GO/ui/components/settings/settings";
 import { viewPaths } from "@better-auth-ui/react/core";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/settings/$path")({
-	beforeLoad({ params: { path } }) {
+	beforeLoad({ context, params: { path } }) {
 		if (!Object.values(viewPaths.settings).includes(path)) {
 			throw notFound();
+		}
+		if (!context.session?.user) {
+			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}
 	},
 	component: SettingsPage,

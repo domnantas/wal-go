@@ -8,7 +8,7 @@ UI text is in Lithuanian.
 
 ## Documentation
 
-Document project features in the `docs/` directory to keep a reference for future. Read the relevant documentation when working on those features.
+Document project features in the `docs/` directory to keep a reference for future. Read the relevant documentation when working on those features. Use English language for documentation.
 
 ## Development
 

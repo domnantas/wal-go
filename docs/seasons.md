@@ -1,58 +1,58 @@
-# Sezonai (seasons)
+# Seasons
 
-WAL GO žaidžiamas sezonais. Sezonas turi pradžios ir pabaigos datą; trukmė varijuoja (beta sezonai – trumpesni, kelių dienų ar savaičių).
+WAL GO is played in seasons. A season has a start and end date; duration can vary. Beta seasons are shorter, typically lasting days or weeks.
 
-## Gyvavimo ciklas
+## Lifecycle
 
-Sezono būsena išvedama iš datų – atskiro `status` lauko nėra:
+Season status is derived from dates; there is no separate `status` field:
 
-| Būsena | Sąlyga |
+| Status | Condition |
 | --- | --- |
 | `upcoming` | `now() < starts_at` |
 | `active` | `starts_at <= now() <= ends_at` |
 | `ended` | `now() > ends_at` |
 
-Vienu metu aktyvus tik vienas sezonas. Šiuo metu apribojimas saugomas seedinimo metu (be DB constraint).
+Only one season is active at a time. This is currently enforced during seeding, without a database constraint.
 
-## Komandos
+## Teams
 
-Trys fiksuotos komandos: `yellow`, `green`, `red`. Komandos egzistuoja kaip `team_color` enum – jokios atskiros lentelės. Naudotojas gali būti skirtingose komandose skirtinguose sezonuose.
+There are three fixed teams: `yellow`, `green`, and `red`. Teams exist as the `team_color` enum; there is no separate teams table. A user can belong to different teams in different seasons.
 
-## Prisijungimas (rato sukimas)
+## Joining (spinning the wheel)
 
-1. Naudotojas atidaro `/seasons`.
-2. Jeigu yra aktyvus sezonas ir naudotojas dar neprisijungęs, jam rodomas mygtukas „Sukti ratą“.
-3. Paspaudus mygtuką iškviečiama `seasons.join` mutacija. **Serveris** atsitiktinai parenka komandą (`yellow`/`green`/`red`) ir įrašo įrašą į `season_membership`.
-4. Pakartotinis iškvietimas grąžina tą pačią narystę – komanda užfiksuojama pirmą kartą prisijungus ir negali būti pakeista to paties sezono metu.
+1. The user opens `/join-season`.
+2. If there is an active season and the user has not joined yet, they see the "Spin the wheel" button.
+3. Pressing the button calls the `seasons.join` mutation. The **server** randomly selects a team (`yellow`/`green`/`red`) and inserts a row into `season_membership`.
+4. Repeated calls return the same membership. The team is fixed the first time the user joins and cannot be changed during the same season.
 
-`(user_id, season_id)` unikalus indeksas užtikrina idempotenciją net esant lygiagrečioms užklausoms.
+The `(user_id, season_id)` unique index guarantees idempotency even under concurrent requests.
 
-## Sezono kūrimas
+## Season creation
 
-Beta etape sezonai pridedami tiesiai į DB per `pnpm db:studio`. Administracinė sąsaja bus pridėta vėliau.
+During the beta phase, seasons are added directly to the database through `pnpm db:studio`. An admin UI will be added later.
 
-## Žaidimo kontekstas (likusios sistemos)
+## Game Context (remaining systems)
 
-Sezonai yra tik žaidimo įėjimo taškas. Visa žaidimo eiga (radijo ryšiai – QSO, WAL kvadratai, taškai, teritorijos kontrolė) bus aprašyta atskiruose dokumentuose:
+Seasons are only the entry point into the game. The rest of the game flow, including radio contacts (QSO), WAL squares, points, and territory control, will be described in separate documents:
 
-- `docs/squares.md` – Lietuvos suskirstymas į WAL kvadratus.
-- `docs/scoring.md` – kaip QSO virsta taškais ir kaip nustatoma kvadrato kontrolė.
+- `docs/squares.md` - how Lithuania is divided into WAL squares.
+- `docs/scoring.md` - how QSO entries become points and how square control is determined.
 
-Šiuo metu `docs/seasons.md` apima **tik** sezonus ir komandų narystę.
+Currently, `docs/seasons.md` covers **only** seasons and team membership.
 
-## Schemos
+## Schemas
 
 `packages/db/src/schema/seasons.ts`:
 
-- `season` – sezono įrašas (`name`, `starts_at`, `ends_at`, `public_id`).
-- `team_color` – Postgres enum (`yellow` | `green` | `red`).
-- `season_membership` – naudotojo narystė konkrečiame sezone (`user_id`, `season_id`, `team`, `joined_at`).
+- `season` - season record (`name`, `starts_at`, `ends_at`, `public_id`).
+- `team_color` - Postgres enum (`yellow` | `green` | `red`).
+- `season_membership` - user membership in a specific season (`user_id`, `season_id`, `team`, `joined_at`).
 
 ## API (`packages/api/src/routers/seasons.ts`)
 
-| Procedūra | Tipas | Aprašymas |
+| Procedure | Type | Description |
 | --- | --- | --- |
-| `seasons.current` | `publicProcedure` query | Grąžina aktyvų sezoną arba `null`. |
-| `seasons.list` | `publicProcedure` query | Visi sezonai su išvesta būsena, surūšiuoti pagal `starts_at desc`. |
-| `seasons.myMembership` | `protectedProcedure` query | Dabartinio naudotojo narystė aktyviame sezone arba `null`. |
-| `seasons.join` | `protectedProcedure` mutation | Idempotentiškas prisijungimas – serveris parenka komandą. |
+| `seasons.current` | `publicProcedure` query | Returns the active season or `null`. |
+| `seasons.list` | `publicProcedure` query | Returns all seasons with derived status, sorted by `starts_at desc`. |
+| `seasons.myMembership` | `protectedProcedure` query | Returns the current user's membership in the active season, or `null`. |
+| `seasons.join` | `protectedProcedure` mutation | Idempotent join operation; the server selects the team. |

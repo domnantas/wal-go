@@ -15,7 +15,7 @@ export function Providers({ children }: { children: ReactNode }) {
 			appearance={{ setTheme, theme }}
 			authClient={authClient}
 			emailAndPassword={{
-				requireEmailVerification: true,
+				requireEmailVerification: false,
 			}}
 			Link={Link}
 			localization={{

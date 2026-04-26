@@ -7,14 +7,18 @@ import {
 	CardTitle,
 } from "@WAL-GO/ui/components/card";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
-import { useAuthenticate } from "@better-auth-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { type RefObject, useEffect, useRef, useState } from "react";
 
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/join-season")({
+	beforeLoad({ context }) {
+		if (!context.session?.user) {
+			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
+		}
+	},
 	component: RouteComponent,
 });
 
@@ -61,8 +65,27 @@ function formatRange(startsAt: Date | string, endsAt: Date | string) {
 
 type Phase = "idle" | "spinning" | "landing" | "landed";
 
+function stopRaf(rafRef: RefObject<number | null>) {
+	if (rafRef.current !== null) {
+		cancelAnimationFrame(rafRef.current);
+		rafRef.current = null;
+	}
+}
+
+function applyRotation(
+	wheelRef: RefObject<HTMLDivElement | null>,
+	deg: number,
+	transition: string
+) {
+	const node = wheelRef.current;
+	if (!node) {
+		return;
+	}
+	node.style.transition = transition;
+	node.style.transform = `rotate(${deg}deg)`;
+}
+
 function RouteComponent() {
-	useAuthenticate();
 	const queryClient = useQueryClient();
 	const current = useQuery(orpc.seasons.current.queryOptions());
 	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
@@ -82,23 +105,7 @@ function RouteComponent() {
 	const rafRef = useRef<number | null>(null);
 	const startTimeRef = useRef(0);
 
-	const stopRaf = () => {
-		if (rafRef.current !== null) {
-			cancelAnimationFrame(rafRef.current);
-			rafRef.current = null;
-		}
-	};
-
-	const applyRotation = (deg: number, transition: string) => {
-		const node = wheelRef.current;
-		if (!node) {
-			return;
-		}
-		node.style.transition = transition;
-		node.style.transform = `rotate(${deg}deg)`;
-	};
-
-	useEffect(() => stopRaf, []);
+	useEffect(() => () => stopRaf(rafRef), []);
 
 	const handleSpin = () => {
 		if (phase !== "idle" || join.isPending) {
@@ -109,7 +116,7 @@ function RouteComponent() {
 		const tick = (now: number) => {
 			const elapsed = now - startTimeRef.current;
 			rotationRef.current = (elapsed / 1000) * SPIN_SPEED_DEG_PER_SEC;
-			applyRotation(rotationRef.current, "none");
+			applyRotation(wheelRef, rotationRef.current, "none");
 			rafRef.current = requestAnimationFrame(tick);
 		};
 		rafRef.current = requestAnimationFrame(tick);
@@ -124,13 +131,14 @@ function RouteComponent() {
 		const elapsed = performance.now() - startTimeRef.current;
 		const wait = Math.max(0, MIN_SPIN_MS - elapsed);
 		const landTimer = setTimeout(() => {
-			stopRaf();
+			stopRaf(rafRef);
 			const jitter = (Math.random() - 0.5) * 100;
 			const offset = TEAM_TARGET_OFFSET[team] + jitter;
 			const baseRevs = Math.ceil(rotationRef.current / 360) + LANDING_REVS;
 			const target = baseRevs * 360 + offset;
 			rotationRef.current = target;
 			applyRotation(
+				wheelRef,
 				target,
 				`transform ${LANDING_DURATION_MS}ms cubic-bezier(0, 0, 0.2, 1)`
 			);
@@ -149,8 +157,8 @@ function RouteComponent() {
 
 	useEffect(() => {
 		if (phase === "spinning" && join.isError) {
-			stopRaf();
-			applyRotation(0, "transform 400ms ease-out");
+			stopRaf(rafRef);
+			applyRotation(wheelRef, 0, "transform 400ms ease-out");
 			rotationRef.current = 0;
 			setPhase("idle");
 		}
