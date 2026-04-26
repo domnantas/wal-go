@@ -8,6 +8,13 @@
       "when": 1776778225586,
       "tag": "0000_perpetual_rage",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777205370324,
+      "tag": "0001_tearful_piledriver",
+      "breakpoints": true
     }
   ]
 }

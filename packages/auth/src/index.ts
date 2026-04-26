@@ -6,6 +6,7 @@ import { i18n } from "@better-auth/i18n";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
+import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { eq } from "drizzle-orm";
 
@@ -28,6 +29,7 @@ export function createAuth() {
 		baseURL: env.BETTER_AUTH_URL,
 		plugins: [
 			tanstackStartCookies(),
+			admin(),
 			i18n({
 				defaultLocale: "lt",
 				translations: {
