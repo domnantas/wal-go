@@ -15,6 +15,20 @@
       "when": 1777205370324,
       "tag": "0001_tearful_piledriver",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777214318133,
+      "tag": "0002_woozy_madame_masque",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777216237018,
+      "tag": "0003_dizzy_the_hood",
+      "breakpoints": true
     }
   ]
 }

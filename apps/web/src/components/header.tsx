@@ -4,14 +4,15 @@ import walGoLogo from "@/assets/wal-go-logo-transparent.png";
 
 export default function Header() {
 	const links = [
-		{ to: "/", label: "Pradžia", exact: true },
-		{ to: "/dashboard", label: "Informacija", exact: false },
+		{ to: "/map", label: "🗺️ Žemėlapis", exact: false },
+		{ to: "/log", label: "📝 Žurnalas", exact: false },
+		{ to: "/leaderboard", label: "🏆 Rezultatai", exact: false },
 	] as const;
 
 	return (
 		<header className="border-border/60 border-b bg-card/50 backdrop-blur-sm">
 			<div className="container mx-auto flex items-center justify-between px-4 py-2">
-				<div className="flex items-center gap-6">
+				<div className="mr-4 flex w-full items-center justify-between gap-6">
 					<Link to="/">
 						<img
 							alt="WAL GO logotipas"

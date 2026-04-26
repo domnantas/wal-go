@@ -6,9 +6,9 @@ Lithuanian amateur radio territory competition web app.
 
 UI text is in Lithuanian.
 
-## AGENTS.md
+## Documentation
 
-Update AGENTS.md when project details change
+Document project features in the `docs/` directory to keep a reference for future. Read the relevant documentation when working on those features.
 
 ## Development
 
