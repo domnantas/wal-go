@@ -4,7 +4,11 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/auth/$path")({
 	beforeLoad({ params: { path } }) {
-		if (!Object.values(viewPaths.auth).includes(path)) {
+		if (
+			!Object.values(viewPaths.auth)
+				.filter((path) => path !== "magic-link")
+				.includes(path)
+		) {
 			throw redirect({ to: "/" });
 		}
 	},
