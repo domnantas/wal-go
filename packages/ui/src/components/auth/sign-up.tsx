@@ -27,23 +27,33 @@ import {
 	useIsUsernameAvailable,
 	useSignUpEmail,
 } from "@better-auth-ui/react";
+import { useForm } from "@tanstack/react-form";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { Check, Eye, EyeOff, X } from "lucide-react";
-import { type SyntheticEvent, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { MagicLinkButton } from "./magic-link-button";
 import { ProviderButtons, type SocialLayout } from "./provider-buttons";
 
 const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
 
-function validateCallsign(value: string): string | undefined {
-	if (!value.trim()) {
-		return "Šaukinys yra privalomas";
-	}
-	if (!CALLSIGN_REGEX.test(value.toUpperCase())) {
-		return "Šaukinys turi atitikti LY formatą (pvz. LY1AB)";
-	}
-}
+const nameSchema = z
+	.string()
+	.min(1, "Šaukinys yra privalomas")
+	.regex(CALLSIGN_REGEX, "Šaukinys turi atitikti LY formatą (pvz. LY1AB)");
+const emailSchema = z
+	.email("Neteisingas el. pašto formatas")
+	.trim()
+	.min(1, "El. paštas yra privalomas");
+const passwordSchema = z.string().min(1, "Slaptažodis yra privalomas");
+
+const signUpSchema = z.object({
+	name: nameSchema,
+	email: emailSchema,
+	password: passwordSchema,
+	confirmPassword: z.string(),
+});
 
 export interface SignUpProps {
 	className?: string;
@@ -51,20 +61,6 @@ export interface SignUpProps {
 	socialPosition?: "top" | "bottom";
 }
 
-/**
- * Renders a sign-up form with name, email, and password fields, optional social provider buttons, and submission handling.
- *
- * Submits credentials to the configured auth client and handles the response:
- * - If email verification is required, shows a notification and navigates to sign-in
- * - On success, refreshes the session and navigates to the configured redirect path
- * - On failure, displays error toasts
- * - Manages a pending state while the request is in-flight
- *
- * @param className - Additional CSS classes applied to the outer container
- * @param socialLayout - Social layout to apply to the component
- * @param socialPosition - Social position to apply to the component
- * @returns The sign-up form React element.
- */
 export function SignUp({
 	className,
 	socialLayout,
@@ -83,8 +79,6 @@ export function SignUp({
 		Link,
 	} = useAuth();
 
-	const [password, setPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
 	const [username, setUsername] = useState("");
 
 	const {
@@ -117,8 +111,8 @@ export function SignUp({
 
 	const { mutate: signUpEmail, isPending: signUpPending } = useSignUpEmail({
 		onError: (error) => {
-			setPassword("");
-			setConfirmPassword("");
+			form.setFieldValue("password", "");
+			form.setFieldValue("confirmPassword", "");
 			toast.error(error.error?.message || error.message);
 		},
 		onSuccess: () => {
@@ -137,47 +131,56 @@ export function SignUp({
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState(false);
 
-	const [fieldErrors, setFieldErrors] = useState<{
-		name?: string;
-		email?: string;
-		password?: string;
-		confirmPassword?: string;
-	}>({});
+	const passwordFieldSchema = emailAndPassword?.minPasswordLength
+		? z
+				.string()
+				.min(1, "Slaptažodis yra privalomas")
+				.min(
+					emailAndPassword.minPasswordLength,
+					`Slaptažodį turi sudaryti bent ${emailAndPassword.minPasswordLength} simboliai`
+				)
+		: passwordSchema;
 
-	const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const schema = emailAndPassword?.minPasswordLength
+		? signUpSchema.extend({ password: passwordFieldSchema })
+		: signUpSchema;
 
-		const formData = new FormData(e.currentTarget);
-		const name = formData.get("name") as string;
-		const email = formData.get("email") as string;
+	const form = useForm({
+		defaultValues: {
+			name: "",
+			email: "",
+			password: "",
+			confirmPassword: "",
+		},
+		validators: {
+			onSubmit: schema,
+		},
+		onSubmit: ({ value }) => {
+			if (
+				emailAndPassword?.confirmPassword &&
+				value.password !== value.confirmPassword
+			) {
+				toast.error(localization.auth.passwordsDoNotMatch);
+				form.setFieldValue("password", "");
+				form.setFieldValue("confirmPassword", "");
+				return;
+			}
 
-		const nameError = validateCallsign(name);
-		if (nameError) {
-			setFieldErrors((prev) => ({ ...prev, name: nameError }));
-			return;
-		}
-
-		if (emailAndPassword?.confirmPassword && password !== confirmPassword) {
-			toast.error(localization.auth.passwordsDoNotMatch);
-			setPassword("");
-			setConfirmPassword("");
-			return;
-		}
-
-		signUpEmail({
-			name,
-			email,
-			password,
-			...(usernameConfig?.enabled
-				? {
-						username: username.trim(),
-						...(usernameConfig.displayUsername
-							? { displayUsername: username.trim() }
-							: {}),
-					}
-				: {}),
-		});
-	};
+			signUpEmail({
+				name: value.name,
+				email: value.email,
+				password: value.password,
+				...(usernameConfig?.enabled
+					? {
+							username: username.trim(),
+							...(usernameConfig.displayUsername
+								? { displayUsername: username.trim() }
+								: {}),
+						}
+					: {}),
+			});
+		},
+	});
 
 	const showSeparator =
 		emailAndPassword?.enabled && socialProviders && socialProviders.length > 0;
@@ -210,249 +213,206 @@ export function SignUp({
 					)}
 
 					{emailAndPassword?.enabled && (
-						<form onSubmit={handleSubmit}>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								form.handleSubmit();
+							}}
+						>
 							<FieldGroup>
-								<Field data-invalid={!!fieldErrors.name}>
-									<Label htmlFor="name">{localization.auth.name}</Label>
+								<form.Field name="name" validators={{ onBlur: nameSchema }}>
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<Label htmlFor="name">{localization.auth.name}</Label>
 
-									<Input
-										aria-invalid={!!fieldErrors.name}
-										autoComplete="name"
-										className="uppercase"
-										disabled={isPending}
-										id="name"
-										name="name"
-										onBlur={(e) => {
-											const val = e.target.value;
-											if (val.trim()) {
-												const error = validateCallsign(val);
-												if (error) {
-													setFieldErrors((prev) => ({ ...prev, name: error }));
-												}
-											}
-										}}
-										onChange={() => {
-											setFieldErrors((prev) => ({
-												...prev,
-												name: undefined,
-											}));
-										}}
-										placeholder={localization.auth.namePlaceholder}
-										type="text"
-									/>
+												<Input
+													aria-invalid={isInvalid}
+													className="uppercase"
+													disabled={isPending}
+													id="name"
+													name="name"
+													onBlur={field.handleBlur}
+													onChange={(e) =>
+														field.handleChange(e.target.value.toUpperCase())
+													}
+													placeholder={localization.auth.namePlaceholder}
+													type="text"
+													value={field.state.value}
+												/>
 
-									<FieldError>{fieldErrors.name}</FieldError>
-								</Field>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
 
 								{usernameConfig?.enabled && (
-									<Field
-										data-invalid={
-											!!usernameError ||
-											(usernameData && !usernameData.available)
-										}
-									>
-										<Label htmlFor="username">
-											{localization.auth.username}
-										</Label>
-
-										<InputGroup>
-											<InputGroupInput
-												aria-invalid={
-													!!usernameError ||
-													(usernameData && !usernameData.available)
-												}
-												autoComplete="username"
-												disabled={isPending}
-												id="username"
-												maxLength={usernameConfig.maxUsernameLength}
-												minLength={usernameConfig.minUsernameLength}
-												name="username"
-												onChange={(e) => handleUsernameChange(e.target.value)}
-												placeholder={localization.auth.usernamePlaceholder}
-												required
-												type="text"
-												value={username}
-											/>
-
-											{usernameConfig.isUsernameAvailable &&
-												username.trim() && (
-													<InputGroupAddon align="inline-end">
-														{usernameData?.available ? (
-															<Check className="text-foreground" />
-														) : usernameError ||
-															usernameData?.available === false ? (
-															<X className="text-destructive" />
-														) : (
-															<Spinner />
-														)}
-													</InputGroupAddon>
-												)}
-										</InputGroup>
-
-										<FieldError>
-											{usernameError?.error?.message ||
-												usernameError?.message ||
-												(usernameData?.available === false
-													? localization.auth.usernameTaken
-													: null)}
-										</FieldError>
-									</Field>
+									<UsernameField
+										isPending={isPending}
+										localization={localization}
+										onUsernameChange={handleUsernameChange}
+										username={username}
+										usernameConfig={usernameConfig}
+										usernameData={usernameData}
+										usernameError={usernameError}
+									/>
 								)}
 
-								<Field data-invalid={!!fieldErrors.email}>
-									<Label htmlFor="email">{localization.auth.email}</Label>
+								<form.Field name="email" validators={{ onBlur: emailSchema }}>
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<Label htmlFor="email">{localization.auth.email}</Label>
 
-									<Input
-										aria-invalid={!!fieldErrors.email}
-										autoComplete="email"
-										disabled={isPending}
-										id="email"
-										name="email"
-										onChange={() => {
-											setFieldErrors((prev) => ({
-												...prev,
-												email: undefined,
-											}));
-										}}
-										onInvalid={(e) => {
-											e.preventDefault();
+												<Input
+													aria-invalid={isInvalid}
+													autoComplete="email"
+													disabled={isPending}
+													id="email"
+													name="email"
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													placeholder={localization.auth.emailPlaceholder}
+													type="text"
+													value={field.state.value}
+												/>
 
-											setFieldErrors((prev) => ({
-												...prev,
-												email: (e.target as HTMLInputElement).validationMessage,
-											}));
-										}}
-										placeholder={localization.auth.emailPlaceholder}
-										required
-										type="email"
-									/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
 
-									<FieldError>{fieldErrors.email}</FieldError>
-								</Field>
+								<form.Field
+									name="password"
+									validators={{ onBlur: passwordFieldSchema }}
+								>
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<Label htmlFor="password">
+													{localization.auth.password}
+												</Label>
 
-								<Field data-invalid={!!fieldErrors.password}>
-									<Label htmlFor="password">{localization.auth.password}</Label>
+												<InputGroup>
+													<InputGroupInput
+														aria-invalid={isInvalid}
+														autoComplete="new-password"
+														disabled={isPending}
+														id="password"
+														name="password"
+														onBlur={field.handleBlur}
+														onChange={(e) => field.handleChange(e.target.value)}
+														placeholder={localization.auth.passwordPlaceholder}
+														type={isPasswordVisible ? "text" : "password"}
+														value={field.state.value}
+													/>
 
-									<InputGroup>
-										<InputGroupInput
-											aria-invalid={!!fieldErrors.password}
-											autoComplete="new-password"
-											disabled={isPending}
-											id="password"
-											maxLength={emailAndPassword?.maxPasswordLength}
-											minLength={emailAndPassword?.minPasswordLength}
-											name="password"
-											onChange={(e) => {
-												setPassword(e.target.value);
-												setFieldErrors((prev) => ({
-													...prev,
-													password: undefined,
-												}));
-											}}
-											onInvalid={(e) => {
-												e.preventDefault();
+													<InputGroupAddon align="inline-end">
+														<InputGroupButton
+															aria-label={
+																isPasswordVisible
+																	? localization.auth.hidePassword
+																	: localization.auth.showPassword
+															}
+															onClick={() =>
+																setIsPasswordVisible(!isPasswordVisible)
+															}
+															title={
+																isPasswordVisible
+																	? localization.auth.hidePassword
+																	: localization.auth.showPassword
+															}
+														>
+															{isPasswordVisible ? <EyeOff /> : <Eye />}
+														</InputGroupButton>
+													</InputGroupAddon>
+												</InputGroup>
 
-												setFieldErrors((prev) => ({
-													...prev,
-													password: (e.target as HTMLInputElement)
-														.validationMessage,
-												}));
-											}}
-											placeholder={localization.auth.passwordPlaceholder}
-											required
-											type={isPasswordVisible ? "text" : "password"}
-											value={password}
-										/>
-
-										<InputGroupAddon align="inline-end">
-											<InputGroupButton
-												aria-label={
-													isPasswordVisible
-														? localization.auth.hidePassword
-														: localization.auth.showPassword
-												}
-												onClick={() => {
-													setIsPasswordVisible(!isPasswordVisible);
-												}}
-												title={
-													isPasswordVisible
-														? localization.auth.hidePassword
-														: localization.auth.showPassword
-												}
-											>
-												{isPasswordVisible ? <EyeOff /> : <Eye />}
-											</InputGroupButton>
-										</InputGroupAddon>
-									</InputGroup>
-
-									<FieldError>{fieldErrors.password}</FieldError>
-								</Field>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
 
 								{emailAndPassword?.confirmPassword && (
-									<Field data-invalid={!!fieldErrors.confirmPassword}>
-										<Label htmlFor="confirmPassword">
-											{localization.auth.confirmPassword}
-										</Label>
+									<form.Field name="confirmPassword">
+										{(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+											return (
+												<Field data-invalid={isInvalid}>
+													<Label htmlFor="confirmPassword">
+														{localization.auth.confirmPassword}
+													</Label>
 
-										<InputGroup>
-											<InputGroupInput
-												aria-invalid={!!fieldErrors.confirmPassword}
-												autoComplete="new-password"
-												disabled={isPending}
-												id="confirmPassword"
-												maxLength={emailAndPassword?.maxPasswordLength}
-												minLength={emailAndPassword?.minPasswordLength}
-												name="confirmPassword"
-												onChange={(e) => {
-													setConfirmPassword(e.target.value);
+													<InputGroup>
+														<InputGroupInput
+															aria-invalid={isInvalid}
+															autoComplete="new-password"
+															disabled={isPending}
+															id="confirmPassword"
+															name="confirmPassword"
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															placeholder={
+																localization.auth.confirmPasswordPlaceholder
+															}
+															type={
+																isConfirmPasswordVisible ? "text" : "password"
+															}
+															value={field.state.value}
+														/>
 
-													setFieldErrors((prev) => ({
-														...prev,
-														confirmPassword: undefined,
-													}));
-												}}
-												onInvalid={(e) => {
-													e.preventDefault();
+														<InputGroupAddon align="inline-end">
+															<InputGroupButton
+																aria-label={
+																	isConfirmPasswordVisible
+																		? localization.auth.hidePassword
+																		: localization.auth.showPassword
+																}
+																onClick={() =>
+																	setIsConfirmPasswordVisible(
+																		!isConfirmPasswordVisible
+																	)
+																}
+																title={
+																	isConfirmPasswordVisible
+																		? localization.auth.hidePassword
+																		: localization.auth.showPassword
+																}
+															>
+																{isConfirmPasswordVisible ? (
+																	<EyeOff />
+																) : (
+																	<Eye />
+																)}
+															</InputGroupButton>
+														</InputGroupAddon>
+													</InputGroup>
 
-													setFieldErrors((prev) => ({
-														...prev,
-														confirmPassword: (e.target as HTMLInputElement)
-															.validationMessage,
-													}));
-												}}
-												placeholder={
-													localization.auth.confirmPasswordPlaceholder
-												}
-												required
-												type={isConfirmPasswordVisible ? "text" : "password"}
-												value={confirmPassword}
-											/>
-
-											<InputGroupAddon align="inline-end">
-												<InputGroupButton
-													aria-label={
-														isConfirmPasswordVisible
-															? localization.auth.hidePassword
-															: localization.auth.showPassword
-													}
-													onClick={() =>
-														setIsConfirmPasswordVisible(
-															!isConfirmPasswordVisible
-														)
-													}
-													title={
-														isConfirmPasswordVisible
-															? localization.auth.hidePassword
-															: localization.auth.showPassword
-													}
-												>
-													{isConfirmPasswordVisible ? <EyeOff /> : <Eye />}
-												</InputGroupButton>
-											</InputGroupAddon>
-										</InputGroup>
-
-										<FieldError>{fieldErrors.confirmPassword}</FieldError>
-									</Field>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									</form.Field>
 								)}
 
 								<div className="flex flex-col gap-3">
@@ -503,5 +463,70 @@ export function SignUp({
 				)}
 			</CardContent>
 		</Card>
+	);
+}
+
+function UsernameField({
+	isPending,
+	localization,
+	onUsernameChange,
+	username,
+	usernameConfig,
+	usernameData,
+	usernameError,
+}: {
+	isPending: boolean;
+	localization: ReturnType<typeof useAuth>["localization"];
+	onUsernameChange: (value: string) => void;
+	username: string;
+	usernameConfig: NonNullable<ReturnType<typeof useAuth>["username"]>;
+	usernameData: ReturnType<typeof useIsUsernameAvailable>["data"];
+	usernameError: ReturnType<typeof useIsUsernameAvailable>["error"];
+}) {
+	return (
+		<Field
+			data-invalid={
+				!!usernameError || (usernameData && !usernameData.available)
+			}
+		>
+			<Label htmlFor="username">{localization.auth.username}</Label>
+
+			<InputGroup>
+				<InputGroupInput
+					aria-invalid={
+						!!usernameError || (usernameData && !usernameData.available)
+					}
+					autoComplete="username"
+					disabled={isPending}
+					id="username"
+					maxLength={usernameConfig.maxUsernameLength}
+					minLength={usernameConfig.minUsernameLength}
+					name="username"
+					onChange={(e) => onUsernameChange(e.target.value)}
+					placeholder={localization.auth.usernamePlaceholder}
+					required
+					type="text"
+					value={username}
+				/>
+
+				{usernameConfig.isUsernameAvailable && username.trim() && (
+					<InputGroupAddon align="inline-end">
+						{usernameData?.available && <Check className="text-foreground" />}
+						{(usernameError || usernameData?.available === false) && (
+							<X className="text-destructive" />
+						)}
+						{!(usernameData || usernameError) && <Spinner />}
+					</InputGroupAddon>
+				)}
+			</InputGroup>
+
+			<FieldError>
+				{usernameError?.error?.message ||
+					usernameError?.message ||
+					(usernameData?.available === false
+						? localization.auth.usernameTaken
+						: null)}
+			</FieldError>
+		</Field>
 	);
 }

@@ -1,12 +1,15 @@
 import { Button } from "@WAL-GO/ui/components/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
+import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
 });
 
 function HomeComponent() {
+	const { data: session, isPending: sessionPending } = authClient.useSession();
+
 	return (
 		<main className="flex flex-col">
 			<section className="container mx-auto flex max-w-4xl flex-col items-center gap-8 px-4 py-16 text-center md:py-24">
@@ -27,15 +30,17 @@ function HomeComponent() {
 					</p>
 				</div>
 
-				<div className="flex flex-col gap-3 sm:flex-row">
-					<Button
-						className="px-6"
-						render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
-						size="lg"
-					>
-						Prisijungti
-					</Button>
-				</div>
+				{session || sessionPending ? null : (
+					<div className="flex flex-col gap-3 sm:flex-row">
+						<Button
+							className="px-6"
+							render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
+							size="lg"
+						>
+							Prisijungti
+						</Button>
+					</div>
+				)}
 			</section>
 		</main>
 	);

@@ -25,8 +25,9 @@ import {
 	useSignInEmail,
 	useSignInUsername,
 } from "@better-auth-ui/react";
-import { type SyntheticEvent, useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { MagicLinkButton } from "./magic-link-button";
 import { PasskeyButton } from "./passkey-button";
 import { ProviderButtons, type SocialLayout } from "./provider-buttons";
@@ -37,20 +38,19 @@ export interface SignInProps {
 	socialPosition?: "top" | "bottom";
 }
 
-const basicEmailValidationRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function isEmail(value: string): boolean {
-	return basicEmailValidationRegex.test(value);
-}
+const signInEmailSchema = z
+	.email("Neteisingas el. pašto formatas")
+	.trim()
+	.min(1, "El. paštas yra privalomas");
+const signInPasswordSchema = z.string().min(1, "Slaptažodis yra privalomas");
 
-/**
- * Render the sign-in form UI with email/password, magic link, and social provider options.
- *
- * @param className - Optional additional container class names
- * @param socialLayout - Layout style for social provider buttons
- * @param socialPosition - Position of social provider buttons; `"top"` or `"bottom"`. Defaults to `"bottom"`.
- * @returns The rendered sign-in UI as a JSX element
- */
+const signInSchema = z.object({
+	email: signInEmailSchema,
+	password: signInPasswordSchema,
+});
+
 export function SignIn({
 	className,
 	socialLayout,
@@ -71,8 +71,6 @@ export function SignIn({
 		Link,
 	} = useAuth();
 
-	const [password, setPassword] = useState("");
-
 	const { mutate: sendVerificationEmail } = useSendVerificationEmail({
 		onSuccess: () => toast.success(localization.auth.verificationEmailSent),
 	});
@@ -80,7 +78,7 @@ export function SignIn({
 	const { mutate: signInEmail, isPending: signInEmailPending } = useSignInEmail(
 		{
 			onError: (error, { email }) => {
-				setPassword("");
+				form.setFieldValue("password", "");
 
 				if (error.error?.code === "EMAIL_NOT_VERIFIED") {
 					toast.error(error.error?.message || error.message, {
@@ -104,7 +102,7 @@ export function SignIn({
 	const { mutate: signInUsername, isPending: signInUsernamePending } =
 		useSignInUsername({
 			onError: (error) => {
-				setPassword("");
+				form.setFieldValue("password", "");
 				toast.error(error.error?.message || error.message);
 			},
 			onSuccess: () => navigate({ to: redirectTo }),
@@ -112,31 +110,33 @@ export function SignIn({
 
 	const isPending = signInEmailPending || signInUsernamePending;
 
-	const [fieldErrors, setFieldErrors] = useState<{
-		email?: string;
-		password?: string;
-	}>({});
+	const form = useForm({
+		defaultValues: {
+			email: "",
+			password: "",
+		},
+		validators: {
+			onSubmit: signInSchema,
+		},
+		onSubmit: ({ value }) => {
+			const rememberMe =
+				document.querySelector<HTMLInputElement>("#rememberMe")?.checked ??
+				false;
 
-	const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
-		e.preventDefault();
-
-		const formData = new FormData(e.currentTarget);
-		const email = formData.get("email") as string;
-		const rememberMe = formData.get("rememberMe") === "on";
-
-		if (usernameConfig?.enabled && !isEmail(email)) {
-			signInUsername({
-				username: email,
-				password,
-			});
-		} else {
-			signInEmail({
-				email,
-				password,
-				...(emailAndPassword?.rememberMe ? { rememberMe } : {}),
-			});
-		}
-	};
+			if (usernameConfig?.enabled && !EMAIL_REGEX.test(value.email)) {
+				signInUsername({
+					username: value.email,
+					password: value.password,
+				});
+			} else {
+				signInEmail({
+					email: value.email,
+					password: value.password,
+					...(emailAndPassword?.rememberMe ? { rememberMe } : {}),
+				});
+			}
+		},
+	});
 
 	const showSeparator =
 		emailAndPassword?.enabled && socialProviders && socialProviders.length > 0;
@@ -169,85 +169,88 @@ export function SignIn({
 					)}
 
 					{emailAndPassword?.enabled && (
-						<form onSubmit={handleSubmit}>
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								form.handleSubmit();
+							}}
+						>
 							<FieldGroup>
-								<Field data-invalid={!!fieldErrors.email}>
-									<Label htmlFor="email">
-										{usernameConfig?.enabled
-											? localization.auth.username
-											: localization.auth.email}
-									</Label>
+								<form.Field
+									name="email"
+									validators={{ onBlur: signInEmailSchema }}
+								>
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<Label htmlFor="email">
+													{usernameConfig?.enabled
+														? localization.auth.username
+														: localization.auth.email}
+												</Label>
 
-									<Input
-										aria-invalid={!!fieldErrors.email}
-										autoComplete={
-											usernameConfig?.enabled ? "username email" : "email"
-										}
-										disabled={isPending}
-										id="email"
-										name="email"
-										onChange={() => {
-											setFieldErrors((prev) => ({
-												...prev,
-												email: undefined,
-											}));
-										}}
-										onInvalid={(e) => {
-											e.preventDefault();
+												<Input
+													aria-invalid={isInvalid}
+													autoComplete={
+														usernameConfig?.enabled ? "username email" : "email"
+													}
+													disabled={isPending}
+													id="email"
+													name="email"
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													placeholder={
+														usernameConfig?.enabled
+															? localization.auth.usernameOrEmailPlaceholder
+															: localization.auth.emailPlaceholder
+													}
+													type="text"
+													value={field.state.value}
+												/>
 
-											setFieldErrors((prev) => ({
-												...prev,
-												email: (e.target as HTMLInputElement).validationMessage,
-											}));
-										}}
-										placeholder={
-											usernameConfig?.enabled
-												? localization.auth.usernameOrEmailPlaceholder
-												: localization.auth.emailPlaceholder
-										}
-										required
-										type={usernameConfig?.enabled ? "text" : "email"}
-									/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
 
-									<FieldError>{fieldErrors.email}</FieldError>
-								</Field>
+								<form.Field
+									name="password"
+									validators={{ onBlur: signInPasswordSchema }}
+								>
+									{(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<Label htmlFor="password">
+													{localization.auth.password}
+												</Label>
 
-								<Field data-invalid={!!fieldErrors.password}>
-									<Label htmlFor="password">{localization.auth.password}</Label>
+												<Input
+													aria-invalid={isInvalid}
+													autoComplete="current-password"
+													disabled={isPending}
+													id="password"
+													name="password"
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													placeholder={localization.auth.passwordPlaceholder}
+													type="password"
+													value={field.state.value}
+												/>
 
-									<Input
-										aria-invalid={!!fieldErrors.password}
-										autoComplete="current-password"
-										disabled={isPending}
-										id="password"
-										maxLength={emailAndPassword?.maxPasswordLength}
-										minLength={emailAndPassword?.minPasswordLength}
-										name="password"
-										onChange={(e) => {
-											setPassword(e.target.value);
-
-											setFieldErrors((prev) => ({
-												...prev,
-												password: undefined,
-											}));
-										}}
-										onInvalid={(e) => {
-											e.preventDefault();
-
-											setFieldErrors((prev) => ({
-												...prev,
-												password: (e.target as HTMLInputElement)
-													.validationMessage,
-											}));
-										}}
-										placeholder={localization.auth.passwordPlaceholder}
-										required
-										type="password"
-										value={password}
-									/>
-
-									<FieldError>{fieldErrors.password}</FieldError>
-								</Field>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								</form.Field>
 
 								{emailAndPassword.rememberMe && (
 									<Field className="my-1">

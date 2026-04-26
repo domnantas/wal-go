@@ -17,11 +17,18 @@ import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useAuth, useSignInMagicLink } from "@better-auth-ui/react";
-import { type SyntheticEvent, useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { MagicLinkButton } from "./magic-link-button";
 import { PasskeyButton } from "./passkey-button";
 import { ProviderButtons, type SocialLayout } from "./provider-buttons";
+
+const magicLinkSchema = z.object({
+	email: z
+		.email("Neteisingas el. pašto adresas")
+		.min(1, "El. paštas yra privalomas"),
+});
 
 export interface MagicLinkProps {
 	className?: string;
@@ -29,14 +36,6 @@ export interface MagicLinkProps {
 	socialPosition?: "top" | "bottom";
 }
 
-/**
- * Render a card-based sign-in form that sends an email magic link and optionally shows social provider buttons.
- *
- * @param className - Additional CSS class names applied to the card container
- * @param socialLayout - Layout style for social provider buttons
- * @param socialPosition - Position of social provider buttons; `"top"` or `"bottom"`. Defaults to `"bottom"`.
- * @returns The magic-link sign-in UI as a JSX element
- */
 export function MagicLink({
 	className,
 	socialLayout,
@@ -53,26 +52,31 @@ export function MagicLink({
 		Link,
 	} = useAuth();
 
-	const [email, setEmail] = useState("");
-
 	const { mutate: signInMagicLink, isPending: magicLinkPending } =
 		useSignInMagicLink({
 			onSuccess: () => {
-				setEmail("");
+				form.reset();
 				toast.success(localization.auth.magicLinkSent);
 			},
 		});
 
 	const isPending = magicLinkPending;
 
-	const [fieldErrors, setFieldErrors] = useState<{
-		email?: string;
-	}>({});
-
-	const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		signInMagicLink({ email, callbackURL: `${baseURL}${redirectTo}` });
-	};
+	const form = useForm({
+		defaultValues: {
+			email: "",
+		},
+		validators: {
+			onBlur: magicLinkSchema,
+			onSubmit: magicLinkSchema,
+		},
+		onSubmit: ({ value }) => {
+			signInMagicLink({
+				email: value.email,
+				callbackURL: `${baseURL}${redirectTo}`,
+			});
+		},
+	});
 
 	const showSeparator = socialProviders && socialProviders.length > 0;
 
@@ -101,41 +105,41 @@ export function MagicLink({
 						</>
 					)}
 
-					<form onSubmit={handleSubmit}>
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							form.handleSubmit();
+						}}
+					>
 						<FieldGroup>
-							<Field data-invalid={!!fieldErrors.email}>
-								<Label htmlFor="email">{localization.auth.email}</Label>
+							<form.Field name="email">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+									return (
+										<Field data-invalid={isInvalid}>
+											<Label htmlFor="email">{localization.auth.email}</Label>
 
-								<Input
-									aria-invalid={!!fieldErrors.email}
-									autoComplete="email"
-									disabled={isPending}
-									id="email"
-									name="email"
-									onChange={(e) => {
-										setEmail(e.target.value);
+											<Input
+												aria-invalid={isInvalid}
+												autoComplete="email"
+												disabled={isPending}
+												id="email"
+												name="email"
+												onBlur={field.handleBlur}
+												onChange={(e) => field.handleChange(e.target.value)}
+												placeholder={localization.auth.emailPlaceholder}
+												type="text"
+												value={field.state.value}
+											/>
 
-										setFieldErrors((prev) => ({
-											...prev,
-											email: undefined,
-										}));
-									}}
-									onInvalid={(e) => {
-										e.preventDefault();
-
-										setFieldErrors((prev) => ({
-											...prev,
-											email: (e.target as HTMLInputElement).validationMessage,
-										}));
-									}}
-									placeholder={localization.auth.emailPlaceholder}
-									required
-									type="email"
-									value={email}
-								/>
-
-								<FieldError>{fieldErrors.email}</FieldError>
-							</Field>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
 
 							<div className="flex flex-col gap-3">
 								<Button disabled={isPending} type="submit">

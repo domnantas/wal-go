@@ -13,6 +13,7 @@
   "dependencies": {
     "@WAL-GO/db": "workspace:*",
     "@WAL-GO/env": "workspace:*",
+    "@better-auth/core": "^1.6.8",
     "@better-auth/i18n": "^1.6.8",
     "better-auth": "catalog:",
     "dotenv": "catalog:",

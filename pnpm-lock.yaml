@@ -92,7 +92,7 @@ importers:
         version: link:../../packages/ui
       '@better-auth-ui/react':
         specifier: ^1.6.3
-        version: 1.6.3(9dd12a11e3bff1f865536c837835eae1)
+        version: 1.6.3(f234ed0cb4a6dd0afc43b8d3dba3b9ba)
       '@orpc/client':
         specifier: 'catalog:'
         version: 1.13.14
@@ -128,7 +128,7 @@ importers:
         version: 1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
       better-auth:
         specifier: 'catalog:'
-        version: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+        version: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
@@ -163,6 +163,12 @@ importers:
       '@cloudflare/vite-plugin':
         specifier: ^1.17.1
         version: 1.33.0(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))(workerd@1.20260420.1)(wrangler@4.84.0(@cloudflare/workers-types@4.20260421.1))
+      '@tanstack/react-devtools':
+        specifier: ^0.10.2
+        version: 0.10.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+      '@tanstack/react-form-devtools':
+        specifier: ^0.2.22
+        version: 0.2.22(@types/react@19.2.14)(csstype@3.2.3)(react@19.2.5)(solid-js@1.9.12)
       '@tanstack/react-query-devtools':
         specifier: ^5.91.1
         version: 5.99.2(@tanstack/react-query@5.99.2(react@19.2.5))(react@19.2.5)
@@ -254,12 +260,15 @@ importers:
       '@WAL-GO/env':
         specifier: workspace:*
         version: link:../env
+      '@better-auth/core':
+        specifier: ^1.6.8
+        version: 1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/i18n':
         specifier: ^1.6.8
-        version: 1.6.8(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
+        version: 1.6.8(@better-auth/core@1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))
       better-auth:
         specifier: 'catalog:'
-        version: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+        version: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
@@ -361,13 +370,13 @@ importers:
         version: 1.4.1(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@better-auth-ui/core':
         specifier: ^1.6.3
-        version: 1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
+        version: 1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))
       '@better-auth-ui/react':
         specifier: ^1.6.3
-        version: 1.6.3(b9e1f7a6003fe16bbea1b9d29af4e184)
+        version: 1.6.3(5549caa173e4053755fd15eb29ac9994)
       '@better-auth/passkey':
         specifier: ^1.6.5
-        version: 1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(better-call@1.3.5(zod@4.3.6))(nanostores@1.3.0)
+        version: 1.6.5(@better-auth/core@1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(better-call@1.3.5(zod@4.3.6))(nanostores@1.3.0)
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
@@ -385,7 +394,7 @@ importers:
         version: 5.99.2(react@19.2.5)
       better-auth:
         specifier: 'catalog:'
-        version: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+        version: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       bowser:
         specifier: ^2.14.1
         version: 2.14.1
@@ -419,6 +428,9 @@ importers:
       tw-animate-css:
         specifier: ^1.3.4
         version: 1.4.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
     devDependencies:
       '@WAL-GO/config':
         specifier: workspace:*
@@ -785,6 +797,23 @@ packages:
       nanostores: ^1.0.1
     peerDependenciesMeta:
       '@cloudflare/workers-types':
+        optional: true
+
+  '@better-auth/core@1.6.8':
+    resolution: {integrity: sha512-YVLkvMvUDeP3W0Wl9PHgwF2etWxKL9rntP0NjZ3YXsiuf05O5Gx0BNvWSeG9fcUaAFjjkiVdFOEvpYtDPpehog==}
+    peerDependencies:
+      '@better-auth/utils': 0.4.0
+      '@better-fetch/fetch': 1.1.21
+      '@cloudflare/workers-types': '>=4'
+      '@opentelemetry/api': ^1.9.0
+      better-call: 1.3.5
+      jose: ^6.1.0
+      kysely: ^0.28.5
+      nanostores: ^1.0.1
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+      '@opentelemetry/api':
         optional: true
 
   '@better-auth/drizzle-adapter@1.5.5':
@@ -2091,6 +2120,10 @@ packages:
   '@open-draft/until@2.1.0':
     resolution: {integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==}
 
+  '@opentelemetry/semantic-conventions@1.40.0':
+    resolution: {integrity: sha512-cifvXDhcqMwwTlTK04GBNeIe7yyo28Mfby85QXFe1Yk8nmi36Ab/5UQwptOx84SsoGNRg+EVSjwzfSZMy6pmlw==}
+    engines: {node: '>=14'}
+
   '@orpc/client@1.13.14':
     resolution: {integrity: sha512-JQf3lO//UGHmmkd8+9fuWuh1gga1lhWuKnsT19cui7F6WizBy0NdFSVQerOsSy2c1kxOthlD7GnicGgSY2rhQA==}
 
@@ -2695,6 +2728,36 @@ packages:
     resolution: {integrity: sha512-O/IEdcCUKkubz60tFbGA7ceITTAJsty+lBjNoorP4Z6XRqaFb/OjQjZODophEcuq68nKm6/0r+6/lLQ+XVpk8g==}
     engines: {node: '>=18.0.0'}
 
+  '@solid-primitives/event-listener@2.4.5':
+    resolution: {integrity: sha512-nwRV558mIabl4yVAhZKY8cb6G+O1F0M6Z75ttTu5hk+SxdOnKSGj+eetDIu7Oax1P138ZdUU01qnBPR8rnxaEA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/keyboard@1.3.5':
+    resolution: {integrity: sha512-sav+l+PL+74z3yaftVs7qd8c2SXkqzuxPOVibUe5wYMt+U5Hxp3V3XCPgBPN2I6cANjvoFtz0NiU8uHVLdi9FQ==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/resize-observer@2.1.5':
+    resolution: {integrity: sha512-AiyTknKcNBaKHbcSMuxtSNM8FjIuiSuFyFghdD0TcCMU9hKi9EmsC5pjfjDwxE+5EueB1a+T/34PLRI5vbBbKw==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/rootless@1.5.3':
+    resolution: {integrity: sha512-N8cIDAHbWcLahNRLr0knAAQvXyEdEMoAZvIMZKmhNb1mlx9e2UOv9BRD5YNwQUJwbNoYVhhLwFOEOcVXFx0HqA==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/static-store@0.1.3':
+    resolution: {integrity: sha512-uxez7SXnr5GiRnzqO2IEDjOJRIXaG+0LZLBizmUA1FwSi+hrpuMzVBwyk70m4prcl8X6FDDXUl9O8hSq8wHbBQ==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
+  '@solid-primitives/utils@6.4.0':
+    resolution: {integrity: sha512-AeGTBg8Wtkh/0s+evyLtP8piQoS4wyqqQaAFs2HJcFMMjYAtUgo+ZPduRXLjPlqKVc2ejeR544oeqpbn8Egn8A==}
+    peerDependencies:
+      solid-js: ^1.6.12
+
   '@speed-highlight/core@1.2.15':
     resolution: {integrity: sha512-BMq1K3DsElxDWawkX6eLg9+CKJrTVGCBAWVuHXVUV2u0s2711qiChLSId6ikYPfxhdYocLNt3wWwSvDiTvFabw==}
 
@@ -2812,13 +2875,64 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@tanstack/devtools-client@0.0.6':
+    resolution: {integrity: sha512-f85ZJXJnDIFOoykG/BFIixuAevJovCvJF391LPs6YjBAPhGYC50NWlx1y4iF/UmK5/cCMx+/JqI5SBOz7FanQQ==}
+    engines: {node: '>=18'}
+
+  '@tanstack/devtools-event-bus@0.4.1':
+    resolution: {integrity: sha512-cNnJ89Q021Zf883rlbBTfsaxTfi2r73/qejGtyTa7ksErF3hyDyAq1aTbo5crK9dAL7zSHh9viKY1BtMls1QOA==}
+    engines: {node: '>=18'}
+
   '@tanstack/devtools-event-client@0.4.3':
     resolution: {integrity: sha512-OZI6QyULw0FI0wjgmeYzCIfbgPsOEzwJtCpa69XrfLMtNXLGnz3d/dIabk7frg0TmHo+Ah49w5I4KC7Tufwsvw==}
     engines: {node: '>=18'}
     hasBin: true
 
+  '@tanstack/devtools-ui@0.5.1':
+    resolution: {integrity: sha512-T9JjAdqMSnxsVO6AQykD5vhxPF4iFLKtbYxee/bU3OLlk446F5C1220GdCmhDSz7y4lx+m8AvIS0bq6zzvdDUA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      solid-js: '>=1.9.7'
+
+  '@tanstack/devtools-utils@0.4.0':
+    resolution: {integrity: sha512-KsGzYhA8L/fCNgyyMyoUy+TKtx+DjNbzWwqH6wXL48Llzo7kvV9RynYJlaO8Qkzwm+NdHXSgsljQNjQ3CKPpZA==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      '@types/react': '>=17.0.0'
+      preact: '>=10.0.0'
+      react: '>=17.0.0'
+      solid-js: '>=1.9.7'
+      vue: '>=3.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      preact:
+        optional: true
+      react:
+        optional: true
+      solid-js:
+        optional: true
+      vue:
+        optional: true
+
+  '@tanstack/devtools@0.11.2':
+    resolution: {integrity: sha512-K8+tsBx+ptTLqqd4dOF10B6laj1g+XYImqYZL9n0jBINGaT+sOf17PKV9pbBt8kdbZeIGsHaJ5OZWCyZoHqN4A==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      solid-js: '>=1.9.7'
+
   '@tanstack/form-core@1.29.0':
     resolution: {integrity: sha512-uyeKEdJBfbj0bkBSwvSYVRtWLOaXvfNX3CeVw1HqGOXVLxpBBGAqWdYLc+UoX/9xcoFwFXrjR9QqMPzvwm2yyQ==}
+
+  '@tanstack/form-core@1.29.1':
+    resolution: {integrity: sha512-NIYPO36eEu7nSWvMpbFDQaBWyVtnH/C8fsZ3/XpJUT4uOWgmxsiUvHGbTbDNIQTXAKIkhwEl0sUrqBNn2SfUnw==}
+
+  '@tanstack/form-devtools@0.2.22':
+    resolution: {integrity: sha512-hMrKwu+73O2LeHj78vi48oaAH4jZi/U92hrHmkvxDy3E72c+PbxDJBbM9rXUK4h0GPbOzfaZ235SruJ0lfuOYA==}
+    peerDependencies:
+      solid-js: '>=1.9.9'
 
   '@tanstack/history@1.161.6':
     resolution: {integrity: sha512-NaOGLRrddszbQj9upGat6HG/4TKvXLvu+osAIgfxPYA+eIvYKv8GKDJOrY2D3/U9MRnKfMWD7bU4jeD4xmqyIg==}
@@ -2837,6 +2951,20 @@ packages:
 
   '@tanstack/query-devtools@5.99.2':
     resolution: {integrity: sha512-TEF1d+RYO9l8oeCwgzmOHIgKwAzXQmw2s/ny2bW8qeg2OMkkLjALfVEivgCMR3OL/jVdMmeTPX56WrV+uvYJFg==}
+
+  '@tanstack/react-devtools@0.10.2':
+    resolution: {integrity: sha512-1BmZyxOrI5SqmRJ5MgkYZNNdnlLsJxQRI2YgorrAvcF2MxK6x5RcuStvD8+YlXoMw3JtNukPxoITirKAnKYDQA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/react': '>=16.8'
+      '@types/react-dom': '>=16.8'
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
+  '@tanstack/react-form-devtools@0.2.22':
+    resolution: {integrity: sha512-CXa+U6QrF8QOGL+sCIIcwzHb1K+hfNjBA5PwSmxm32Oxpu8fK/60M3SbE9UM9439MR/GQiIoeBW2FFyKh73apw==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
 
   '@tanstack/react-form@1.29.0':
     resolution: {integrity: sha512-jj425NNX0QKqbUzqSNiYI3HCPHSk2df47acXCJyXczWOTmG81ECZGkgofgqamFsSU9kMiH6Di5RLUnftrlhWSw==}
@@ -3558,6 +3686,9 @@ packages:
   data-urls@7.0.0:
     resolution: {integrity: sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+
+  dayjs@1.11.20:
+    resolution: {integrity: sha512-YbwwqR/uYpeoP4pu043q+LTDLFBLApUP6VxRihdfNTqu4ubqMlGDLd6ErXhEgsyvY0K6nCs7nggYumAN+9uEuQ==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -5042,6 +5173,9 @@ packages:
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
 
+  solid-js@1.9.12:
+    resolution: {integrity: sha512-QzKaSJq2/iDrWR1As6MHZQ8fQkdOBf8GReYb7L5iKwMGceg7HxDcaOHk0at66tNgn9U2U7dXo8ZZpLIAmGMzgw==}
+
   sonner@2.0.7:
     resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
     peerDependencies:
@@ -6193,17 +6327,17 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  '@better-auth-ui/core@1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))':
+  '@better-auth-ui/core@1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))':
     dependencies:
-      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
 
-  '@better-auth-ui/react@1.6.3(9dd12a11e3bff1f865536c837835eae1)':
+  '@better-auth-ui/react@1.6.3(5549caa173e4053755fd15eb29ac9994)':
     dependencies:
-      '@better-auth-ui/core': 1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
-      '@better-auth/passkey': 1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(better-call@1.3.2(zod@4.3.6))(nanostores@1.3.0)
+      '@better-auth-ui/core': 1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))
+      '@better-auth/passkey': 1.6.5(@better-auth/core@1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(better-call@1.3.5(zod@4.3.6))(nanostores@1.3.0)
       '@react-email/components': 1.0.12(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@tanstack/react-query': 5.99.2(react@19.2.5)
-      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       clsx: 2.1.1
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
@@ -6211,13 +6345,13 @@ snapshots:
       tailwindcss: 4.2.3
       zod: 4.3.6
 
-  '@better-auth-ui/react@1.6.3(b9e1f7a6003fe16bbea1b9d29af4e184)':
+  '@better-auth-ui/react@1.6.3(f234ed0cb4a6dd0afc43b8d3dba3b9ba)':
     dependencies:
-      '@better-auth-ui/core': 1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))
-      '@better-auth/passkey': 1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(better-call@1.3.5(zod@4.3.6))(nanostores@1.3.0)
+      '@better-auth-ui/core': 1.6.3(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))
+      '@better-auth/passkey': 1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(better-call@1.3.2(zod@4.3.6))(nanostores@1.3.0)
       '@react-email/components': 1.0.12(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@tanstack/react-query': 5.99.2(react@19.2.5)
-      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       clsx: 2.1.1
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
@@ -6238,10 +6372,11 @@ snapshots:
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260421.1
 
-  '@better-auth/core@1.5.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)':
+  '@better-auth/core@1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)':
     dependencies:
       '@better-auth/utils': 0.4.0
       '@better-fetch/fetch': 1.1.21
+      '@opentelemetry/semantic-conventions': 1.40.0
       '@standard-schema/spec': 1.1.0
       better-call: 1.3.5(zod@4.3.6)
       jose: 6.2.2
@@ -6258,10 +6393,10 @@ snapshots:
     optionalDependencies:
       drizzle-orm: 0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0)
 
-  '@better-auth/i18n@1.6.8(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))':
+  '@better-auth/i18n@1.6.8(@better-auth/core@1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))':
     dependencies:
-      '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
-      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@better-auth/core': 1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
+      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
 
   '@better-auth/kysely-adapter@1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(kysely@0.28.16)':
     dependencies:
@@ -6280,26 +6415,26 @@ snapshots:
       '@better-auth/utils': 0.3.1
       mongodb: 7.2.0(@aws-sdk/credential-providers@3.1033.0)
 
-  '@better-auth/passkey@1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(better-call@1.3.2(zod@4.3.6))(nanostores@1.3.0)':
+  '@better-auth/passkey@1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(better-call@1.3.2(zod@4.3.6))(nanostores@1.3.0)':
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/utils': 0.3.1
       '@better-fetch/fetch': 1.1.21
       '@simplewebauthn/browser': 13.3.0
       '@simplewebauthn/server': 13.3.0
-      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       better-call: 1.3.2(zod@4.3.6)
       nanostores: 1.3.0
       zod: 4.3.6
 
-  '@better-auth/passkey@1.6.5(@better-auth/core@1.5.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(better-call@1.3.5(zod@4.3.6))(nanostores@1.3.0)':
+  '@better-auth/passkey@1.6.5(@better-auth/core@1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12))(better-call@1.3.5(zod@4.3.6))(nanostores@1.3.0)':
     dependencies:
-      '@better-auth/core': 1.5.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
+      '@better-auth/core': 1.6.8(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.5(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/utils': 0.4.0
       '@better-fetch/fetch': 1.1.21
       '@simplewebauthn/browser': 13.3.0
       '@simplewebauthn/server': 13.3.0
-      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      better-auth: 1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
       better-call: 1.3.5(zod@4.3.6)
       nanostores: 1.3.0
       zod: 4.3.6
@@ -7166,6 +7301,8 @@ snapshots:
 
   '@open-draft/until@2.1.0': {}
 
+  '@opentelemetry/semantic-conventions@1.40.0': {}
+
   '@orpc/client@1.13.14':
     dependencies:
       '@orpc/shared': 1.13.14
@@ -7908,6 +8045,40 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@solid-primitives/event-listener@2.4.5(solid-js@1.9.12)':
+    dependencies:
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12)
+      solid-js: 1.9.12
+
+  '@solid-primitives/keyboard@1.3.5(solid-js@1.9.12)':
+    dependencies:
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12)
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12)
+      solid-js: 1.9.12
+
+  '@solid-primitives/resize-observer@2.1.5(solid-js@1.9.12)':
+    dependencies:
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12)
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12)
+      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12)
+      solid-js: 1.9.12
+
+  '@solid-primitives/rootless@1.5.3(solid-js@1.9.12)':
+    dependencies:
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12)
+      solid-js: 1.9.12
+
+  '@solid-primitives/static-store@0.1.3(solid-js@1.9.12)':
+    dependencies:
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12)
+      solid-js: 1.9.12
+
+  '@solid-primitives/utils@6.4.0(solid-js@1.9.12)':
+    dependencies:
+      solid-js: 1.9.12
+
   '@speed-highlight/core@1.2.15': {}
 
   '@standard-schema/spec@1.1.0': {}
@@ -7985,13 +8156,77 @@ snapshots:
       tailwindcss: 4.2.3
       vite: 8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)
 
+  '@tanstack/devtools-client@0.0.6':
+    dependencies:
+      '@tanstack/devtools-event-client': 0.4.3
+
+  '@tanstack/devtools-event-bus@0.4.1':
+    dependencies:
+      ws: 8.20.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@tanstack/devtools-event-client@0.4.3': {}
+
+  '@tanstack/devtools-ui@0.5.1(csstype@3.2.3)(solid-js@1.9.12)':
+    dependencies:
+      clsx: 2.1.1
+      dayjs: 1.11.20
+      goober: 2.1.18(csstype@3.2.3)
+      solid-js: 1.9.12
+    transitivePeerDependencies:
+      - csstype
+
+  '@tanstack/devtools-utils@0.4.0(@types/react@19.2.14)(react@19.2.5)(solid-js@1.9.12)':
+    optionalDependencies:
+      '@types/react': 19.2.14
+      react: 19.2.5
+      solid-js: 1.9.12
+
+  '@tanstack/devtools@0.11.2(csstype@3.2.3)(solid-js@1.9.12)':
+    dependencies:
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12)
+      '@solid-primitives/keyboard': 1.3.5(solid-js@1.9.12)
+      '@solid-primitives/resize-observer': 2.1.5(solid-js@1.9.12)
+      '@tanstack/devtools-client': 0.0.6
+      '@tanstack/devtools-event-bus': 0.4.1
+      '@tanstack/devtools-ui': 0.5.1(csstype@3.2.3)(solid-js@1.9.12)
+      clsx: 2.1.1
+      goober: 2.1.18(csstype@3.2.3)
+      solid-js: 1.9.12
+    transitivePeerDependencies:
+      - bufferutil
+      - csstype
+      - utf-8-validate
 
   '@tanstack/form-core@1.29.0':
     dependencies:
       '@tanstack/devtools-event-client': 0.4.3
       '@tanstack/pacer-lite': 0.1.1
       '@tanstack/store': 0.9.3
+
+  '@tanstack/form-core@1.29.1':
+    dependencies:
+      '@tanstack/devtools-event-client': 0.4.3
+      '@tanstack/pacer-lite': 0.1.1
+      '@tanstack/store': 0.9.3
+
+  '@tanstack/form-devtools@0.2.22(@types/react@19.2.14)(csstype@3.2.3)(react@19.2.5)(solid-js@1.9.12)':
+    dependencies:
+      '@tanstack/devtools-ui': 0.5.1(csstype@3.2.3)(solid-js@1.9.12)
+      '@tanstack/devtools-utils': 0.4.0(@types/react@19.2.14)(react@19.2.5)(solid-js@1.9.12)
+      '@tanstack/form-core': 1.29.1
+      clsx: 2.1.1
+      dayjs: 1.11.20
+      goober: 2.1.18(csstype@3.2.3)
+      solid-js: 1.9.12
+    transitivePeerDependencies:
+      - '@types/react'
+      - csstype
+      - preact
+      - react
+      - vue
 
   '@tanstack/history@1.161.6': {}
 
@@ -8005,6 +8240,31 @@ snapshots:
   '@tanstack/query-core@5.99.2': {}
 
   '@tanstack/query-devtools@5.99.2': {}
+
+  '@tanstack/react-devtools@0.10.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)':
+    dependencies:
+      '@tanstack/devtools': 0.11.2(csstype@3.2.3)(solid-js@1.9.12)
+      '@types/react': 19.2.14
+      '@types/react-dom': 19.2.3(@types/react@19.2.14)
+      react: 19.2.5
+      react-dom: 19.2.5(react@19.2.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - csstype
+      - solid-js
+      - utf-8-validate
+
+  '@tanstack/react-form-devtools@0.2.22(@types/react@19.2.14)(csstype@3.2.3)(react@19.2.5)(solid-js@1.9.12)':
+    dependencies:
+      '@tanstack/devtools-utils': 0.4.0(@types/react@19.2.14)(react@19.2.5)(solid-js@1.9.12)
+      '@tanstack/form-devtools': 0.2.22(@types/react@19.2.14)(csstype@3.2.3)(react@19.2.5)(solid-js@1.9.12)
+      react: 19.2.5
+    transitivePeerDependencies:
+      - '@types/react'
+      - csstype
+      - preact
+      - solid-js
+      - vue
 
   '@tanstack/react-form@1.29.0(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
@@ -8508,7 +8768,7 @@ snapshots:
 
   before-after-hook@3.0.2: {}
 
-  better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+  better-auth@1.5.5(@cloudflare/workers-types@4.20260421.1)(@tanstack/react-start@1.167.42(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3)))(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1033.0))(pg@8.20.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12):
     dependencies:
       '@better-auth/core': 1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0)
       '@better-auth/drizzle-adapter': 1.5.5(@better-auth/core@1.5.5(@better-auth/utils@0.3.1)(@better-fetch/fetch@1.1.21)(@cloudflare/workers-types@4.20260421.1)(better-call@1.3.2(zod@4.3.6))(jose@6.2.2)(kysely@0.28.16)(nanostores@1.3.0))(@better-auth/utils@0.3.1)(drizzle-orm@0.45.2(@cloudflare/workers-types@4.20260421.1)(@types/pg@8.20.0)(kysely@0.28.16)(pg@8.20.0))
@@ -8535,6 +8795,7 @@ snapshots:
       pg: 8.20.0
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
+      solid-js: 1.9.12
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
 
@@ -8765,6 +9026,8 @@ snapshots:
       whatwg-url: 16.0.1(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - '@noble/hashes'
+
+  dayjs@1.11.20: {}
 
   debug@4.4.3:
     dependencies:
@@ -10254,6 +10517,12 @@ snapshots:
   signal-exit@4.1.0: {}
 
   sisteransi@1.0.5: {}
+
+  solid-js@1.9.12:
+    dependencies:
+      csstype: 3.2.3
+      seroval: 1.5.2
+      seroval-plugins: 1.5.2(seroval@1.5.2)
 
   sonner@2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
