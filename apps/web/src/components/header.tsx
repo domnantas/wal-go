@@ -1,8 +1,15 @@
 import { UserButton } from "@WAL-GO/ui/components/user/user-button";
 import { Link } from "@tanstack/react-router";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
+import { authClient } from "@/lib/auth-client";
 
-export default function Header() {
+interface HeaderProps {
+	session: { session: unknown; user: unknown } | null;
+}
+
+export default function Header({ session }: HeaderProps) {
+	const { data: clientSession, isPending } = authClient.useSession();
+	const isAuthenticated = isPending ? !!session : !!clientSession;
 	const links = [
 		{ to: "/map", label: "🗺️ Žemėlapis", exact: false },
 		{ to: "/log", label: "📝 Žurnalas", exact: false },
@@ -21,18 +28,20 @@ export default function Header() {
 						/>
 					</Link>
 
-					<nav className="flex gap-1">
-						{links.map(({ to, label, exact }) => (
-							<Link
-								activeOptions={{ exact }}
-								className="rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground [&.active]:bg-muted [&.active]:text-foreground"
-								key={to}
-								to={to}
-							>
-								{label}
-							</Link>
-						))}
-					</nav>
+					{isAuthenticated && (
+						<nav className="flex gap-1">
+							{links.map(({ to, label, exact }) => (
+								<Link
+									activeOptions={{ exact }}
+									className="rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground [&.active]:bg-muted [&.active]:text-foreground"
+									key={to}
+									to={to}
+								>
+									{label}
+								</Link>
+							))}
+						</nav>
+					)}
 				</div>
 
 				<div className="flex items-center gap-2">

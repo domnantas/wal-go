@@ -10,16 +10,26 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "tanstack-theme-kit";
+import { getUser } from "@/functions/get-user";
 import type { orpc } from "@/utils/orpc";
 import Header from "../components/header";
 import { Providers } from "../components/providers";
 import appCss from "../index.css?url";
+
+export type SessionContext = Awaited<ReturnType<typeof getUser>>;
+
 export interface RouterAppContext {
 	orpc: typeof orpc;
 	queryClient: QueryClient;
+	session: SessionContext;
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
+	async beforeLoad() {
+		const session = await getUser();
+		return { session };
+	},
+	loader: ({ context }) => ({ session: context.session }),
 	head: () => ({
 		meta: [
 			{
@@ -45,6 +55,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const { session } = Route.useLoaderData();
 	return (
 		<html lang="lt" suppressHydrationWarning>
 			<head>
@@ -54,7 +65,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<ThemeProvider attribute="class" disableTransitionOnChange>
 					<Providers>
 						<div className="grid h-svh grid-rows-[auto_1fr]">
-							<Header />
+							<Header session={session} />
 							{children}
 						</div>
 						<Toaster richColors />
