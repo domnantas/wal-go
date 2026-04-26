@@ -188,7 +188,7 @@ export function UserButton({
 							{localization.settings.theme}
 						</div>
 
-						<Tabs onValueChange={setTheme} value={theme}>
+						<Tabs className="ml-4" onValueChange={setTheme} value={theme}>
 							<TabsList className="h-6! gap-0.5">
 								{themes.includes("system") && (
 									<TabsTrigger
