@@ -2,16 +2,17 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useQuery } from "@tanstack/react-query";
 import type { StyleSpecification } from "maplibre-gl";
 import { useTheme } from "tanstack-theme-kit";
 import darkStyle from "@/assets/liberty-dark-style.json";
 import lightStyle from "@/assets/liberty-style.json";
+import { orpc } from "@/utils/orpc";
 
 const LITHUANIA_CENTER: [number, number] = [23.88, 55.17];
 const WAL_GRID_SOURCE_ID = "wal-grid";
 const WAL_GRID_LINE_LAYER_ID = "wal-grid-lines";
 const WAL_GRID_LABEL_LAYER_ID = "wal-grid-labels";
-const WAL_GRID_COLOR = "#000";
 const WAL_GRID_GEOJSON = createWalGridFeatureCollection();
 
 export const Route = createFileRoute("/map")({
@@ -84,9 +85,52 @@ function RouteComponent() {
 	}, []);
 
 	return (
-		<main className="relative min-h-0 overflow-hidden">
-			<div className="absolute inset-0 h-full w-full" ref={mapContainerRef} />
+		<main className="relative flex min-h-0 overflow-hidden">
+			<div className="relative flex-1" ref={mapContainerRef} />
+			<aside className="w-70 shrink-0 overflow-y-auto border-border border-l bg-card">
+				<SeasonProgressBox />
+			</aside>
 		</main>
+	);
+}
+
+function SeasonProgressBox() {
+	const { data: season } = useQuery(orpc.seasons.current.queryOptions());
+
+	if (!season) {
+		return null;
+	}
+
+	const now = new Date();
+	const totalMs = season.endsAt.getTime() - season.startsAt.getTime();
+	const elapsedMs = now.getTime() - season.startsAt.getTime();
+	const pct = Math.min(100, Math.max(0, (elapsedMs / totalMs) * 100));
+	const daysLeft = Math.round((totalMs - elapsedMs) / 86_400_000);
+
+	const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+
+	return (
+		<div className="border-border border-b px-5 py-4.5">
+			<p className="mb-2.5 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+				Sezonas
+			</p>
+			<p className="mb-0.5 font-bold font-serif text-[18px] text-foreground">
+				{season.name}
+			</p>
+			<p className="mb-3 text-[11px] text-muted-foreground/70">
+				{formatDate(season.startsAt)} → {formatDate(season.endsAt)}
+			</p>
+			<div className="mb-1.5 h-1.75 overflow-hidden rounded-lg bg-muted">
+				<div
+					className="h-full rounded-lg bg-accent transition-[width] duration-500"
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+			<div className="flex justify-between text-[11px] text-muted-foreground/70">
+				<span>{Math.round(pct)}% baigta</span>
+				<span>{daysLeft} dienų liko</span>
+			</div>
+		</div>
 	);
 }
 
@@ -104,7 +148,7 @@ function addWalGridLayers(map: import("maplibre-gl").Map) {
 			type: "line",
 			source: WAL_GRID_SOURCE_ID,
 			paint: {
-				"line-color": WAL_GRID_COLOR,
+				"line-color": "#000",
 				"line-opacity": 0.85,
 				"line-width": ["interpolate", ["linear"], ["zoom"], 6, 0.7, 10, 1.4],
 			},
