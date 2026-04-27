@@ -19,7 +19,6 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
 import {
 	MapPinned,
 	Plus,
@@ -29,6 +28,7 @@ import {
 	Upload,
 	Waves,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/log")({
 	beforeLoad({ context }) {
@@ -273,9 +273,7 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 		(table.getColumn("band")?.getFilterValue() as string | undefined) ?? "all";
 
 	function setBand(band: string) {
-		table
-			.getColumn("band")
-			?.setFilterValue(band === "all" ? undefined : band);
+		table.getColumn("band")?.setFilterValue(band === "all" ? undefined : band);
 	}
 
 	if (qsos.length === 0) {
