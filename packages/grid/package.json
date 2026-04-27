@@ -1,0 +1,13 @@
+{
+  "name": "@WAL-GO/grid",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "devDependencies": {
+    "@WAL-GO/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

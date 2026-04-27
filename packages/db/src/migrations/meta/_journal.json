@@ -29,6 +29,20 @@
       "when": 1777216237018,
       "tag": "0003_dizzy_the_hood",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777316064462,
+      "tag": "0004_windy_morg",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777317946433,
+      "tag": "0005_nappy_blacklash",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import { qso } from "./qsos";
 
 export const teamColor = pgEnum("team_color", ["yellow", "green", "red"]);
 
@@ -62,6 +63,7 @@ export const seasonMembership = pgTable(
 );
 
 export const seasonRelations = relations(season, ({ many }) => ({
+	qsos: many(qso),
 	memberships: many(seasonMembership),
 }));
 

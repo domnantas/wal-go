@@ -16,3 +16,4 @@ catalog:
   alchemy: ^0.91.2
   drizzle-orm: ^0.45.1
   "@types/pg": ^8.16.0
+  date-fns: ^4.1.0

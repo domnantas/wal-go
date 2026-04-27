@@ -10,7 +10,7 @@ type Team = (typeof TEAMS)[number];
 
 type Db = ReturnType<typeof createDb>;
 
-async function getCurrentSeason(db: Db) {
+export async function getCurrentSeason(db: Db) {
 	const now = new Date();
 	const rows = await db
 		.select()

@@ -2,7 +2,27 @@
 
 The `/log` page has two responsibilities: ADIF file import and QSO log review/management.
 
+## Current Implementation: Manual Entry
+
+The first implemented slice supports manual QSO entry for the active season.
+Signed-in users can add QSOs from `/log` after joining the active season.
+
+Manual entry captures:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| Contact callsign | Yes | Stored uppercase. |
+| QSO date/time | Yes | Stored as a timezone-aware timestamp. |
+| Band | Yes | Selected from the UI's supported band list. |
+| Mode | Yes | Selected from the UI's supported mode list. |
+| Operator WAL square | Yes | Explicit WAL code, e.g. `A05`. |
+| Contact WAL square | No | Explicit WAL code when known. |
+
+The backend validates that WAL square codes are valid Lithuanian WAL cells. Duplicate detection, scoring updates, QSO deletion, and ADIF import are not part of the first slice.
+
 ## ADIF Import
+
+ADIF import is planned but not implemented yet.
 
 Users upload an `.adif` file. The server parses every QSO record and awards points to WAL squares.
 
@@ -76,12 +96,12 @@ The `/log` page lists all QSOs the user has submitted in the current season, pag
 
 | Operation | Supported | Notes                                              |
 |-----------|-----------|----------------------------------------------------|
-| Create    | Yes       | Via ADIF upload                                    |
+| Create    | Yes       | Via manual entry now; ADIF upload later           |
 | Read      | Yes       | Paginated table on `/log`                          |
 | Update    | No        | Delete and resubmit to correct a record            |
-| Delete    | Yes       | Removes QSO and decrements team's points on the affected square(s) |
+| Delete    | Yes       | Removes the user's QSO from the active season      |
 
-Deleting a QSO that was the sole point giving a team control of a square will immediately release that square to the next-highest team (or to neutral if tied/empty).
+When score materialization is implemented, deleting a QSO that was the sole point giving a team control of a square will immediately release that square to the next-highest team (or to neutral if tied/empty).
 
 ## User Callsign Requirement
 

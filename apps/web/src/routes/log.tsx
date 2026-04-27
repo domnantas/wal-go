@@ -1,4 +1,5 @@
 import { Button } from "@WAL-GO/ui/components/button";
+import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
 	Table,
 	TableBody,
@@ -8,6 +9,7 @@ import {
 	TableRow,
 } from "@WAL-GO/ui/components/table";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
 	type ColumnDef,
@@ -19,16 +21,12 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import {
-	MapPinned,
-	Plus,
-	Radio,
-	Star,
-	Trash2,
-	Upload,
-	Waves,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { MapPinned, Radio, Star, Trash2, Upload, Waves } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
+import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/log")({
 	beforeLoad({ context }) {
@@ -41,67 +39,29 @@ export const Route = createFileRoute("/log")({
 
 interface Qso {
 	band: string;
-	callsign: string;
-	date: string;
+	contactCallsign: string;
+	contactSquare: null | string;
 	id: number;
 	mode: string;
-	square: string;
-	time: string;
+	operatorSquare: string;
+	qsoAt: Date | string;
 }
 
-const MOCK_QSOS: Qso[] = [
-	{
-		id: 1,
-		callsign: "LY2ABC",
-		date: "2026-04-10",
-		time: "14:32",
-		band: "20m",
-		mode: "SSB",
-		square: "A05",
-	},
-	{
-		id: 2,
-		callsign: "LY3BN",
-		date: "2026-04-10",
-		time: "15:01",
-		band: "40m",
-		mode: "CW",
-		square: "B12",
-	},
-	{
-		id: 3,
-		callsign: "LY4K",
-		date: "2026-04-11",
-		time: "09:48",
-		band: "20m",
-		mode: "DIGI",
-		square: "C03",
-	},
-	{
-		id: 4,
-		callsign: "OH2BNH",
-		date: "2026-04-11",
-		time: "18:22",
-		band: "80m",
-		mode: "SSB",
-		square: "A05",
-	},
-	{
-		id: 5,
-		callsign: "ES1OA",
-		date: "2026-04-12",
-		time: "11:15",
-		band: "20m",
-		mode: "CW",
-		square: "D07",
-	},
-];
+const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
+	year: "numeric",
+	month: "2-digit",
+	day: "2-digit",
+	hour: "2-digit",
+	minute: "2-digit",
+});
 
 function RouteComponent() {
-	const totalQsos = MOCK_QSOS.length;
-	const uniqueSquares = new Set(MOCK_QSOS.map((q) => q.square)).size;
-	const uniqueBands = new Set(MOCK_QSOS.map((q) => q.band)).size;
-	const points = totalQsos;
+	const qsos = useQuery(orpc.qsos.list.queryOptions());
+	const data = qsos.data ?? [];
+	const totalQsos = data.length;
+	const uniqueSquares = countUniqueSquares(data);
+	const uniqueBands = new Set(data.map((q) => q.band)).size;
+	const points = countCreditedSquares(data);
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
@@ -130,9 +90,37 @@ function RouteComponent() {
 				/>
 			</div>
 
-			<QsoLog qsos={MOCK_QSOS} />
+			{qsos.isPending ? (
+				<div className="flex justify-center py-10">
+					<Spinner className="size-8" />
+				</div>
+			) : (
+				<QsoLog qsos={data} />
+			)}
 		</main>
 	);
+}
+
+function countCreditedSquares(qsos: Qso[]) {
+	return qsos.reduce(
+		(total, qso) => total + 1 + (qso.contactSquare ? 1 : 0),
+		0
+	);
+}
+
+function countUniqueSquares(qsos: Qso[]) {
+	const squares = new Set<string>();
+	for (const qso of qsos) {
+		squares.add(qso.operatorSquare);
+		if (qso.contactSquare) {
+			squares.add(qso.contactSquare);
+		}
+	}
+	return squares.size;
+}
+
+function toDisplayDate(value: Date | string) {
+	return dateTimeFormatter.format(new Date(value));
 }
 
 function StatCard({
@@ -140,7 +128,7 @@ function StatCard({
 	label,
 	value,
 }: {
-	icon: React.ReactNode;
+	icon: ReactNode;
 	label: string;
 	value: number;
 }) {
@@ -167,89 +155,137 @@ function AdifDropzone() {
 			type="button"
 		>
 			<Upload className="size-8 text-muted-foreground group-hover:text-accent" />
-			<p className="font-medium text-sm">
-				Įkelkite .adif failą arba spustelėkite naršymui
-			</p>
+			<p className="font-medium text-sm">ADIF importas bus pridėtas vėliau</p>
 			<p className="text-muted-foreground text-xs">
-				Palaikomi .adi, .adif, .log formatai
+				Šiuo metu QSO pridėkite rankiniu būdu žemiau
 			</p>
 		</button>
 	);
 }
 
-const QSO_COLUMNS: ColumnDef<Qso>[] = [
-	{
-		accessorKey: "date",
-		header: "Data",
-		cell: ({ getValue }) => (
-			<span className="tabular-nums">{getValue<string>()}</span>
-		),
-	},
-	{
-		accessorKey: "time",
-		header: "Laikas",
-		cell: ({ getValue }) => (
-			<span className="font-mono text-muted-foreground">
-				{getValue<string>()}
-			</span>
-		),
-	},
-	{
-		accessorKey: "callsign",
-		header: "Šaukinys",
-		cell: ({ getValue }) => (
-			<span className="font-bold">{getValue<string>()}</span>
-		),
-	},
-	{
-		accessorKey: "band",
-		header: "Diapazonas",
-		cell: ({ getValue }) => (
-			<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-foreground text-xs">
-				{getValue<string>()}
-			</span>
-		),
-	},
-	{
-		accessorKey: "mode",
-		header: "Moduliacija",
-		cell: ({ getValue }) => (
-			<span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
-				{getValue<string>()}
-			</span>
-		),
-	},
-	{
-		accessorKey: "square",
-		header: "Kvadratas",
-		cell: ({ getValue }) => (
-			<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-mono text-foreground text-xs">
-				{getValue<string>()}
-			</span>
-		),
-	},
-	{
-		id: "actions",
-		header: "",
-		enableSorting: false,
-		enableColumnFilter: false,
-		cell: () => (
-			<div className="text-right">
-				<Button
-					aria-label="Ištrinti QSO"
-					disabled
-					size="icon-sm"
-					variant="ghost"
-				>
-					<Trash2 />
-				</Button>
-			</div>
-		),
-	},
-];
+function getQsoColumns({
+	deletingQsoId,
+	onDelete,
+}: {
+	deletingQsoId: null | number;
+	onDelete: (id: number) => void;
+}): ColumnDef<Qso>[] {
+	return [
+		{
+			accessorKey: "qsoAt",
+			header: "Data ir laikas",
+			cell: ({ getValue }) => (
+				<span className="tabular-nums">
+					{toDisplayDate(getValue<Date | string>())}
+				</span>
+			),
+		},
+		{
+			accessorKey: "contactCallsign",
+			header: "Šaukinys",
+			cell: ({ getValue }) => (
+				<span className="font-bold">{getValue<string>()}</span>
+			),
+		},
+		{
+			accessorKey: "band",
+			header: "Diapazonas",
+			cell: ({ getValue }) => (
+				<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-foreground text-xs">
+					{getValue<string>()}
+				</span>
+			),
+		},
+		{
+			accessorKey: "mode",
+			header: "Moduliacija",
+			cell: ({ getValue }) => (
+				<span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
+					{getValue<string>()}
+				</span>
+			),
+		},
+		{
+			id: "squares",
+			header: "Kvadratai",
+			cell: ({ row }) => (
+				<div className="flex flex-wrap gap-1.5">
+					<SquareBadge label={row.original.operatorSquare} />
+					{row.original.contactSquare ? (
+						<SquareBadge label={row.original.contactSquare} muted />
+					) : null}
+				</div>
+			),
+		},
+		{
+			id: "actions",
+			header: "",
+			enableSorting: false,
+			enableColumnFilter: false,
+			cell: ({ row }) => {
+				const isDeleting = deletingQsoId === row.original.id;
+				return (
+					<div className="text-right">
+						<Button
+							aria-label="Ištrinti QSO"
+							disabled={deletingQsoId !== null}
+							onClick={() => onDelete(row.original.id)}
+							size="icon-sm"
+							variant="ghost"
+						>
+							{isDeleting ? <Spinner /> : <Trash2 />}
+						</Button>
+					</div>
+				);
+			},
+		},
+	];
+}
+
+function SquareBadge({
+	label,
+	muted = false,
+}: {
+	label: string;
+	muted?: boolean;
+}) {
+	return (
+		<span
+			className={cn(
+				"inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-xs",
+				muted
+					? "border border-border bg-card text-muted-foreground"
+					: "bg-muted text-foreground"
+			)}
+		>
+			{label}
+		</span>
+	);
+}
 
 function QsoLog({ qsos }: { qsos: Qso[] }) {
+	const queryClient = useQueryClient();
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+	const [deletingQsoId, setDeletingQsoId] = useState<null | number>(null);
+	const deleteQso = useMutation(
+		orpc.qsos.delete.mutationOptions({
+			onMutate: ({ id }) => {
+				setDeletingQsoId(id);
+			},
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.qsos.list.queryOptions().queryKey,
+				});
+				toast.success("QSO ištrintas");
+			},
+			onError: (error) => {
+				toast.error(error.message);
+			},
+			onSettled: () => {
+				setDeletingQsoId(null);
+			},
+		})
+	);
 
 	const bandOptions = useMemo(() => {
 		const unique = Array.from(new Set(qsos.map((q) => q.band)));
@@ -258,9 +294,18 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 		);
 	}, [qsos]);
 
+	const columns = useMemo(
+		() =>
+			getQsoColumns({
+				deletingQsoId,
+				onDelete: (id) => deleteQso.mutate({ id }),
+			}),
+		[deleteQso, deletingQsoId]
+	);
+
 	const table = useReactTable({
 		data: qsos,
-		columns: QSO_COLUMNS,
+		columns,
 		state: { columnFilters },
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
@@ -282,8 +327,9 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 				<Radio className="size-10 text-muted-foreground" />
 				<h3 className="font-medium text-base">Dar nėra QSO</h3>
 				<p className="text-muted-foreground text-sm">
-					Įkelkite ADIF failą, kad pridėtumėte ryšius
+					Pridėkite pirmą ryšį naudodami formą
 				</p>
+				<AddQsoDialog />
 			</div>
 		);
 	}
@@ -306,10 +352,7 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 						/>
 					))}
 				</div>
-				<Button disabled>
-					<Plus />
-					Pridėti QSO
-				</Button>
+				<AddQsoDialog />
 			</div>
 
 			<div className="overflow-hidden rounded-4xl border border-border bg-card">
