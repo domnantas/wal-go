@@ -115,7 +115,6 @@ export function UserButton({
 			<DropdownMenuContent
 				align={align}
 				className="w-[--radix-dropdown-menu-trigger-width] min-w-40 max-w-[48svw] md:min-w-56"
-				onCloseAutoFocus={(e) => e.preventDefault()}
 				sideOffset={sideOffset}
 			>
 				{session && (

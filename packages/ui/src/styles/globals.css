@@ -137,6 +137,15 @@
 	html {
 		@apply font-sans;
 	}
+
+	button,
+	[role="button"] {
+		cursor: pointer;
+	}
+	button:disabled,
+	[role="button"]:disabled {
+		cursor: default;
+	}
 }
 
 body::before {

@@ -1,18 +1,20 @@
-import { UserButton } from "@WAL-GO/ui/components/user/user-button";
+import { Button } from "@WAL-GO/ui/components/button";
 import { Link } from "@tanstack/react-router";
-import { Map, NotebookPen, Trophy } from "lucide-react";
+import { Map as MapIcon, NotebookPen, Trophy } from "lucide-react";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
+import { UserButton } from "@/components/user-button";
 import { authClient } from "@/lib/auth-client";
+import type { SessionContext } from "@/routes/__root";
 
 interface HeaderProps {
-	session: { session: unknown; user: unknown } | null;
+	session: SessionContext;
 }
 
-export default function Header({ session }: HeaderProps) {
+export default function Header({ session: initialSession }: HeaderProps) {
 	const { data: clientSession, isPending } = authClient.useSession();
-	const isAuthenticated = isPending ? !!session : !!clientSession;
+	const isAuthenticated = isPending ? !!initialSession : !!clientSession;
 	const links = [
-		{ to: "/map", label: "Žemėlapis", icon: Map, exact: false },
+		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },
 		{
 			to: "/leaderboard",
@@ -52,7 +54,16 @@ export default function Header({ session }: HeaderProps) {
 				</div>
 
 				<div className="flex items-center gap-2">
-					<UserButton size="icon" />
+					{isAuthenticated ? (
+						<UserButton session={initialSession} />
+					) : (
+						<Button
+							render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
+							size="sm"
+						>
+							Prisijungti
+						</Button>
+					)}
 				</div>
 			</div>
 		</header>
