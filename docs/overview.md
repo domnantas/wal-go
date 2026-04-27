@@ -41,3 +41,4 @@ Three fixed teams per season: **yellow**, **green**, **red**. Team assignment is
 - [map.md](map.md) — WAL grid geometry, MapLibre rendering
 - [qso-logging.md](qso-logging.md) — ADIF import, QSO processing, log CRUD
 - [scoring.md](scoring.md) — territory control rules, leaderboard
+- [design.md](design.md) — color token roles and accessibility guidance

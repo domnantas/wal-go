@@ -74,7 +74,7 @@ const MOCK_QSOS: Qso[] = [
 		date: "2026-04-11",
 		time: "09:48",
 		band: "20m",
-		mode: "FT8",
+		mode: "DIGI",
 		square: "C03",
 	},
 	{
@@ -205,16 +205,16 @@ const QSO_COLUMNS: ColumnDef<Qso>[] = [
 		accessorKey: "band",
 		header: "Diapazonas",
 		cell: ({ getValue }) => (
-			<span className="inline-flex items-center rounded-full bg-olive/10 px-2.5 py-0.5 font-medium text-olive text-xs">
+			<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-foreground text-xs">
 				{getValue<string>()}
 			</span>
 		),
 	},
 	{
 		accessorKey: "mode",
-		header: "Modas",
+		header: "Moduliacija",
 		cell: ({ getValue }) => (
-			<span className="inline-flex items-center rounded-full bg-rust/10 px-2.5 py-0.5 font-medium text-rust text-xs">
+			<span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
 				{getValue<string>()}
 			</span>
 		),

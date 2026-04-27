@@ -24,9 +24,9 @@ const TEAM_PILL_CLASSES: Record<Team, string> = {
 };
 
 const TEAM_AVATAR_CLASSES: Record<Team, string> = {
-	yellow: "bg-golden text-bark",
-	green: "bg-olive text-cream",
-	red: "bg-rust text-cream",
+	yellow: "bg-golden text-golden-foreground",
+	green: "bg-olive text-olive-foreground",
+	red: "bg-rust text-rust-foreground",
 };
 
 interface UserButtonProps {
