@@ -3,6 +3,12 @@ import { useEffect, useRef } from "react";
 import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useQuery } from "@tanstack/react-query";
+import {
+	differenceInSeconds,
+	format,
+	formatDistanceToNowStrict,
+} from "date-fns";
+import { lt } from "date-fns/locale";
 import type { StyleSpecification } from "maplibre-gl";
 import { useTheme } from "tanstack-theme-kit";
 import darkStyle from "@/assets/liberty-dark-style.json";
@@ -102,12 +108,20 @@ function SeasonProgressBox() {
 	}
 
 	const now = new Date();
-	const totalMs = season.endsAt.getTime() - season.startsAt.getTime();
-	const elapsedMs = now.getTime() - season.startsAt.getTime();
-	const pct = Math.min(100, Math.max(0, (elapsedMs / totalMs) * 100));
-	const daysLeft = Math.round((totalMs - elapsedMs) / 86_400_000);
+	const totalLengthSeconds = differenceInSeconds(
+		season.endsAt,
+		season.startsAt
+	);
+	const elapsedSeconds = differenceInSeconds(now, season.startsAt);
+	const percentageTimeLeft = Math.min(
+		100,
+		Math.max(0, (elapsedSeconds / totalLengthSeconds) * 100)
+	);
 
-	const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+	console.log(season.endsAt);
+	const timeLeft = formatDistanceToNowStrict(season.endsAt, {
+		locale: lt,
+	});
 
 	return (
 		<div className="border-border border-b px-5 py-4.5">
@@ -118,17 +132,18 @@ function SeasonProgressBox() {
 				{season.name}
 			</p>
 			<p className="mb-3 text-[11px] text-muted-foreground/70">
-				{formatDate(season.startsAt)} → {formatDate(season.endsAt)}
+				{format(season.startsAt, "yyyy-MM-dd")} →{" "}
+				{format(season.endsAt, "yyyy-MM-dd")}
 			</p>
 			<div className="mb-1.5 h-1.75 overflow-hidden rounded-lg bg-muted">
 				<div
 					className="h-full rounded-lg bg-accent transition-[width] duration-500"
-					style={{ width: `${pct}%` }}
+					style={{ width: `${percentageTimeLeft}%` }}
 				/>
 			</div>
 			<div className="flex justify-between text-[11px] text-muted-foreground/70">
-				<span>{Math.round(pct)}% baigta</span>
-				<span>{daysLeft} dienų liko</span>
+				<span>{Math.round(percentageTimeLeft)}% baigta</span>
+				<span>Liko {timeLeft}</span>
 			</div>
 		</div>
 	);
