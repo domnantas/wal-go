@@ -20,6 +20,8 @@
     "@orpc/server": "catalog:",
     "@orpc/zod": "catalog:",
     "@types/pg": "catalog:",
+    "@date-fns/tz": "^1.4.1",
+    "date-fns": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"

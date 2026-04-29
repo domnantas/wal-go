@@ -1,0 +1,2 @@
+- [] Join season CTA
+- [] Spotting/self-spotting feature

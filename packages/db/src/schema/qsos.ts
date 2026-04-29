@@ -6,10 +6,11 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	unique,
 	varchar,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
-import { season } from "./seasons";
+import { season, teamColor } from "./seasons";
 
 export const QSO_MODES = ["CW", "SSB", "FM", "DIGI"] as const;
 export const QSO_BANDS = [
@@ -60,6 +61,7 @@ export const qso = pgTable(
 			precision: 6,
 			withTimezone: true,
 		}).notNull(),
+		team: teamColor("team").notNull(),
 		operatorSquare: varchar("operator_square", { length: 3 }).notNull(),
 		contactSquare: varchar("contact_square", { length: 3 }),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -69,6 +71,18 @@ export const qso = pgTable(
 			.notNull(),
 	},
 	(table) => [
+		unique("qso_exact_duplicate_uq")
+			.on(
+				table.userId,
+				table.seasonId,
+				table.contactCallsign,
+				table.band,
+				table.mode,
+				table.qsoAt,
+				table.operatorSquare,
+				table.contactSquare
+			)
+			.nullsNotDistinct(),
 		index("qso_user_season_qso_at_idx").on(
 			table.userId,
 			table.seasonId,

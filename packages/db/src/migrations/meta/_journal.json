@@ -43,6 +43,13 @@
       "when": 1777317946433,
       "tag": "0005_nappy_blacklash",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777409500456,
+      "tag": "0006_icy_banshee",
+      "breakpoints": true
     }
   ]
 }

@@ -18,7 +18,7 @@ Manual entry captures:
 | Operator WAL square | Yes | Explicit WAL code, e.g. `A05`. |
 | Contact WAL square | No | Explicit WAL code when known. |
 
-The backend validates that WAL square codes are valid Lithuanian WAL cells. Duplicate detection, scoring updates, QSO deletion, and ADIF import are not part of the first slice.
+The backend validates that WAL square codes are valid Lithuanian WAL cells. Duplicate detection, scoring updates, and QSO deletion are implemented for manual entry. ADIF import is planned but not implemented yet.
 
 ## ADIF Import
 
@@ -28,7 +28,7 @@ Users upload an `.adif` file. The server parses every QSO record and awards poin
 
 ### Square Assignment per QSO
 
-Each QSO can generate points for up to two squares: the operator's square (always, when known) and the contact's square (when known).
+For the alpha season, each accepted QSO scores only the operator's square. The contact's square may still be stored when known, but it does not generate points.
 
 #### Open decision: locator vs SIG_INFO
 
@@ -64,15 +64,16 @@ Two ADIF approaches are on the table; final choice is TBD during implementation.
 ### Validation
 
 - Operator's WAL square must resolve to a valid Lithuanian cell; QSOs outside Lithuania are silently skipped.
-- Contact's square is optional; missing or invalid values are ignored — the operator square still scores.
-- Duplicate detection: only one QSO with the same `CALL` and `BAND` is valid per calendar day. The day boundary is midnight Lithuanian time (Europe/Vilnius, UTC+2/UTC+3). A second QSO with the same call and band on the same Lithuanian calendar day is rejected regardless of mode or time.
+- Contact's square is optional; missing values are accepted. In the alpha season, a provided contact square is stored for reference but does not score.
+- Exact duplicate detection rejects accidental double submission of the same stored QSO by the same user in the same season.
+- Game duplicate detection is scoring-rule controlled. In the alpha season, only one QSO with the same `CALL`, `BAND`, `MODE`, operator square, and contact square is valid per Lithuanian calendar day. The day boundary is midnight Lithuanian time (Europe/Vilnius, UTC+2/UTC+3). If either station changes square, another QSO with the same call, band, and mode is valid that day.
 
 ### Processing Pipeline
 
 ADIF files can contain tens of thousands of QSOs. Upload is processed asynchronously:
 
 1. Client posts file to upload endpoint → server stores raw file + creates `adif_import` job row → returns `jobId`.
-2. Background worker picks up the job, parses ADIF in chunks, inserts accepted QSOs and updates `square_score` / `user_season_score` in transactions per chunk.
+2. Background worker picks up the job, parses ADIF in chunks, inserts accepted QSOs and updates `square_score` / `user_season_score` for operator squares in transactions per chunk.
 3. Client polls `imports/:jobId` for progress (`pending` → `processing(N/M)` → `done` / `failed`) and a final summary (accepted, skipped, reasons).
 
 Worker runs in the same process initially (DB-backed job queue), can be split into a separate process later if needed.
@@ -86,11 +87,14 @@ When the job completes, the user sees a summary: how many QSOs were accepted, ho
 Each accepted QSO is stored in the database linked to:
 - The submitting user
 - The active season at time of submission
-- The derived WAL square(s) that received points
+- The operator WAL square that received points
+- The optional contact WAL square, when provided
 
 ## Log View
 
-The `/log` page lists all QSOs the user has submitted in the current season, paginated. Columns include callsign, band, mode, date/time, and the WAL square(s) credited.
+The `/log` page lists all QSOs the user has submitted in the current season, paginated. Columns include callsign, band, mode, date/time, the credited operator WAL square, and the optional contact WAL square.
+
+The summary cards on `/log` are backed by server-side aggregates, not calculations over the currently loaded table rows. They show total QSOs, unique credited operator WAL squares, points from `user_season_score`, and unique contact callsigns for the active season.
 
 ### CRUD
 
@@ -101,7 +105,7 @@ The `/log` page lists all QSOs the user has submitted in the current season, pag
 | Update    | No        | Delete and resubmit to correct a record            |
 | Delete    | Yes       | Removes the user's QSO from the active season      |
 
-When score materialization is implemented, deleting a QSO that was the sole point giving a team control of a square will immediately release that square to the next-highest team (or to neutral if tied/empty).
+Deleting a QSO that was the sole point giving a team control of its operator square immediately releases that square to the next-highest team (or to neutral if tied/empty).
 
 ## User Callsign Requirement
 

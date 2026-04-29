@@ -12,7 +12,7 @@ Document project features in the `docs/` directory to keep a reference for futur
 
 ## Development
 
-Do not run the dev server to check if changes are valid.
+Do not run the dev server to check if changes are valid. Avoid `let`, prefer immutable/functional approach. Use `date-fns` for dates and time.
 
 # Ultracite Code Standards
 

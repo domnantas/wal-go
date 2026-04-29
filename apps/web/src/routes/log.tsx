@@ -21,7 +21,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { MapPinned, Radio, Star, Trash2, Upload, Waves } from "lucide-react";
+import { MapPinned, Radio, Star, Trash2, Upload, Users } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -57,11 +57,14 @@ const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
 
 function RouteComponent() {
 	const qsos = useQuery(orpc.qsos.list.queryOptions());
+	const stats = useQuery(orpc.qsos.stats.queryOptions());
 	const data = qsos.data ?? [];
-	const totalQsos = data.length;
-	const uniqueSquares = countUniqueSquares(data);
-	const uniqueBands = new Set(data.map((q) => q.band)).size;
-	const points = countCreditedSquares(data);
+	const statValues = stats.data ?? {
+		totalQsos: 0,
+		uniqueSquares: 0,
+		points: 0,
+		uniqueContactCallsigns: 0,
+	};
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
@@ -71,22 +74,22 @@ function RouteComponent() {
 				<StatCard
 					icon={<Radio className="size-5" />}
 					label="Iš viso QSO"
-					value={totalQsos}
+					value={statValues.totalQsos}
 				/>
 				<StatCard
 					icon={<MapPinned className="size-5" />}
 					label="Unikalūs kvadratai"
-					value={uniqueSquares}
+					value={statValues.uniqueSquares}
 				/>
 				<StatCard
 					icon={<Star className="size-5" />}
 					label="Surinkti taškai"
-					value={points}
+					value={statValues.points}
 				/>
 				<StatCard
-					icon={<Waves className="size-5" />}
-					label="Naudoti diapazonai"
-					value={uniqueBands}
+					icon={<Users className="size-5" />}
+					label="Unikalūs korespondentai"
+					value={statValues.uniqueContactCallsigns}
 				/>
 			</div>
 
@@ -99,24 +102,6 @@ function RouteComponent() {
 			)}
 		</main>
 	);
-}
-
-function countCreditedSquares(qsos: Qso[]) {
-	return qsos.reduce(
-		(total, qso) => total + 1 + (qso.contactSquare ? 1 : 0),
-		0
-	);
-}
-
-function countUniqueSquares(qsos: Qso[]) {
-	const squares = new Set<string>();
-	for (const qso of qsos) {
-		squares.add(qso.operatorSquare);
-		if (qso.contactSquare) {
-			squares.add(qso.contactSquare);
-		}
-	}
-	return squares.size;
 }
 
 function toDisplayDate(value: Date | string) {
@@ -275,6 +260,9 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 			onSuccess: () => {
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.list.queryOptions().queryKey,
+				});
+				queryClient.invalidateQueries({
+					queryKey: orpc.qsos.stats.queryOptions().queryKey,
 				});
 				toast.success("QSO ištrintas");
 			},

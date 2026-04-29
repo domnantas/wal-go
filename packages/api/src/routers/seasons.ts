@@ -44,6 +44,7 @@ const current = publicProcedure.handler(async ({ context }) => {
 		return null;
 	}
 	return {
+		id: row.id,
 		name: row.name,
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,
@@ -57,6 +58,7 @@ const list = publicProcedure.handler(async ({ context }) => {
 		.orderBy(desc(season.startsAt));
 	const now = new Date();
 	return rows.map((row) => ({
+		id: row.id,
 		name: row.name,
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,

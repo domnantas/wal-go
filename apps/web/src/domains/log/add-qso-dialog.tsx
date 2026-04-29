@@ -173,6 +173,9 @@ export function AddQsoDialog() {
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.list.queryOptions().queryKey,
 				});
+				queryClient.invalidateQueries({
+					queryKey: orpc.qsos.stats.queryOptions().queryKey,
+				});
 				setFormError(null);
 				form.reset();
 				setOpen(false);

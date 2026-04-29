@@ -2,12 +2,19 @@
 
 ## Points
 
-Each accepted QSO awards points to the submitting user's team on one or two WAL squares:
+For the alpha season, each accepted QSO awards one point to the submitting user's team on the operator's WAL square:
 
 - **Operator's square** (`MY_GRIDSQUARE`) — always awarded.
-- **Contact's square** (`GRIDSQUARE`) — awarded only when the contact's grid locator is present and maps to a valid WAL square.
+- **Contact's square** (`GRIDSQUARE`) — stored when provided, but does not affect scoring in the alpha season.
 
 Points are per-season. A user who deletes a QSO loses those points immediately.
+
+## Duplicate Rules
+
+Duplicate handling has two layers:
+
+- **Exact QSO duplicates** prevent accidental double submission. A QSO is considered exact duplicate when the same user already has the same season, callsign, band, mode, timestamp, operator square, and contact square.
+- **Game duplicates** are season scoring rules. In the alpha season, only one QSO with the same callsign, band, mode, operator square, and contact square can score per Lithuanian calendar day (`Europe/Vilnius`). If either operator changes square or the contact's square changes, another QSO with the same callsign, band, and mode can score that day.
 
 ## Square Control
 
@@ -37,6 +44,8 @@ The leaderboard is scoped to the active season and shows two standings:
 ### Team standings
 
 Teams ranked by number of WAL squares currently controlled (descending). Ties in square count are broken by total team points.
+
+The map sidebar also shows current controlled-square stats under the season progress box. Sidebar stats keep a fixed visual order — yellow, green, red — and render each team's controlled-square count as a progress bar.
 
 ### Individual standings
 
@@ -76,8 +85,8 @@ The client polls this endpoint at a fixed interval (e.g., 30s) while the map is 
 
 Deleting a QSO decrements points symmetrically. The transaction:
 
-1. Find affected squares from the QSO record.
-2. Decrement `square_score.points` for the user's team on each square.
+1. Find the operator square from the QSO record.
+2. Decrement `square_score.points` for the user's team on that square.
 3. Decrement `user_season_score.points` for the user.
 
 The UI map next polls and reflects the change.
