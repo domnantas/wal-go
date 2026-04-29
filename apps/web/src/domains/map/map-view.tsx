@@ -3,8 +3,8 @@ import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { StyleSpecification } from "maplibre-gl";
 import { useTheme } from "tanstack-theme-kit";
-import darkStyle from "@/assets/liberty-dark-style.json";
-import lightStyle from "@/assets/liberty-style.json";
+import darkStyle from "@/assets/walgo-dark-style.json";
+import lightStyle from "@/assets/walgo-style.json";
 
 const LITHUANIA_CENTER: [number, number] = [23.88, 55.17];
 const WAL_GRID_SOURCE_ID = "wal-grid";

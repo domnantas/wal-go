@@ -12,12 +12,14 @@ https://tiles.openfreemap.org/styles/fiord
 
 The route imports MapLibre CSS and initializes the map on the client in a React effect. This keeps browser-only MapLibre APIs out of server rendering.
 
-## Local OSM Liberty styles
+## Local map styles
 
-The web app keeps local OpenFreeMap-compatible OSM Liberty style JSON files in `apps/web/src/assets/`:
+The web app keeps local OpenFreeMap-compatible style JSON files in `apps/web/src/assets/`:
 
-- `liberty-style.json` is the light base style.
-- `liberty-dark-style.json` is the WAL GO dark variant using the app palette: dark background, olive primary land details, rust and golden road accents, bark earth tones, and cream labels.
+- `walgo-style.json` is the light style.
+- `walgo-dark-style.json` is the dark variant.
+
+They are inspired by the Liberty OSM style. Both are using the app palette: dark background, olive primary land details, rust and golden road accents, bark earth tones, and cream labels
 
 ## WAL grid
 

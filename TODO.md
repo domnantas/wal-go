@@ -1,2 +1,5 @@
 - [] Join season CTA
+- [] User button gets colored before join season wheel stops spinning
 - [] Spotting/self-spotting feature
+- [] Chat?
+- [] Feature voting
