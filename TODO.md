@@ -1,4 +1,5 @@
 - [-] Color squares according to the leading team
+- [] Countdown until next season UI
 - [] Join season CTA
 - [] User button gets colored before join season wheel stops spinning
 - [] Spotting/self-spotting feature
