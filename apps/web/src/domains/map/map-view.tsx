@@ -12,8 +12,14 @@ const LITHUANIA_CENTER: [number, number] = [23.88, 55.17];
 const WAL_GRID_SOURCE_ID = "wal-grid";
 const WAL_GRID_FILL_LAYER_ID = "wal-grid-fill";
 const WAL_GRID_LINE_LAYER_ID = "wal-grid-lines";
+const WAL_GRID_SELECTED_LINE_LAYER_ID = "wal-grid-selected-line";
 const WAL_GRID_LABEL_LAYER_ID = "wal-grid-labels";
 const WAL_GRID_GEOJSON = createWalGridFeatureCollection();
+const CLICKABLE_WAL_GRID_LAYER_IDS = [
+	WAL_GRID_FILL_LAYER_ID,
+	WAL_GRID_LINE_LAYER_ID,
+	WAL_GRID_LABEL_LAYER_ID,
+] as const;
 
 type Team = "yellow" | "green" | "red";
 
@@ -26,6 +32,7 @@ interface WalGridTheme {
 	labelColor: string;
 	labelHaloColor: string;
 	lineColor: string;
+	selectedLineColor: string;
 	teamFillColors: Record<Team, string>;
 }
 
@@ -38,6 +45,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		labelColor: "rgb(237 231 221)",
 		labelHaloColor: "rgb(36 23 15)",
 		lineColor: "rgb(237 231 221)",
+		selectedLineColor: "rgb(255 255 255)",
 		teamFillColors: {
 			yellow: "rgb(224, 188, 72)",
 			green: "rgb(106, 165, 82)",
@@ -48,6 +56,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		labelColor: "rgb(119 72 38)",
 		labelHaloColor: "rgb(247 245 240)",
 		lineColor: "rgb(119 72 38)",
+		selectedLineColor: "rgb(36 23 15)",
 		teamFillColors: {
 			yellow: "rgb(224, 175, 59)",
 			green: "rgb(44, 88, 46)",
@@ -103,9 +112,36 @@ function updateSourceWithTeamData(
 	);
 }
 
-export function MapView() {
+function updateSelectedSquareFilter(
+	map: import("maplibre-gl").Map,
+	selectedSquareCode: string | null
+) {
+	if (!map.getLayer(WAL_GRID_SELECTED_LINE_LAYER_ID)) {
+		return;
+	}
+
+	map.setFilter(
+		WAL_GRID_SELECTED_LINE_LAYER_ID,
+		selectedSquareCode ? ["==", ["get", "wal"], selectedSquareCode] : false
+	);
+}
+
+function getClickableWalGridLayerIds(map: import("maplibre-gl").Map) {
+	return CLICKABLE_WAL_GRID_LAYER_IDS.filter((layerId) =>
+		map.getLayer(layerId)
+	);
+}
+
+interface MapViewProps {
+	onSquareSelect(selectedSquareCode: string | null): void;
+	selectedSquareCode: string | null;
+}
+
+export function MapView({ onSquareSelect, selectedSquareCode }: MapViewProps) {
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<import("maplibre-gl").Map | null>(null);
+	const onSquareSelectRef = useRef(onSquareSelect);
+	const selectedSquareCodeRef = useRef(selectedSquareCode);
 	const { theme, systemTheme } = useTheme();
 
 	const { data: squaresData } = useQuery(
@@ -116,6 +152,14 @@ export function MapView() {
 	useEffect(() => {
 		squaresDataRef.current = squaresData;
 	}, [squaresData]);
+
+	useEffect(() => {
+		onSquareSelectRef.current = onSquareSelect;
+	}, [onSquareSelect]);
+
+	useEffect(() => {
+		selectedSquareCodeRef.current = selectedSquareCode;
+	}, [selectedSquareCode]);
 
 	const effectiveTheme = theme === "system" ? systemTheme : theme;
 	const isDark = effectiveTheme === "dark";
@@ -130,6 +174,7 @@ export function MapView() {
 
 		const handleStyleLoad = () => {
 			addWalGridLayers(map, walGridTheme);
+			updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
 			const data = squaresDataRef.current;
 			if (data) {
 				updateSourceWithTeamData(map, data);
@@ -151,6 +196,14 @@ export function MapView() {
 		}
 		updateSourceWithTeamData(map, squaresData);
 	}, [squaresData]);
+
+	useEffect(() => {
+		const map = mapRef.current;
+		if (!map) {
+			return;
+		}
+		updateSelectedSquareFilter(map, selectedSquareCode);
+	}, [selectedSquareCode]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: initial style captured at mount only
 	useEffect(() => {
@@ -187,10 +240,50 @@ export function MapView() {
 
 			map.on("style.load", () => {
 				addWalGridLayers(map, walGridTheme);
+				updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
 				const data = squaresDataRef.current;
 				if (data) {
 					updateSourceWithTeamData(map, data);
 				}
+			});
+
+			map.on("click", (event) => {
+				const layers = getClickableWalGridLayerIds(map);
+				if (layers.length === 0) {
+					onSquareSelectRef.current(null);
+					return;
+				}
+
+				const features = map.queryRenderedFeatures(event.point, {
+					layers,
+				});
+				const squareCode = features.find(
+					(feature) => typeof feature.properties?.wal === "string"
+				)?.properties?.wal;
+
+				if (typeof squareCode === "string") {
+					onSquareSelectRef.current(squareCode);
+					return;
+				}
+
+				onSquareSelectRef.current(null);
+			});
+
+			map.on("mousemove", (event) => {
+				const layers = getClickableWalGridLayerIds(map);
+				if (layers.length === 0) {
+					map.getCanvas().style.cursor = "";
+					return;
+				}
+
+				const features = map.queryRenderedFeatures(event.point, {
+					layers,
+				});
+				map.getCanvas().style.cursor = features.length > 0 ? "pointer" : "";
+			});
+
+			map.on("mouseleave", () => {
+				map.getCanvas().style.cursor = "";
 			});
 		}
 
@@ -256,6 +349,26 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 				"line-color": theme.lineColor,
 				"line-opacity": 0.85,
 				"line-width": 1,
+			},
+		});
+	}
+
+	if (map.getLayer(WAL_GRID_SELECTED_LINE_LAYER_ID)) {
+		map.setPaintProperty(
+			WAL_GRID_SELECTED_LINE_LAYER_ID,
+			"line-color",
+			theme.selectedLineColor
+		);
+	} else {
+		map.addLayer({
+			id: WAL_GRID_SELECTED_LINE_LAYER_ID,
+			type: "line",
+			source: WAL_GRID_SOURCE_ID,
+			filter: false,
+			paint: {
+				"line-color": theme.selectedLineColor,
+				"line-opacity": 1,
+				"line-width": 2,
 			},
 		});
 	}

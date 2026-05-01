@@ -28,6 +28,12 @@ The route overlays valid WAL squares as a generated GeoJSON source. The valid sq
 - A line layer for square boundaries, colored from the active app theme's primary token.
 - A symbol layer for WAL labels, using theme foreground and halo colors.
 
+## Square selection
+
+WAL squares are clickable on the map. Clicking a square stores the selected WAL code in the `/map` route state, outlines the selected square, and shows a square statistics panel in the right sidebar under the team-controlled squares panel.
+
+The selected-square panel uses the same `scoring.squares` query as the map overlay. If a square has no score rows yet, each team is shown with zero points. Progress bars are normalized against the highest team score in the selected square, so the local team balance is visible even when totals are small.
+
 ## Authorization
 
 The route is protected with TanStack Router `beforeLoad` using `context.session?.user`. This is a navigation guard only; any future map data APIs must still use server-side authorization through ORPC `protectedProcedure`.
