@@ -22,6 +22,7 @@ const CLICKABLE_WAL_GRID_LAYER_IDS = [
 ] as const;
 
 type Team = "yellow" | "green" | "red";
+type SquareControl = Team | "tie" | null;
 
 type SquaresData = Array<{
 	code: string;
@@ -34,6 +35,7 @@ interface WalGridTheme {
 	lineColor: string;
 	selectedLineColor: string;
 	teamFillColors: Record<Team, string>;
+	tieFillColor: string;
 }
 
 // Precomputed RGB equivalents of design system oklch tokens:
@@ -46,6 +48,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		labelHaloColor: "rgb(36 23 15)",
 		lineColor: "rgb(237 231 221)",
 		selectedLineColor: "rgb(255 255 255)",
+		tieFillColor: "rgb(121 121 121)",
 		teamFillColors: {
 			yellow: "rgb(224, 188, 72)",
 			green: "rgb(106, 165, 82)",
@@ -57,6 +60,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		labelHaloColor: "rgb(247 245 240)",
 		lineColor: "rgb(119 72 38)",
 		selectedLineColor: "rgb(36 23 15)",
+		tieFillColor: "rgb(148 148 148)",
 		teamFillColors: {
 			yellow: "rgb(224, 175, 59)",
 			green: "rgb(44, 88, 46)",
@@ -69,18 +73,18 @@ function computeControllingTeam(scores: {
 	yellow: number;
 	green: number;
 	red: number;
-}): Team | null {
+}): SquareControl {
 	const teams: Team[] = ["yellow", "green", "red"];
 	const max = Math.max(...teams.map((t) => scores[t]));
 	if (max === 0) {
 		return null;
 	}
 	const leaders = teams.filter((t) => scores[t] === max);
-	return leaders.length === 1 ? leaders[0] : null;
+	return leaders.length === 1 ? leaders[0] : "tie";
 }
 
 function createEnrichedGeoJSON(squaresData: SquaresData) {
-	const controlMap = new Map<string, Team | null>();
+	const controlMap = new Map<string, SquareControl>();
 	for (const sq of squaresData) {
 		controlMap.set(sq.code, computeControllingTeam(sq.scores));
 	}
@@ -316,6 +320,8 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 		theme.teamFillColors.green,
 		"red",
 		theme.teamFillColors.red,
+		"tie",
+		theme.tieFillColor,
 		"transparent",
 	] as unknown as import("maplibre-gl").ExpressionSpecification;
 
@@ -392,7 +398,7 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 			layout: {
 				"text-allow-overlap": true,
 				"text-field": ["get", "wal"],
-				"text-size": ["interpolate", ["linear"], ["zoom"], 7, 14, 10, 30],
+				"text-size": ["interpolate", ["linear"], ["zoom"], 7, 12, 10, 30],
 			},
 			paint: {
 				"text-color": theme.labelColor,

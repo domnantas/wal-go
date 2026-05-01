@@ -27,6 +27,7 @@ The route overlays valid WAL squares as a generated GeoJSON source. The valid sq
 
 - A line layer for square boundaries, colored from the active app theme's primary token.
 - A symbol layer for WAL labels, using theme foreground and halo colors.
+- A fill layer for square control, using team colors for clear leaders and gray for tied squares.
 
 ## Square selection
 
