@@ -21,6 +21,7 @@ import {
 } from "@WAL-GO/ui/components/input-group";
 import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
+import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useAuth, useResetPassword } from "@better-auth-ui/react";
 import { useForm } from "@tanstack/react-form";
@@ -159,7 +160,9 @@ export function ResetPassword({ className }: ResetPasswordProps) {
 												id="password"
 												name="password"
 												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
+												onChange={(e) =>
+													handleFieldChange(field, e.target.value)
+												}
 												placeholder={localization.auth.newPasswordPlaceholder}
 												type={isPasswordVisible ? "text" : "password"}
 												value={field.state.value}
@@ -213,7 +216,9 @@ export function ResetPassword({ className }: ResetPasswordProps) {
 													id="confirmPassword"
 													name="confirmPassword"
 													onBlur={field.handleBlur}
-													onChange={(e) => field.handleChange(e.target.value)}
+													onChange={(e) =>
+														handleFieldChange(field, e.target.value)
+													}
 													placeholder={
 														localization.auth.confirmPasswordPlaceholder
 													}

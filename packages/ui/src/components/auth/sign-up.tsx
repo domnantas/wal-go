@@ -21,6 +21,7 @@ import {
 } from "@WAL-GO/ui/components/input-group";
 import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
+import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import {
 	useAuth,
@@ -236,7 +237,10 @@ export function SignUp({
 													name="name"
 													onBlur={field.handleBlur}
 													onChange={(e) =>
-														field.handleChange(e.target.value.toUpperCase())
+														handleFieldChange(
+															field,
+															e.target.value.toUpperCase()
+														)
 													}
 													placeholder={localization.auth.namePlaceholder}
 													type="text"
@@ -278,7 +282,9 @@ export function SignUp({
 													id="email"
 													name="email"
 													onBlur={field.handleBlur}
-													onChange={(e) => field.handleChange(e.target.value)}
+													onChange={(e) =>
+														handleFieldChange(field, e.target.value)
+													}
 													placeholder={localization.auth.emailPlaceholder}
 													type="text"
 													value={field.state.value}
@@ -313,7 +319,9 @@ export function SignUp({
 														id="password"
 														name="password"
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(e) =>
+															handleFieldChange(field, e.target.value)
+														}
 														placeholder={localization.auth.passwordPlaceholder}
 														type={isPasswordVisible ? "text" : "password"}
 														value={field.state.value}
@@ -368,7 +376,7 @@ export function SignUp({
 															name="confirmPassword"
 															onBlur={field.handleBlur}
 															onChange={(e) =>
-																field.handleChange(e.target.value)
+																handleFieldChange(field, e.target.value)
 															}
 															placeholder={
 																localization.auth.confirmPasswordPlaceholder

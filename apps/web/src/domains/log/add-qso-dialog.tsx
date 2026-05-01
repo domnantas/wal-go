@@ -33,6 +33,7 @@ import {
 	SelectValue,
 } from "@WAL-GO/ui/components/select";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
+import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -261,9 +262,13 @@ export function AddQsoDialog() {
 											id="contactCallsign"
 											name="contactCallsign"
 											onBlur={field.handleBlur}
-											onChange={(event) =>
-												field.handleChange(event.target.value.toUpperCase())
-											}
+											onChange={(event) => {
+												setFormError(null);
+												handleFieldChange(
+													field,
+													event.target.value.toUpperCase()
+												);
+											}}
 											value={field.state.value}
 										/>
 										{isInvalid && (
@@ -318,7 +323,9 @@ export function AddQsoDialog() {
 															if (!date) {
 																return;
 															}
-															field.handleChange(
+															setFormError(null);
+															handleFieldChange(
+																field,
 																toDateTimeValue(date, timeValue)
 															);
 														}}
@@ -331,11 +338,13 @@ export function AddQsoDialog() {
 												disabled={createQso.isPending}
 												name="qsoAtTime"
 												onBlur={field.handleBlur}
-												onChange={(event) =>
-													field.handleChange(
+												onChange={(event) => {
+													setFormError(null);
+													handleFieldChange(
+														field,
 														withTimePart(field.state.value, event.target.value)
-													)
-												}
+													);
+												}}
 												type="time"
 												value={timeValue}
 											/>
@@ -360,9 +369,10 @@ export function AddQsoDialog() {
 												field.handleBlur();
 											}
 										}}
-										onValueChange={(value) =>
-											field.handleChange(value as QsoFormState["band"])
-										}
+										onValueChange={(value) => {
+											setFormError(null);
+											handleFieldChange(field, value as QsoFormState["band"]);
+										}}
 										value={field.state.value}
 									>
 										<SelectTrigger className="w-full">
@@ -394,9 +404,10 @@ export function AddQsoDialog() {
 												field.handleBlur();
 											}
 										}}
-										onValueChange={(value) =>
-											field.handleChange(value as QsoFormState["mode"])
-										}
+										onValueChange={(value) => {
+											setFormError(null);
+											handleFieldChange(field, value as QsoFormState["mode"]);
+										}}
 										value={field.state.value}
 									>
 										<SelectTrigger className="w-full">
@@ -435,9 +446,13 @@ export function AddQsoDialog() {
 											maxLength={3}
 											name="operatorSquare"
 											onBlur={field.handleBlur}
-											onChange={(event) =>
-												field.handleChange(event.target.value.toUpperCase())
-											}
+											onChange={(event) => {
+												setFormError(null);
+												handleFieldChange(
+													field,
+													event.target.value.toUpperCase()
+												);
+											}}
 											placeholder="A05"
 											value={field.state.value}
 										/>
@@ -471,9 +486,13 @@ export function AddQsoDialog() {
 											maxLength={3}
 											name="contactSquare"
 											onBlur={field.handleBlur}
-											onChange={(event) =>
-												field.handleChange(event.target.value.toUpperCase())
-											}
+											onChange={(event) => {
+												setFormError(null);
+												handleFieldChange(
+													field,
+													event.target.value.toUpperCase()
+												);
+											}}
 											placeholder="B12"
 											value={field.state.value}
 										/>

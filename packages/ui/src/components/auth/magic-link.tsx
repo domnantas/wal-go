@@ -15,6 +15,7 @@ import {
 import { Input } from "@WAL-GO/ui/components/input";
 import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
+import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useAuth, useSignInMagicLink } from "@better-auth-ui/react";
 import { useForm } from "@tanstack/react-form";
@@ -127,7 +128,9 @@ export function MagicLink({
 												id="email"
 												name="email"
 												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
+												onChange={(e) =>
+													handleFieldChange(field, e.target.value)
+												}
 												placeholder={localization.auth.emailPlaceholder}
 												type="text"
 												value={field.state.value}

@@ -1,7 +1,7 @@
 - [x] Color squares according to the leading team
 - [] Countdown until next season UI
 - [] Join season CTA
-- [] Sign in/up password validation does not clear after entering valid password
+- [x] Sign in/up password validation does not clear after entering valid password
 - [] User button gets colored before join season wheel stops spinning
 - [] Spotting/self-spotting feature
 - [] Chat?
