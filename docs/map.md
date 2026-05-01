@@ -25,8 +25,8 @@ They are inspired by the Liberty OSM style. Both are using the app palette: dark
 
 The route overlays valid WAL squares as a generated GeoJSON source. The valid square ranges are ported from `domnantas/ham.guide`'s `WAL.vue` component. Each square is a 10-minute latitude/longitude polygon with:
 
-- A line layer for square boundaries.
-- A symbol layer for WAL labels.
+- A line layer for square boundaries, colored from the active app theme's primary token.
+- A symbol layer for WAL labels, using theme foreground and halo colors.
 
 ## Authorization
 
