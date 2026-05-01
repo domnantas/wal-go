@@ -21,19 +21,43 @@ import {
 } from "@better-auth-ui/react";
 import { useDebouncer } from "@tanstack/react-pacer";
 import { Check, X } from "lucide-react";
-import { type SyntheticEvent, useEffect, useState } from "react";
+import {
+	type ReactNode,
+	type SyntheticEvent,
+	useEffect,
+	useState,
+} from "react";
 import { toast } from "sonner";
-import { ChangeAvatar } from "./change-avatar";
 
 export interface UserProfileProps {
 	className?: string;
 }
 
+interface UsernameAvailabilityIconParams {
+	hasError: boolean;
+	isAvailable: boolean;
+}
+
+function getUsernameAvailabilityIcon({
+	hasError,
+	isAvailable,
+}: UsernameAvailabilityIconParams): ReactNode {
+	if (isAvailable) {
+		return <Check className="text-foreground" />;
+	}
+
+	if (hasError) {
+		return <X className="text-destructive" />;
+	}
+
+	return <Spinner />;
+}
+
 /**
- * Render a profile card that lets the authenticated user view and update their display name, username, and avatar.
+ * Render a profile card that lets the authenticated user view and update their username.
  *
  * @param className - Optional additional CSS class names applied to the card container
- * @returns A JSX element containing the profile card with avatar upload and editable name/username fields
+ * @returns A JSX element containing the profile card with editable username fields
  */
 export function UserProfile({ className }: UserProfileProps) {
 	const { localization, username: usernameConfig } = useAuth();
@@ -101,6 +125,12 @@ export function UserProfile({ className }: UserProfileProps) {
 		usernameConfig?.isUsernameAvailable &&
 		username.trim() &&
 		username.trim() !== currentUsername;
+	const hasUsernameAvailabilityError =
+		!!usernameError || usernameData?.available === false;
+
+	if (!usernameConfig?.enabled) {
+		return null;
+	}
 
 	return (
 		<div>
@@ -111,62 +141,54 @@ export function UserProfile({ className }: UserProfileProps) {
 			<form onSubmit={handleSubmit}>
 				<Card className={cn(className)}>
 					<CardContent className="flex flex-col gap-6">
-						<ChangeAvatar />
+						<Field
+							data-invalid={
+								!!usernameError || (usernameData && !usernameData.available)
+							}
+						>
+							<Label htmlFor="username">{localization.auth.username}</Label>
 
-						{usernameConfig?.enabled && (
-							<Field
-								data-invalid={
-									!!usernameError || (usernameData && !usernameData.available)
-								}
-							>
-								<Label htmlFor="username">{localization.auth.username}</Label>
+							{session ? (
+								<InputGroup>
+									<InputGroupInput
+										aria-invalid={
+											!!usernameError ||
+											(usernameData && !usernameData.available)
+										}
+										autoComplete="username"
+										disabled={isPending}
+										id="username"
+										maxLength={usernameConfig.maxUsernameLength}
+										minLength={usernameConfig.minUsernameLength}
+										name="username"
+										onChange={(e) => handleUsernameChange(e.target.value)}
+										placeholder={localization.auth.usernamePlaceholder}
+										type="text"
+										value={username}
+									/>
 
-								{session ? (
-									<InputGroup>
-										<InputGroupInput
-											aria-invalid={
-												!!usernameError ||
-												(usernameData && !usernameData.available)
-											}
-											autoComplete="username"
-											disabled={isPending}
-											id="username"
-											maxLength={usernameConfig.maxUsernameLength}
-											minLength={usernameConfig.minUsernameLength}
-											name="username"
-											onChange={(e) => handleUsernameChange(e.target.value)}
-											placeholder={localization.auth.usernamePlaceholder}
-											type="text"
-											value={username}
-										/>
+									{showAvailabilityIndicator && (
+										<InputGroupAddon align="inline-end">
+											{getUsernameAvailabilityIcon({
+												hasError: hasUsernameAvailabilityError,
+												isAvailable: usernameData?.available === true,
+											})}
+										</InputGroupAddon>
+									)}
+								</InputGroup>
+							) : (
+								<Skeleton>
+									<Input className="invisible" />
+								</Skeleton>
+							)}
 
-										{showAvailabilityIndicator && (
-											<InputGroupAddon align="inline-end">
-												{usernameData?.available ? (
-													<Check className="text-foreground" />
-												) : usernameError ||
-													usernameData?.available === false ? (
-													<X className="text-destructive" />
-												) : (
-													<Spinner />
-												)}
-											</InputGroupAddon>
-										)}
-									</InputGroup>
-								) : (
-									<Skeleton>
-										<Input className="invisible" />
-									</Skeleton>
-								)}
-
-								<FieldError>
-									{usernameError?.error?.message ||
-										usernameError?.message ||
-										(usernameData?.available === false &&
-											localization.auth.usernameTaken)}
-								</FieldError>
-							</Field>
-						)}
+							<FieldError>
+								{usernameError?.error?.message ||
+									usernameError?.message ||
+									(usernameData?.available === false &&
+										localization.auth.usernameTaken)}
+							</FieldError>
+						</Field>
 					</CardContent>
 
 					<CardFooter>

@@ -72,10 +72,6 @@ export function Providers({ children }: { children: ReactNode }) {
 					activeSessions: "Aktyvios sesijos",
 					avatar: "Avataras",
 					currentSession: "Dabartinė sesija",
-					avatarChangedSuccess: "Avataras sėkmingai pakeistas",
-					avatarDeletedSuccess: "Avataras sėkmingai ištrintas",
-					changeAvatar: "Keisti avatarą",
-					deleteAvatar: "Ištrinti avatarą",
 					link: "Susieti",
 					linkedAccounts: "Susietos paskyros",
 					linkProvider: "Susieti jūsų {{provider}} paskyrą",
@@ -121,7 +117,6 @@ export function Providers({ children }: { children: ReactNode }) {
 					unlinkProvider: "Atsieti {{provider}}",
 					updateEmail: "Atnaujinti el. paštą",
 					updatePassword: "Atnaujinti slaptažodį",
-					uploadAvatar: "Įkelti avatarą",
 				},
 			}}
 			navigate={navigate}

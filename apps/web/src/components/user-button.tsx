@@ -23,12 +23,6 @@ const TEAM_PILL_CLASSES: Record<Team, string> = {
 	red: "border-rust",
 };
 
-const TEAM_AVATAR_CLASSES: Record<Team, string> = {
-	yellow: "bg-golden text-golden-foreground",
-	green: "bg-olive text-olive-foreground",
-	red: "bg-rust text-rust-foreground",
-};
-
 interface UserButtonProps {
 	session: SessionContext;
 }
@@ -47,30 +41,18 @@ export function UserButton({ session: initialSession }: UserButtonProps) {
 	}
 
 	const callsign = session.user.name;
-	const initials = callsign.slice(0, 2).toUpperCase();
 	const team = membership?.team as Team | undefined;
 
 	const pillBorder = team ? TEAM_PILL_CLASSES[team] : "border-border";
-	const avatarColors = team
-		? TEAM_AVATAR_CLASSES[team]
-		: "bg-muted text-muted-foreground";
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				className={cn(
-					"inline-flex items-center gap-2 rounded-full border-2 bg-card py-1 pr-3 pl-1 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
+					"inline-flex items-center rounded-full border-2 bg-card px-3 py-1 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
 					pillBorder
 				)}
 			>
-				<span
-					className={cn(
-						"flex size-7 items-center justify-center rounded-full font-bold text-xs",
-						avatarColors
-					)}
-				>
-					{initials}
-				</span>
 				<span className="font-semibold text-foreground text-sm">
 					{callsign}
 				</span>
