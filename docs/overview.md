@@ -14,7 +14,6 @@ Lithuania is divided into a grid of WAL squares (10′ × 10′ lat/lon cells). 
 4. **Spin the wheel** — server assigns player to yellow, green, or red team at random; assignment is permanent for that season
 5. **Log QSOs** — upload `.adif` files on the `/log` page; each valid QSO awards points to WAL squares (see [qso-logging.md](qso-logging.md))
 6. **Watch the map** — main screen at `/map` shows Lithuania with squares colored by controlling team (see [map.md](map.md))
-7. **Check leaderboard** — `/leaderboard` shows team square counts and individual operator rankings (see [scoring.md](scoring.md))
 
 ## Season Lifecycle
 

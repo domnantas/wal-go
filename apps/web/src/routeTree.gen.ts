@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LogRouteImport } from './routes/log'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as JoinSeasonRouteImport } from './routes/join-season'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsPathRouteImport } from './routes/settings/$path'
@@ -27,11 +26,6 @@ const MapRoute = MapRouteImport.update({
 const LogRoute = LogRouteImport.update({
   id: '/log',
   path: '/log',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinSeasonRoute = JoinSeasonRouteImport.update({
@@ -68,7 +62,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/join-season': typeof JoinSeasonRoute
-  '/leaderboard': typeof LeaderboardRoute
   '/log': typeof LogRoute
   '/map': typeof MapRoute
   '/auth/$path': typeof AuthPathRoute
@@ -79,7 +72,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/join-season': typeof JoinSeasonRoute
-  '/leaderboard': typeof LeaderboardRoute
   '/log': typeof LogRoute
   '/map': typeof MapRoute
   '/auth/$path': typeof AuthPathRoute
@@ -91,7 +83,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/join-season': typeof JoinSeasonRoute
-  '/leaderboard': typeof LeaderboardRoute
   '/log': typeof LogRoute
   '/map': typeof MapRoute
   '/auth/$path': typeof AuthPathRoute
@@ -104,7 +95,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/join-season'
-    | '/leaderboard'
     | '/log'
     | '/map'
     | '/auth/$path'
@@ -115,7 +105,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/join-season'
-    | '/leaderboard'
     | '/log'
     | '/map'
     | '/auth/$path'
@@ -126,7 +115,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/join-season'
-    | '/leaderboard'
     | '/log'
     | '/map'
     | '/auth/$path'
@@ -138,7 +126,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JoinSeasonRoute: typeof JoinSeasonRoute
-  LeaderboardRoute: typeof LeaderboardRoute
   LogRoute: typeof LogRoute
   MapRoute: typeof MapRoute
   AuthPathRoute: typeof AuthPathRoute
@@ -161,13 +148,6 @@ declare module '@tanstack/react-router' {
       path: '/log'
       fullPath: '/log'
       preLoaderRoute: typeof LogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join-season': {
@@ -218,7 +198,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JoinSeasonRoute: JoinSeasonRoute,
-  LeaderboardRoute: LeaderboardRoute,
   LogRoute: LogRoute,
   MapRoute: MapRoute,
   AuthPathRoute: AuthPathRoute,

@@ -1,6 +1,6 @@
 import { Button } from "@WAL-GO/ui/components/button";
 import { Link } from "@tanstack/react-router";
-import { Map as MapIcon, NotebookPen, Trophy } from "lucide-react";
+import { Map as MapIcon, NotebookPen } from "lucide-react";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
 import { UserButton } from "@/components/user-button";
 import { authClient } from "@/lib/auth-client";
@@ -16,12 +16,6 @@ export default function Header({ session: initialSession }: HeaderProps) {
 	const links = [
 		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },
-		{
-			to: "/leaderboard",
-			label: "Rezultatai",
-			icon: Trophy,
-			exact: false,
-		},
 	] as const;
 
 	return (
