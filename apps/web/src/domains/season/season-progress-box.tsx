@@ -1,20 +1,51 @@
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@WAL-GO/ui/components/button";
+import { Link } from "@tanstack/react-router";
 import {
 	differenceInSeconds,
 	format,
 	formatDistanceToNowStrict,
 } from "date-fns";
 import { lt } from "date-fns/locale";
-import { orpc } from "@/utils/orpc";
+import { useEffect, useRef, useState } from "react";
 
-export function SeasonProgressBox() {
-	const { data: season } = useQuery(orpc.seasons.current.queryOptions());
+const PROGRESS_TICK_MS = 1000;
 
-	if (!season) {
-		return null;
-	}
+interface SeasonProgressBoxProps {
+	onComplete: () => void;
+	season: {
+		id: number;
+		name: string;
+		startsAt: Date;
+		endsAt: Date;
+	};
+	showJoinCta: boolean;
+}
 
-	const now = new Date();
+export function SeasonProgressBox({
+	onComplete,
+	season,
+	showJoinCta,
+}: SeasonProgressBoxProps) {
+	const [now, setNow] = useState(() => new Date());
+	const hasCompletedRef = useRef(false);
+
+	useEffect(() => {
+		const interval = setInterval(() => setNow(new Date()), PROGRESS_TICK_MS);
+		return () => clearInterval(interval);
+	}, []);
+
+	useEffect(() => {
+		if (
+			hasCompletedRef.current ||
+			differenceInSeconds(season.endsAt, now) > 0
+		) {
+			return;
+		}
+
+		hasCompletedRef.current = true;
+		onComplete();
+	}, [now, onComplete, season.endsAt]);
+
 	const totalLengthSeconds = differenceInSeconds(
 		season.endsAt,
 		season.startsAt
@@ -25,7 +56,11 @@ export function SeasonProgressBox() {
 		Math.max(0, (elapsedSeconds / totalLengthSeconds) * 100)
 	);
 
-	const timeLeft = formatDistanceToNowStrict(season.endsAt, { locale: lt });
+	const secondsLeft = differenceInSeconds(season.endsAt, now);
+	const timeLeft =
+		secondsLeft > 0
+			? formatDistanceToNowStrict(season.endsAt, { locale: lt })
+			: "baigiasi netrukus";
 
 	return (
 		<div className="border-border border-b px-5 py-4.5">
@@ -42,13 +77,23 @@ export function SeasonProgressBox() {
 			<div className="mb-1.5 h-1.75 overflow-hidden rounded-lg bg-muted">
 				<div
 					className="h-full rounded-lg bg-accent transition-[width] duration-500"
-					style={{ width: `${percentageTimeLeft}%` }}
+					style={{ width: `${percentageTimeLeft.toFixed(2)}%` }}
+					suppressHydrationWarning
 				/>
 			</div>
 			<div className="flex justify-between text-[11px] text-muted-foreground/70">
 				<span>{Math.round(percentageTimeLeft)}% baigta</span>
 				<span>Liko {timeLeft}</span>
 			</div>
+			{showJoinCta ? (
+				<Button
+					className="mt-3 w-full"
+					render={<Link to="/join-season" />}
+					size="sm"
+				>
+					Prisijungti prie sezono
+				</Button>
+			) : null}
 		</div>
 	);
 }

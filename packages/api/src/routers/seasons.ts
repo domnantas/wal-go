@@ -1,7 +1,7 @@
 import type { createDb } from "@WAL-GO/db";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { ORPCError } from "@orpc/server";
-import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, eq, gte, lte } from "drizzle-orm";
 
 import { protectedProcedure, publicProcedure } from "../index";
 
@@ -55,7 +55,7 @@ const list = publicProcedure.handler(async ({ context }) => {
 	const rows = await context.db
 		.select()
 		.from(season)
-		.orderBy(desc(season.startsAt));
+		.orderBy(asc(season.startsAt));
 	const now = new Date();
 	return rows.map((row) => ({
 		id: row.id,

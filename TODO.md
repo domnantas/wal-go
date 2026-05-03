@@ -1,10 +1,13 @@
 - [x] Color squares according to the leading team
-- [] Countdown until next season UI
-- [] Join season CTA
+- [x] Countdown until next season UI
+- [x] Join season CTA
 - [x] Sign in/up password validation does not clear after entering valid password
 - [] User button gets colored before join season wheel stops spinning
-- [] Spotting/self-spotting feature
-- [] Chat?
-- [] Feature voting
+- [] Join season explanation
+- [] Mobile design
 - [] ADIF import
 - [] Leaderboard – open question - is it ok to see who is is on what team
+- [] Seed script for the db
+- [] Chat?
+- [] Feature voting
+- [] Spotting/self-spotting feature

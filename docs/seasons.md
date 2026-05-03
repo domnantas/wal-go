@@ -53,6 +53,19 @@ Currently, `docs/seasons.md` covers **only** seasons and team membership.
 | Procedure | Type | Description |
 | --- | --- | --- |
 | `seasons.current` | `publicProcedure` query | Returns the active season or `null`. |
-| `seasons.list` | `publicProcedure` query | Returns all seasons with derived status, sorted by `starts_at desc`. |
+| `seasons.list` | `publicProcedure` query | Returns all seasons with derived status, sorted by `starts_at asc`. |
 | `seasons.myMembership` | `protectedProcedure` query | Returns the current user's membership in the active season, or `null`. |
 | `seasons.join` | `protectedProcedure` mutation | Idempotent join operation; the server selects the team. |
+
+## Sidebar countdown
+
+The map sidebar shows season timing through `SeasonSidebarBox`:
+
+- When a season is active, it renders `SeasonProgressBox` with the season progress bar, time remaining, and a CTA to `/join-season`.
+- When no season is active, it renders whatever combination of `SeasonCountdownBox` and `SeasonResultsBox` applies:
+  - Upcoming season → `SeasonCountdownBox` with a live countdown to `starts_at`.
+  - Recently ended season → `SeasonResultsBox` with the final standings.
+  - Both → countdown above, results below.
+  - Neither → nothing rendered.
+
+Transitions happen automatically: each timing box fires `onComplete` when its threshold is crossed, which invalidates the `seasons.list` and `seasons.myMembership` queries and triggers a refetch.

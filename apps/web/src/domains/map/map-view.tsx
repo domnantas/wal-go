@@ -138,10 +138,15 @@ function getClickableWalGridLayerIds(map: import("maplibre-gl").Map) {
 
 interface MapViewProps {
 	onSquareSelect(selectedSquareCode: string | null): void;
+	seasonId: number | null;
 	selectedSquareCode: string | null;
 }
 
-export function MapView({ onSquareSelect, selectedSquareCode }: MapViewProps) {
+export function MapView({
+	onSquareSelect,
+	seasonId,
+	selectedSquareCode,
+}: MapViewProps) {
 	const mapContainerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<import("maplibre-gl").Map | null>(null);
 	const onSquareSelectRef = useRef(onSquareSelect);
@@ -149,7 +154,9 @@ export function MapView({ onSquareSelect, selectedSquareCode }: MapViewProps) {
 	const { theme, systemTheme } = useTheme();
 
 	const { data: squaresData } = useQuery(
-		orpc.scoring.squares.queryOptions({ input: {} })
+		orpc.scoring.squares.queryOptions({
+			input: { seasonId: seasonId ?? undefined },
+		})
 	);
 
 	const squaresDataRef = useRef(squaresData);

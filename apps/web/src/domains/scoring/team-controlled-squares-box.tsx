@@ -30,9 +30,17 @@ const TEAM_DOT_CLASSES: Record<Team, string> = {
 	red: "bg-rust",
 };
 
-export function TeamControlledSquaresBox() {
+interface TeamControlledSquaresBoxProps {
+	seasonId: number | null;
+}
+
+export function TeamControlledSquaresBox({
+	seasonId,
+}: TeamControlledSquaresBoxProps) {
 	const { data } = useQuery(
-		orpc.scoring.teamStandings.queryOptions({ input: {} })
+		orpc.scoring.teamStandings.queryOptions({
+			input: { seasonId: seasonId ?? undefined },
+		})
 	);
 
 	const standings = data ?? [];

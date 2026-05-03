@@ -47,6 +47,8 @@ Teams ranked by number of WAL squares currently controlled (descending). Ties in
 
 The map sidebar also shows current controlled-square stats under the season progress box. Sidebar stats keep a fixed visual order — yellow, green, red — and render each team's controlled-square count as a progress bar.
 
+When no season is active, the season sidebar can show recently ended season results. Results use the same team standings endpoint scoped to the ended season id and rank teams by controlled squares, then total points.
+
 ### Individual standings
 
 Operators ranked by their total points accumulated in the season (descending). Each row shows callsign, team color, and point total.

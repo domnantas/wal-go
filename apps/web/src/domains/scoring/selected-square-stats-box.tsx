@@ -35,13 +35,19 @@ const EMPTY_SCORES: Record<Team, number> = {
 };
 
 interface SelectedSquareStatsBoxProps {
+	seasonId: number | null;
 	selectedSquareCode: string | null;
 }
 
 export function SelectedSquareStatsBox({
 	selectedSquareCode,
+	seasonId,
 }: SelectedSquareStatsBoxProps) {
-	const { data } = useQuery(orpc.scoring.squares.queryOptions({ input: {} }));
+	const { data } = useQuery(
+		orpc.scoring.squares.queryOptions({
+			input: { seasonId: seasonId ?? undefined },
+		})
+	);
 
 	if (selectedSquareCode === null) {
 		return null;
