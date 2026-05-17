@@ -159,6 +159,7 @@ const join = protectedProcedure.handler(async ({ context }) => {
 			team: membership.team,
 			joinedAt: membership.joinedAt,
 			season: {
+				id: currentSeason.id,
 				name: currentSeason.name,
 			},
 		};

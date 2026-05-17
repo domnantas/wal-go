@@ -47,13 +47,13 @@ function RouteComponent() {
 	const { data: seasons, isPending: areSeasonsPending } = useQuery(
 		orpc.seasons.list.queryOptions()
 	);
-	const { data: membership, isPending: isMembershipPending } = useQuery(
-		orpc.seasons.myMembership.queryOptions()
-	);
-
 	const activeSeason = useMemo(
 		() => seasons?.find((s) => s.status === "active") ?? null,
 		[seasons]
+	);
+
+	const { data: membership, isPending: isMembershipPending } = useQuery(
+		orpc.seasons.myMembership.queryOptions()
 	);
 	const upcomingSeason = useMemo(
 		() => seasons?.find((s) => s.status === "upcoming") ?? null,

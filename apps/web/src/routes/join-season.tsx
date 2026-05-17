@@ -89,15 +89,7 @@ function RouteComponent() {
 	const queryClient = useQueryClient();
 	const current = useQuery(orpc.seasons.current.queryOptions());
 	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
-	const join = useMutation(
-		orpc.seasons.join.mutationOptions({
-			onSuccess: () => {
-				queryClient.invalidateQueries({
-					queryKey: orpc.seasons.myMembership.queryOptions().queryKey,
-				});
-			},
-		})
-	);
+	const join = useMutation(orpc.seasons.join.mutationOptions());
 
 	const [phase, setPhase] = useState<Phase>("idle");
 	const wheelRef = useRef<HTMLDivElement>(null);
@@ -151,9 +143,17 @@ function RouteComponent() {
 		if (phase !== "landing") {
 			return;
 		}
-		const t = setTimeout(() => setPhase("landed"), LANDING_DURATION_MS + 100);
+		const t = setTimeout(() => {
+			setPhase("landed");
+			if (join.data) {
+				queryClient.setQueryData(
+					orpc.seasons.myMembership.queryOptions().queryKey,
+					join.data
+				);
+			}
+		}, LANDING_DURATION_MS + 100);
 		return () => clearTimeout(t);
-	}, [phase]);
+	}, [phase, join.data, queryClient]);
 
 	useEffect(() => {
 		if (phase === "spinning" && join.isError) {
