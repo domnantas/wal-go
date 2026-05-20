@@ -10,7 +10,7 @@ import {
 } from "@WAL-GO/ui/components/table";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -24,7 +24,6 @@ import {
 import { MapPinned, Radio, Star, Trash2, Upload, Users } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
-
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
 import { orpc } from "@/utils/orpc";
 
@@ -58,6 +57,8 @@ const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
 function RouteComponent() {
 	const qsos = useQuery(orpc.qsos.list.queryOptions());
 	const stats = useQuery(orpc.qsos.stats.queryOptions());
+	const currentSeason = useQuery(orpc.seasons.current.queryOptions());
+	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
 	const data = qsos.data ?? [];
 	const statValues = stats.data ?? {
 		totalQsos: 0,
@@ -66,9 +67,25 @@ function RouteComponent() {
 		uniqueContactCallsigns: 0,
 	};
 
+	const canAddQso =
+		!(currentSeason.isPending || membership.isPending) &&
+		!!currentSeason.data &&
+		!!membership.data;
+
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
 			<AdifDropzone />
+
+			{currentSeason.data && !membership.isPending && !membership.data ? (
+				<div className="flex items-center justify-between gap-4 rounded-4xl border border-border bg-card px-5 py-4">
+					<p className="text-muted-foreground text-sm">
+						Prisijunkite prie sezono, kad galėtumėte pridėti QSO.
+					</p>
+					<Button render={<Link to="/join-season" />} size="sm">
+						Prisijungti
+					</Button>
+				</div>
+			) : null}
 
 			<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
 				<StatCard
@@ -98,7 +115,7 @@ function RouteComponent() {
 					<Spinner className="size-8" />
 				</div>
 			) : (
-				<QsoLog qsos={data} />
+				<QsoLog canAddQso={canAddQso} qsos={data} />
 			)}
 		</main>
 	);
@@ -248,7 +265,7 @@ function SquareBadge({
 	);
 }
 
-function QsoLog({ qsos }: { qsos: Qso[] }) {
+function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 	const queryClient = useQueryClient();
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingQsoId, setDeletingQsoId] = useState<null | number>(null);
@@ -317,7 +334,7 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 				<p className="text-muted-foreground text-sm">
 					Pridėkite pirmą ryšį naudodami formą
 				</p>
-				<AddQsoDialog />
+				<AddQsoDialog disabled={!canAddQso} />
 			</div>
 		);
 	}
@@ -340,7 +357,7 @@ function QsoLog({ qsos }: { qsos: Qso[] }) {
 						/>
 					))}
 				</div>
-				<AddQsoDialog />
+				<AddQsoDialog disabled={!canAddQso} />
 			</div>
 
 			<div className="overflow-hidden rounded-4xl border border-border bg-card">

@@ -164,7 +164,7 @@ function withTimePart(value: string, time: string) {
 	return toDateTimeValue(date, time);
 }
 
-export function AddQsoDialog() {
+export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
 	const [formError, setFormError] = useState<string | null>(null);
@@ -222,7 +222,7 @@ export function AddQsoDialog() {
 			}}
 			open={open}
 		>
-			<DialogTrigger render={<Button />}>
+			<DialogTrigger render={<Button disabled={disabled} />}>
 				<Plus />
 				Pridėti QSO
 			</DialogTrigger>

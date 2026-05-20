@@ -9,6 +9,7 @@ import {
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Info } from "lucide-react";
 import { type RefObject, useEffect, useRef, useState } from "react";
 
 import { orpc } from "@/utils/orpc";
@@ -228,6 +229,14 @@ function RouteComponent() {
 						{formatRange(season.startsAt, season.endsAt)}
 					</CardDescription>
 				</CardHeader>
+				<CardContent>
+					<div className="flex gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm">
+						<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+						<p className="text-muted-foreground">
+							Sukite ratą ir prisijunkite prie atsitiktinės komandos
+						</p>
+					</div>
+				</CardContent>
 				<CardContent className="flex flex-col items-center gap-6">
 					<div className="relative h-48 w-48">
 						<div

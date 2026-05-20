@@ -1,12 +1,36 @@
 import { Button } from "@WAL-GO/ui/components/button";
 import { Link } from "@tanstack/react-router";
 import {
+	differenceInHours,
 	differenceInSeconds,
 	format,
 	formatDistanceToNowStrict,
+	intervalToDuration,
 } from "date-fns";
 import { lt } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
+
+function formatTimeLeft(target: Date, now: Date): string {
+	const secondsLeft = differenceInSeconds(target, now);
+	if (secondsLeft <= 0) {
+		return "baigiasi netrukus";
+	}
+	if (differenceInHours(target, now) < 24) {
+		const duration = intervalToDuration({ start: now, end: target });
+		return format(
+			new Date(
+				0,
+				0,
+				0,
+				duration.hours ?? 0,
+				duration.minutes ?? 0,
+				duration.seconds ?? 0
+			),
+			"HH:mm:ss"
+		);
+	}
+	return formatDistanceToNowStrict(target, { locale: lt });
+}
 
 const PROGRESS_TICK_MS = 1000;
 
@@ -56,11 +80,7 @@ export function SeasonProgressBox({
 		Math.max(0, (elapsedSeconds / totalLengthSeconds) * 100)
 	);
 
-	const secondsLeft = differenceInSeconds(season.endsAt, now);
-	const timeLeft =
-		secondsLeft > 0
-			? formatDistanceToNowStrict(season.endsAt, { locale: lt })
-			: "baigiasi netrukus";
+	const timeLeft = formatTimeLeft(season.endsAt, now);
 
 	return (
 		<div className="border-border border-b px-5 py-4.5">

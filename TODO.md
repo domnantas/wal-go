@@ -3,8 +3,8 @@
 - [x] Join season CTA
 - [x] Sign in/up password validation does not clear after entering valid password
 - [x] User button gets colored before join season wheel stops spinning
-- [] Join season explanation
-- [] Countdowns should use HH:mm:ss format when there's less than 24 hours left
+- [x] Join season explanation.
+- [x] Countdowns should use HH:mm:ss format when there's less than 24 hours left
 - [] Mobile design
 - [] ADIF import
 - [] Leaderboard – open question - is it ok to see who is is on what team
@@ -12,3 +12,4 @@
 - [] Chat?
 - [] Feature voting
 - [] Spotting/self-spotting feature
+- [] Email verification
