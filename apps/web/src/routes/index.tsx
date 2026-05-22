@@ -12,51 +12,81 @@ export const Route = createFileRoute("/")({
 
 const TOTAL_SQUARES = 210;
 
-const HOW_STEPS = [
+const HOW_STEPS: ReadonlyArray<{
+	n: number;
+	title: string;
+	body: React.ReactNode;
+}> = [
 	{
 		n: 1,
-		title: "Užsiregistruok ir gauk šaukinį",
-		body: "Sukurk paskyrą su el. paštu, įvesk savo radijo mėgėjo šaukinį. Pradedantieji ir patyrę operatoriai – visi laukiami.",
+		title: "Užregistruok savo šaukinį",
+		body: (
+			<>
+				Sukurk paskyrą ir įvesk savo radijo mėgėjo šaukinį. Dar neturi šaukinio?{" "}
+				<button
+					className="underline hover:text-foreground"
+					onClick={() => scrollToSection("duk")}
+					type="button"
+				>
+					Sužinok kas yra radijo mėgėjai ir kaip gauti šaukinį.
+				</button>
+			</>
+		),
 	},
 	{
 		n: 2,
-		title: "Sukit ratą, gaukit komandą",
-		body: "Sezono pradžioje sukit virtualų ratą — serveris atsitiktinai paskirs vieną iš trijų komandų: geltoną, žalią arba raudoną.",
+		title: "Prisijunk prie komandos",
+		body: "Suk ratą ir būsi atsitiktinai paskirtas į vieną iš trijų komandų: geltoną, žalią arba raudoną.",
 	},
 	{
 		n: 3,
-		title: "Užmegzkit ryšius Lietuvoje",
-		body: "Veskit QSO bet kur Lietuvoje. Kiekvienas ryšys uždirba taškus jūsų komandai tame WAL kvadrate, iš kurio dirbate.",
+		title: "Keliauk ir daryk QSO Lietuvoje",
+		body: "QSO iš miško, nuo jūros ar miesto stogo – nesvarbu kur. Įkelk logą ir uždirbk taškus komandai.",
 	},
 	{
 		n: 4,
-		title: "Užvaldykit kvadratus",
-		body: "Komanda valdo kvadratą, kai turi daugiausiai taškų. Sezono pabaigoje laimi daugiausiai kvadratų užvaldžiusi komanda.",
+		title: "Užvaldyk žemėlapį",
+		body: "Komanda su daugiausiai taškų kvadrate tampa jo šeimininkais. Kuri komanda nuspalvins Lietuvą?",
 	},
-] as const;
+];
 
-const FAQS = [
+const FAQS: ReadonlyArray<{ q: string; a: React.ReactNode }> = [
+	{
+		q: "Kas yra radijo mėgėjai?",
+		a: "Radijo mėgėjas — tai licencijuotas asmuo, turintis teisę naudotis radijo mėgėjams skirtais dažniais. Radijo mėgėjai mezga ryšius su kitais operatoriais visame pasaulyje, dalyvauja varžybose ir eksperimentuoja su įvairia radijo technika.",
+	},
+	{
+		q: "Kaip gauti radijo mėgėjo šaukinį?",
+		a: (
+			<>
+				Lietuvoje reikia išlaikyti Ryšių reguliavimo tarnybos (RRT)
+				organizuojamą kvalifikacinį egzaminą ir gauti leidimą užsiimti radijo
+				mėgėjų veikla. RRT suteikia individualų šaukinį (pvz., LY1JA).{" "}
+				<a
+					className="underline hover:text-foreground"
+					href="https://rrt.lt/veiklos-sritys/elektroniniai-rysiai/radijo-spektras/radijo-megejai"
+					rel="noopener noreferrer"
+					target="_blank"
+				>
+					Daugiau informacijos RRT puslapyje
+				</a>
+				.
+			</>
+		),
+	},
 	{
 		q: "Kas yra WAL kvadratas?",
 		a: "WAL (Worked All Lithuania) — tai 10' × 10' platumos / ilgumos langelis, į kuriuos suskirstyta visa Lietuva. Iš viso ~210 kvadratų — kiekvienas turi savo kodą (pvz., A05, K12). Identiška sistema, kurią naudoja patys Lietuvos radijo mėgėjai.",
 	},
 	{
-		q: "Ar man reikia savo radijo stoties?",
-		a: "Taip — WAL GO yra žaidimas tikriems radijo mėgėjams. Bet jei dar tik svarstai pradėti — užsiregistruok, stebėk žemėlapį ir grįžk, kai turėsi šaukinį.",
-	},
-	{
-		q: "Kaip įkelti QSO?",
-		a: "Du būdai: rankiniu būdu per /log puslapį, arba įkeliant ADIF failą iš tavo dienoraščio (LogTW, N1MM, Log4OM ir t.t.). ADIF importas filtruoja tik Lietuvos ryšius.",
-	},
-	{
-		q: "Ar tame pačiame kvadrate galiu skaičiuoti tą patį korespondentą kelis kartus?",
-		a: "Per vieną dieną (Vilniaus laiku) skaičiuojamas tik vienas ryšys su tuo pačiu korespondentu tame pačiame diapazone, moduliacijoje ir kvadrate. Pakeitus diapazoną ar persikėlus į kitą kvadratą — galima vėl.",
+		q: "Ar galiu užmegzti ryšį su tuo pačiu korespondentu kelis kartus?",
+		a: "Per vieną dieną (Lietuvos laiku) įskaitomas tik vienas ryšys su tuo pačiu korespondentu tame pačiame diapazone, moduliacijoje ir kvadrate. Pakeitus diapazoną, moduliaciją ar vienam iš radijo mėgėjų persikėlus į kitą kvadratą — galima užmegzti ryšį dar kartą.",
 	},
 	{
 		q: "Kas atsitinka pasibaigus sezonui?",
-		a: "Sezono pabaigoje fiksuojamas galutinis žemėlapis ir paskelbiama nugalėtoja komanda. Kitas sezonas prasideda iš naujo — komandos paskirstomos atsitiktinai, kvadratai vėl neutralūs.",
+		a: "Sezono pabaigoje fiksuojamas galutinis rezultatas ir paskelbiama nugalėjusi komanda. Kitas sezonas prasideda iš naujo — komandos paskirstomos atsitiktinai.",
 	},
-] as const;
+];
 
 const TEAM_CONFIG = {
 	yellow: { label: "Geltona", dot: "bg-golden", bar: "bg-golden" },
@@ -155,7 +185,7 @@ function HomeComponent() {
 								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
 								size="lg"
 							>
-								Pradėti žaidimą
+								Prisijungti
 								<ArrowRight className="size-4" />
 							</Button>
 						)}
@@ -172,7 +202,7 @@ function HomeComponent() {
 
 			{/* ── Team standings ───────────────────────────────────── */}
 			{standings.length > 0 && (
-				<section className="mx-auto max-w-6xl px-8 py-20">
+				<section className="mx-auto max-w-6xl px-8 pb-20">
 					<div className="mb-8 flex flex-wrap items-end justify-between gap-8">
 						<div>
 							<SectionEyebrow>
@@ -206,8 +236,7 @@ function HomeComponent() {
 											style={{ width: `${pct}%` }}
 										/>
 									</div>
-									<div className="mt-3 flex items-center justify-between text-muted-foreground text-xs">
-										<span>{s.points} taškai</span>
+									<div className="mt-3 flex items-center justify-end text-muted-foreground text-xs">
 										<span>{pct.toFixed(1)}% teritorijos</span>
 									</div>
 								</div>
@@ -226,7 +255,7 @@ function HomeComponent() {
 					<div className="mx-auto mb-16 max-w-3xl text-center">
 						<SectionEyebrow>Kaip tai veikia</SectionEyebrow>
 						<h2 className="mt-3 font-bold font-serif text-5xl tracking-tight">
-							Keturi žingsniai į <em className="text-rust italic">WAL-GO</em>
+							Kaip žaisti <em className="text-rust italic">WAL GO</em> ?
 						</h2>
 					</div>
 					<div className="grid gap-6 md:grid-cols-2">
@@ -236,7 +265,7 @@ function HomeComponent() {
 								key={s.n}
 							>
 								<div className="mb-4 flex items-center gap-3">
-									<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground font-bold text-background text-lg leading-none">
+									<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground font-bold font-mono text-background text-lg leading-none">
 										{s.n}
 									</span>
 									<h3 className="font-bold font-serif text-2xl leading-tight">
@@ -261,9 +290,9 @@ function HomeComponent() {
 							<em className="text-olive italic">Automatiškai.</em>
 						</h2>
 						<p className="mt-5 text-base text-foreground/75 leading-relaxed">
-							Įkelk ADIF iš savo dienoraščio — N1MM, Log4OM, LogTW, fldigi. Mes
-							filtruosim Lietuvos ryšius, paskirstysim taškus į WAL kvadratus ir
-							atnaujinsim žemėlapį per sekundes.
+							Įkelk ADIF iš savo loggerio — N1MM, Log4OM, LogTW, fldigi. Mes
+							paskirstysim taškus į WAL kvadratus ir atnaujinsim žemėlapį per
+							kelias sekundes.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-2">
 							{[
@@ -330,7 +359,7 @@ function HomeComponent() {
 					<div className="mb-12 text-center">
 						<SectionEyebrow>D.U.K.</SectionEyebrow>
 						<h2 className="mt-3 font-bold font-serif text-5xl tracking-tight">
-							Dažni <em className="text-olive italic">klausimai</em>
+							Dažnai užduodami <em className="text-olive italic">klausimai</em>
 						</h2>
 					</div>
 					<div className="space-y-3">
@@ -358,32 +387,26 @@ function HomeComponent() {
 			<section>
 				<div className="mx-auto max-w-4xl px-8 py-24 text-center">
 					<h2 className="font-bold font-serif text-5xl leading-tight tracking-tight md:text-6xl">
-						Eteris
+						Radijo mėgėjai
 						<br />
 						tavęs <em className="text-rust italic">laukia.</em>
 					</h2>
-					{season && (
-						<p className="mx-auto mt-5 max-w-xl text-foreground/75 text-lg">
-							Prisijunk prie {season.name} sezono. Sukimas trunka pusantros
-							sekundės.
-						</p>
-					)}
 					<div className="mt-8 flex items-center justify-center gap-3">
 						{session ? (
-							<Button render={<Link to="/join-season" />} size="lg">
-								Prisijungti prie sezono
+							<Button className="px-6" render={<Link to="/map" />} size="lg">
+								Žiūrėti žemėlapį
+								<ArrowRight className="size-4" />
 							</Button>
 						) : (
 							<Button
+								className="px-6"
 								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
 								size="lg"
 							>
-								Registruotis
+								Prisijungti
+								<ArrowRight className="size-4" />
 							</Button>
 						)}
-						<Button render={<Link to="/map" />} size="lg" variant="ghost">
-							Žiūrėti žemėlapį
-						</Button>
 					</div>
 				</div>
 			</section>
@@ -394,7 +417,7 @@ function HomeComponent() {
 					<div className="space-y-3">
 						<p className="font-bold font-serif text-xl">WAL GO</p>
 						<p className="text-muted-foreground text-xs leading-relaxed">
-							Komandinis radijo žaidimas Lietuvos eteriui. Alfa versija · 2026.
+							Komandinis radijo mėgėjų žaidimas Lietuvoje. Alfa versija · 2026.
 						</p>
 					</div>
 					<div>
@@ -403,17 +426,12 @@ function HomeComponent() {
 						</p>
 						<ul className="space-y-2 text-muted-foreground">
 							<li>
-								<Link className="hover:text-foreground" to="/map">
-									Žemėlapis
-								</Link>
-							</li>
-							<li>
 								<button
 									className="hover:text-foreground"
 									onClick={() => scrollToSection("kaip-tai-veikia")}
 									type="button"
 								>
-									Taisyklės
+									Kaip žaisti?
 								</button>
 							</li>
 						</ul>
@@ -462,8 +480,8 @@ function HomeComponent() {
 				</div>
 				<div className="border-border border-t">
 					<div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-4 text-muted-foreground text-xs">
-						<span>© 2026 WAL GO. Mėgėjams iš mėgėjų.</span>
-						<span className="font-mono">73 de LY</span>
+						<span>© 2026 WAL GO</span>
+						<span className="font-mono">73 de LY1JA</span>
 					</div>
 				</div>
 			</footer>

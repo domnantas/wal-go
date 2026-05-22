@@ -66,7 +66,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					<Providers>
 						<div className="grid grid-rows-[auto_1fr] md:h-svh">
 							<Header session={session} />
-							{children}
+							<div className="md:min-h-0 md:overflow-y-auto">{children}</div>
 						</div>
 						<Toaster richColors />
 						<TanStackRouterDevtools position="bottom-left" />
