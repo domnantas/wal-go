@@ -13,7 +13,8 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "@WAL-GO/env": "workspace:*",
@@ -25,8 +26,10 @@
   },
   "devDependencies": {
     "@WAL-GO/config": "workspace:*",
+    "@WAL-GO/grid": "workspace:*",
     "@types/pg": "catalog:",
     "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0",
     "typescript": "catalog:"
   }
 }

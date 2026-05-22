@@ -345,12 +345,18 @@ importers:
       '@WAL-GO/config':
         specifier: workspace:*
         version: link:../config
+      '@WAL-GO/grid':
+        specifier: workspace:*
+        version: link:../grid
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.0
       drizzle-kit:
         specifier: ^0.31.8
         version: 0.31.10
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
