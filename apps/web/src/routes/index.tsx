@@ -97,7 +97,7 @@ const TEAM_CONFIG = {
 const LOG_DEMO_ROWS = [
 	{ time: "14:32", call: "OH3JR", band: "20m", mode: "FT8", square: "K12" },
 	{ time: "14:28", call: "SP9DLY", band: "20m", mode: "FT8", square: "K12" },
-	{ time: "14:21", call: "DL2RND", band: "20m", mode: "FT8", square: "K12" },
+	{ time: "14:21", call: "LY5AT", band: "80m", mode: "CW", square: "K12" },
 	{ time: "14:14", call: "EA7XYZ", band: "40m", mode: "SSB", square: "K12" },
 	{ time: "14:02", call: "9A1ZRS", band: "40m", mode: "SSB", square: "K11" },
 ] as const;
@@ -290,18 +290,19 @@ function HomeComponent() {
 							<em className="text-olive italic">Automatiškai.</em>
 						</h2>
 						<p className="mt-5 text-base text-foreground/75 leading-relaxed">
-							Įkelk ADIF iš savo loggerio — N1MM, Log4OM, LogTW, fldigi. Mes
-							paskirstysim taškus į WAL kvadratus ir atnaujinsim žemėlapį per
-							kelias sekundes.
+							Įkelk ADIF iš savo loggerio. Mes paskirstysim taškus į WAL
+							kvadratus ir atnaujinsim žemėlapį per kelias sekundes.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-2">
 							{[
 								"N1MM",
+								"QRZ.com",
 								"Log4OM",
-								"LogTW",
-								"fldigi",
-								"WSJT-X",
 								"Ham Radio Deluxe",
+								"WSJT-X",
+								"DXKeeper",
+								"WRL",
+								"Ir kiti...",
 							].map((t) => (
 								<span
 									className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-muted-foreground text-xs"
@@ -321,27 +322,39 @@ function HomeComponent() {
 								✓ Apdorota
 							</span>
 						</div>
-						<div className="space-y-2.5">
-							{LOG_DEMO_ROWS.map((r) => (
-								<div
-									className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-3 text-sm"
-									key={r.call}
+						<div className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm">
+							{LOG_DEMO_ROWS.flatMap((r) => [
+								<span
+									className="font-mono text-muted-foreground text-xs"
+									key={`${r.call}-time`}
 								>
-									<span className="font-mono text-muted-foreground text-xs">
-										{r.time}
-									</span>
-									<span className="font-mono font-semibold">{r.call}</span>
-									<span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px]">
-										{r.band}
-									</span>
-									<span className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted-foreground">
-										{r.mode}
-									</span>
-									<span className="rounded-full bg-rust/15 px-2 py-0.5 font-mono font-semibold text-[10px] text-rust">
-										+1 {r.square}
-									</span>
-								</div>
-							))}
+									{r.time}
+								</span>,
+								<span
+									className="font-mono font-semibold"
+									key={`${r.call}-call`}
+								>
+									{r.call}
+								</span>,
+								<span
+									className="rounded-full bg-muted px-2 py-0.5 text-center font-mono text-[10px]"
+									key={`${r.call}-band`}
+								>
+									{r.band}
+								</span>,
+								<span
+									className="rounded-full border border-border px-2 py-0.5 text-center font-mono text-[10px] text-muted-foreground"
+									key={`${r.call}-mode`}
+								>
+									{r.mode}
+								</span>,
+								<span
+									className="rounded-full bg-rust/15 px-2 py-0.5 text-center font-mono font-semibold text-[10px] text-rust"
+									key={`${r.call}-square`}
+								>
+									+1 {r.square}
+								</span>,
+							])}
 						</div>
 						<div className="mt-4 flex items-center justify-between border-border border-t pt-3 text-xs">
 							<span className="text-muted-foreground">5 QSO · 2 kvadratai</span>

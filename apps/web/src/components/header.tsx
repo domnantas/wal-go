@@ -8,6 +8,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { Map as MapIcon, Menu, NotebookPen } from "lucide-react";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@/components/user-button";
 import { authClient } from "@/lib/auth-client";
 import type { SessionContext } from "@/routes/__root";
@@ -76,12 +77,15 @@ export default function Header({ session: initialSession }: HeaderProps) {
 					{isAuthenticated ? (
 						<UserButton session={initialSession} />
 					) : (
-						<Button
-							render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
-							size="sm"
-						>
-							Prisijungti
-						</Button>
+						<>
+							<ThemeToggle />
+							<Button
+								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
+								size="sm"
+							>
+								Prisijungti
+							</Button>
+						</>
 					)}
 				</div>
 			</div>

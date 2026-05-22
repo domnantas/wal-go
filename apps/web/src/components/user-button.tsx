@@ -5,12 +5,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@WAL-GO/ui/components/dropdown-menu";
-import { Tabs, TabsList, TabsTrigger } from "@WAL-GO/ui/components/tabs";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { LogOut, Monitor, Moon, Paintbrush, Settings, Sun } from "lucide-react";
-import { useTheme } from "tanstack-theme-kit";
+import { LogOut, Paintbrush, Settings } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 import type { SessionContext } from "@/routes/__root";
 import { orpc } from "@/utils/orpc";
@@ -34,7 +33,6 @@ export function UserButton({ session: initialSession }: UserButtonProps) {
 		...orpc.seasons.myMembership.queryOptions(),
 		enabled: !!session,
 	});
-	const { theme, setTheme } = useTheme();
 
 	if (!session) {
 		return null;
@@ -74,35 +72,7 @@ export function UserButton({ session: initialSession }: UserButtonProps) {
 						<Paintbrush className="size-4 text-muted-foreground" />
 						Tema
 					</div>
-					<Tabs
-						className="ml-4"
-						onValueChange={setTheme}
-						value={theme ?? "system"}
-					>
-						<TabsList className="h-6! gap-0.5">
-							<TabsTrigger
-								aria-label="Sistemos"
-								className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
-								value="system"
-							>
-								<Monitor className="size-3" />
-							</TabsTrigger>
-							<TabsTrigger
-								aria-label="Šviesi"
-								className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
-								value="light"
-							>
-								<Sun className="size-3" />
-							</TabsTrigger>
-							<TabsTrigger
-								aria-label="Tamsi"
-								className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
-								value="dark"
-							>
-								<Moon className="size-3" />
-							</TabsTrigger>
-						</TabsList>
-					</Tabs>
+					<ThemeToggle />
 				</div>
 
 				<DropdownMenuSeparator />
