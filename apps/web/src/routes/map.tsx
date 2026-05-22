@@ -76,13 +76,15 @@ function RouteComponent() {
 	}, [queryClient]);
 
 	return (
-		<main className="relative flex min-h-0 overflow-hidden">
-			<MapView
-				onSquareSelect={setSelectedSquareCode}
-				seasonId={displayedSeasonId}
-				selectedSquareCode={selectedSquareCode}
-			/>
-			<aside className="w-70 shrink-0 overflow-y-auto border-border border-l bg-card">
+		<main className="relative flex flex-col md:min-h-0 md:flex-row md:overflow-hidden">
+			<div className="flex h-[70dvh] shrink-0 flex-col md:h-auto md:flex-1 md:shrink">
+				<MapView
+					onSquareSelect={setSelectedSquareCode}
+					seasonId={displayedSeasonId}
+					selectedSquareCode={selectedSquareCode}
+				/>
+			</div>
+			<aside className="w-full overflow-y-auto border-border border-t bg-card md:w-70 md:shrink-0 md:border-t-0 md:border-l">
 				<SeasonSidebarBox
 					activeSeason={activeSeason}
 					isLoading={areSeasonsPending}

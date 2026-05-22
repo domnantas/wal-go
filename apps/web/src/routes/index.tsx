@@ -178,11 +178,6 @@ function HomeComponent() {
 							<SectionEyebrow>
 								{season ? `Tiesiogiai · ${season.name}` : "Tiesiogiai"}
 							</SectionEyebrow>
-							<h2 className="mt-3 font-bold font-serif text-4xl leading-tight tracking-tight md:text-5xl">
-								Kas valdo daugiausiai
-								<br />
-								<em className="text-olive italic">kvadratų</em> Lietuvoje?
-							</h2>
 						</div>
 					</div>
 					<div className="grid gap-3 md:grid-cols-3">

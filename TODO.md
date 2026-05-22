@@ -5,10 +5,11 @@
 - [x] User button gets colored before join season wheel stops spinning
 - [x] Join season explanation.
 - [x] Countdowns should use HH:mm:ss format when there's less than 24 hours left
-- [] Mobile design
+- [x] Mobile design
+- [] Seed script for the db
+- [] Presentation about WAL GO
 - [] ADIF import
 - [] Leaderboard – open question - is it ok to see who is is on what team
-- [] Seed script for the db
 - [] Chat?
 - [] Feature voting
 - [] Spotting/self-spotting feature

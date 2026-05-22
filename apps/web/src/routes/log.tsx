@@ -360,7 +360,7 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 				<AddQsoDialog disabled={!canAddQso} />
 			</div>
 
-			<div className="overflow-hidden rounded-4xl border border-border bg-card">
+			<div className="overflow-x-auto overflow-y-hidden rounded-4xl border border-border bg-card">
 				<Table className="text-sm">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
