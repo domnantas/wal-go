@@ -1,3 +1,4 @@
+import type { ImportError, SkipReason } from "@WAL-GO/api/routers/qsos";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
@@ -21,7 +22,16 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { MapPinned, Radio, Star, Trash2, Upload, Users } from "lucide-react";
+import {
+	ChevronDown,
+	ChevronUp,
+	MapPinned,
+	Radio,
+	Star,
+	Trash2,
+	Upload,
+	Users,
+} from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
@@ -74,7 +84,7 @@ function RouteComponent() {
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
-			<AdifDropzone />
+			<CabrilloDropzone />
 
 			{currentSeason.data && !membership.isPending && !membership.data ? (
 				<div className="flex items-center justify-between gap-4 rounded-4xl border border-border bg-card px-5 py-4">
@@ -149,19 +159,244 @@ function StatCard({
 	);
 }
 
-function AdifDropzone() {
+interface ImportResult {
+	accepted: number;
+	errors: ImportError[];
+	skipped: number;
+}
+
+type DropzoneState =
+	| { status: "idle" }
+	| { status: "importing" }
+	| { status: "done"; result: ImportResult }
+	| { status: "error"; message: string };
+
+const SKIP_REASON_LABELS: Record<SkipReason, string> = {
+	callsignMismatch: "Šaukinys nesutampa",
+	exactDuplicate: "Jau užregistruotas",
+	gameDuplicate: "Pakartotinis pagal žaidimo taisykles",
+	invalidBand: "Neatpažintas diapazonas",
+	invalidDate: "Neteisinga data",
+	invalidMode: "Neatpažinta moduliacija",
+	invalidSquare: "Neteisingas WAL kvadratas",
+	outsideSeason: "Už sezono ribų",
+};
+
+function CabrilloDropzone() {
+	const queryClient = useQueryClient();
+	const [state, setState] = useState<DropzoneState>({ status: "idle" });
+	const [isDragging, setIsDragging] = useState(false);
+	const [errorsExpanded, setErrorsExpanded] = useState(false);
+
+	const importMutation = useMutation(
+		orpc.qsos.importCabrillo.mutationOptions({
+			onSuccess: (result) => {
+				setState({ status: "done", result });
+				queryClient.invalidateQueries({
+					queryKey: orpc.qsos.list.queryOptions().queryKey,
+				});
+				queryClient.invalidateQueries({
+					queryKey: orpc.qsos.stats.queryOptions().queryKey,
+				});
+			},
+			onError: (error) => {
+				setState({ status: "error", message: error.message });
+			},
+		})
+	);
+
+	function handleFile(file: File) {
+		if (file.size > 2 * 1024 * 1024) {
+			setState({ status: "error", message: "Failas per didelis (maks. 2 MB)" });
+			return;
+		}
+		setState({ status: "importing" });
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const content = e.target?.result;
+			if (typeof content === "string") {
+				importMutation.mutate({ content });
+			}
+		};
+		reader.readAsText(file);
+	}
+
+	function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+		e.preventDefault();
+		setIsDragging(false);
+		const file = e.dataTransfer.files[0];
+		if (file) {
+			handleFile(file);
+		}
+	}
+
+	function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+		e.preventDefault();
+		setIsDragging(true);
+	}
+
+	function handleDragLeave() {
+		setIsDragging(false);
+	}
+
+	function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const file = e.target.files?.[0];
+		if (file) {
+			handleFile(file);
+		}
+		e.target.value = "";
+	}
+
+	if (state.status === "importing") {
+		return (
+			<div className="flex w-full flex-col items-center gap-2 rounded-4xl border-2 border-border border-dashed bg-card px-6 py-10 text-center">
+				<Spinner className="size-8" />
+				<p className="font-medium text-sm">Įkeliama...</p>
+			</div>
+		);
+	}
+
+	if (state.status === "done") {
+		const { result } = state;
+		return (
+			<div className="flex w-full flex-col gap-3 rounded-4xl border border-border bg-card px-6 py-5">
+				<div className="flex items-center justify-between gap-4">
+					<div className="flex flex-wrap gap-4">
+						<span className="font-medium text-foreground text-sm">
+							Įkelta:{" "}
+							<span className="font-bold text-accent">{result.accepted}</span>{" "}
+							QSO
+						</span>
+						{result.skipped > 0 && (
+							<span className="text-muted-foreground text-sm">
+								Praleista: {result.skipped}
+							</span>
+						)}
+					</div>
+					<Button
+						onClick={() => {
+							setState({ status: "idle" });
+							setErrorsExpanded(false);
+						}}
+						size="sm"
+						variant="ghost"
+					>
+						Įkelti dar kartą
+					</Button>
+				</div>
+				{result.errors.length > 0 && (
+					<div>
+						<button
+							className="flex items-center gap-1 text-muted-foreground text-xs hover:text-foreground"
+							onClick={() => setErrorsExpanded((v) => !v)}
+							type="button"
+						>
+							{errorsExpanded ? (
+								<ChevronUp className="size-3.5" />
+							) : (
+								<ChevronDown className="size-3.5" />
+							)}
+							Rodyti praleistas eilutes
+						</button>
+						{errorsExpanded && (
+							<div className="mt-2 max-h-60 overflow-y-auto rounded-2xl border border-border">
+								<table className="w-full text-xs">
+									<thead className="bg-muted/40">
+										<tr>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Eilutė
+											</th>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Turinys
+											</th>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Priežastis
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										{result.errors.map((err) => (
+											<tr
+												className="border-border border-t"
+												key={`${err.line}-${err.reason}`}
+											>
+												<td className="px-3 py-1.5 text-muted-foreground tabular-nums">
+													{err.line}
+												</td>
+												<td className="max-w-xs truncate px-3 py-1.5 font-mono text-foreground">
+													{err.content}
+												</td>
+												<td className="px-3 py-1.5 text-muted-foreground">
+													{SKIP_REASON_LABELS[err.reason]}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						)}
+					</div>
+				)}
+			</div>
+		);
+	}
+
+	if (state.status === "error") {
+		return (
+			<div className="flex w-full flex-col gap-3 rounded-4xl border border-destructive/50 bg-card px-6 py-5">
+				<div className="flex items-center justify-between gap-4">
+					<p className="text-destructive text-sm">{state.message}</p>
+					<Button
+						onClick={() => setState({ status: "idle" })}
+						size="sm"
+						variant="ghost"
+					>
+						Bandyti dar kartą
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
 	return (
-		<button
-			className="group flex w-full flex-col items-center gap-2 rounded-4xl border-2 border-border border-dashed bg-card px-6 py-10 text-center transition-colors hover:border-accent hover:bg-accent/5"
-			disabled
-			type="button"
+		// biome-ignore lint/a11y/noStaticElementInteractions: HTML5 drag-and-drop zone; keyboard/click handled by inner label
+		// biome-ignore lint/a11y/noNoninteractiveElementInteractions: HTML5 drag-and-drop zone; keyboard/click handled by inner label
+		<div
+			className={cn(
+				"group rounded-4xl border-2 border-dashed bg-card transition-colors",
+				isDragging
+					? "border-accent bg-accent/5"
+					: "border-border hover:border-accent hover:bg-accent/5"
+			)}
+			onDragLeave={handleDragLeave}
+			onDragOver={handleDragOver}
+			onDrop={handleDrop}
 		>
-			<Upload className="size-8 text-muted-foreground group-hover:text-accent" />
-			<p className="font-medium text-sm">ADIF importas bus pridėtas vėliau</p>
-			<p className="text-muted-foreground text-xs">
-				Šiuo metu QSO pridėkite rankiniu būdu žemiau
-			</p>
-		</button>
+			<label
+				className="flex w-full cursor-pointer flex-col items-center gap-2 px-6 py-10 text-center"
+				htmlFor="cabrillo-file-input"
+			>
+				<input
+					accept=".log,.cbr,.cabrillo"
+					className="sr-only"
+					id="cabrillo-file-input"
+					onChange={handleInputChange}
+					type="file"
+				/>
+				<Upload
+					className={cn(
+						"size-8 transition-colors",
+						isDragging
+							? "text-accent"
+							: "text-muted-foreground group-hover:text-accent"
+					)}
+				/>
+				<p className="font-medium text-sm">Įkelti Cabrillo failą</p>
+				<p className="text-muted-foreground text-xs">
+					Vilkite failą arba paspauskite (.log, .cbr, .cabrillo)
+				</p>
+			</label>
+		</div>
 	);
 }
 

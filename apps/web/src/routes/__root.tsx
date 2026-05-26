@@ -1,14 +1,10 @@
 import { Toaster } from "@WAL-GO/ui/components/sonner";
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import { formDevtoolsPlugin } from "@tanstack/react-form-devtools";
 import type { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "tanstack-theme-kit";
 import { getUser } from "@/functions/get-user";
 import type { orpc } from "@/utils/orpc";
@@ -69,15 +65,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							<div className="md:min-h-0 md:overflow-y-auto">{children}</div>
 						</div>
 						<Toaster richColors />
-						<TanStackRouterDevtools position="bottom-left" />
-						<ReactQueryDevtools
-							buttonPosition="bottom-right"
-							position="bottom"
-						/>
-						<TanStackDevtools
-							config={{ position: "top-right" }}
-							plugins={[formDevtoolsPlugin()]}
-						/>
+						{/* <TanStackRouterDevtools />
+						<ReactQueryDevtools />
+						<TanStackDevtools plugins={[formDevtoolsPlugin()]} /> */}
 						<Scripts />
 					</Providers>
 				</ThemeProvider>

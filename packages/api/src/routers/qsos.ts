@@ -7,6 +7,8 @@ import { formatISO, isAfter, isBefore, isValid, parseISO } from "date-fns";
 import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { parseCabrillo, parseCabrilloDateTime } from "../cabrillo/parser";
+
 import { protectedProcedure } from "../index";
 import { applyScoreDeltas } from "../scoring/apply-deltas";
 import { getScoringRuleSet } from "../scoring/index";
@@ -38,6 +40,11 @@ const deleteQsoInput = z.object({
 
 function normalizeValue(value: string) {
 	return value.trim().toUpperCase();
+}
+
+function normalizeCallsign(callsign: string): string {
+	const parts = callsign.split("/");
+	return parts.reduce((a, b) => (a.length >= b.length ? a : b), "");
 }
 
 function toNumber(value: number | string | null | undefined): number {
@@ -506,6 +513,7 @@ const deleteQso = protectedProcedure.input(deleteQsoInput).handler(
 
 			const ruleSet = getScoringRuleSet(qsoRow.seasonId);
 			const deltas = await ruleSet.scoreDelete(tx, {
+				contactSquare: qsoRow.contactSquare,
 				operatorSquare: qsoRow.operatorSquare,
 				team: qsoRow.team,
 				userId: qsoRow.userId,
@@ -518,10 +526,264 @@ const deleteQso = protectedProcedure.input(deleteQsoInput).handler(
 		})
 );
 
+export type SkipReason =
+	| "callsignMismatch"
+	| "exactDuplicate"
+	| "gameDuplicate"
+	| "invalidBand"
+	| "invalidCallsign"
+	| "invalidDate"
+	| "invalidMode"
+	| "invalidSquare"
+	| "malformedLine"
+	| "outsideSeason";
+
+export interface ImportError {
+	content: string;
+	line: number;
+	reason: SkipReason;
+}
+
+interface LineMeta {
+	lineNumber: number;
+	rawLine: string;
+}
+
+interface MappedQsos {
+	errors: ImportError[];
+	insertParams: InsertParams[];
+	metaMap: Map<InsertParams, LineMeta>;
+}
+
+function mapParsedQsos(
+	parsedQsos: import("../cabrillo/parser").CabrilloQso[],
+	seasonStart: Date,
+	seasonEnd: Date,
+	seasonId: number,
+	team: "green" | "red" | "yellow",
+	userId: string,
+	userCallsign: string
+): MappedQsos {
+	const insertParams: InsertParams[] = [];
+	const metaMap = new Map<InsertParams, LineMeta>();
+	const errors: ImportError[] = [];
+
+	for (const q of parsedQsos) {
+		if (normalizeCallsign(q.mycall) !== userCallsign) {
+			errors.push({
+				line: q.lineNumber,
+				content: q.rawLine,
+				reason: "callsignMismatch",
+			});
+			continue;
+		}
+		const qsoAt = parseCabrilloDateTime(q.qsoDate, q.qsoTime);
+		if (!qsoAt) {
+			errors.push({
+				line: q.lineNumber,
+				content: q.rawLine,
+				reason: "invalidDate",
+			});
+			continue;
+		}
+		if (isBefore(qsoAt, seasonStart) || isAfter(qsoAt, seasonEnd)) {
+			errors.push({
+				line: q.lineNumber,
+				content: q.rawLine,
+				reason: "outsideSeason",
+			});
+			continue;
+		}
+		if (!isValidWalSquare(q.operatorSquare)) {
+			errors.push({
+				line: q.lineNumber,
+				content: q.rawLine,
+				reason: "invalidSquare",
+			});
+			continue;
+		}
+
+		const contactSquare =
+			q.contactSquare && isValidWalSquare(q.contactSquare)
+				? q.contactSquare
+				: null;
+
+		const p: InsertParams = {
+			band: q.band,
+			contactCallsign: q.contactCallsign,
+			contactSquare,
+			mode: q.mode,
+			operatorSquare: q.operatorSquare,
+			qsoAt,
+			seasonId,
+			team,
+			userId,
+		};
+		insertParams.push(p);
+		metaMap.set(p, { lineNumber: q.lineNumber, rawLine: q.rawLine });
+	}
+
+	return { insertParams, metaMap, errors };
+}
+
+function collectFilteredErrors(
+	before: InsertParams[],
+	after: InsertParams[],
+	metaMap: Map<InsertParams, LineMeta>,
+	reason: SkipReason
+): ImportError[] {
+	const afterSet = new Set(after);
+	return before.flatMap((p) => {
+		if (afterSet.has(p)) {
+			return [];
+		}
+		const meta = metaMap.get(p);
+		return meta
+			? [{ line: meta.lineNumber, content: meta.rawLine, reason }]
+			: [];
+	});
+}
+
+const importCabrillo = protectedProcedure
+	.input(z.object({ content: z.string().max(2_000_000) }))
+	.handler(async ({ context, input }) => {
+		const {
+			callsign,
+			contest,
+			qsos: parsedQsos,
+			parseErrors,
+		} = parseCabrillo(input.content);
+
+		if (!callsign) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Cabrillo faile nerastas CALLSIGN",
+			});
+		}
+
+		if (contest !== "LY-WAL") {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Failas nėra LY-WAL varžybų žurnalas",
+			});
+		}
+
+		const userCallsign = context.session.user.name.toUpperCase();
+		if (normalizeCallsign(callsign) !== userCallsign) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Cabrillo šaukinys nesutampa su jūsų paskyros šaukiniu",
+			});
+		}
+
+		const parseImportErrors: ImportError[] = parseErrors.map((e) => ({
+			line: e.lineNumber,
+			content: e.rawLine,
+			reason: e.reason,
+		}));
+
+		return await context.db.transaction(async (tx) => {
+			const now = new Date();
+			const seasonRows = await tx
+				.select()
+				.from(season)
+				.where(and(lte(season.startsAt, now), gte(season.endsAt, now)))
+				.limit(1);
+
+			const currentSeason = seasonRows[0];
+			if (!currentSeason) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "Šiuo metu sezonas nevyksta",
+				});
+			}
+
+			const membershipRows = await tx
+				.select()
+				.from(seasonMembership)
+				.where(
+					and(
+						eq(seasonMembership.userId, context.session.user.id),
+						eq(seasonMembership.seasonId, currentSeason.id)
+					)
+				)
+				.for("update")
+				.limit(1);
+
+			if (!membershipRows[0]) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Pirma prisijunkite prie sezono",
+				});
+			}
+
+			const team = membershipRows[0].team;
+			const userId = context.session.user.id;
+
+			const {
+				insertParams,
+				metaMap,
+				errors: mappingErrors,
+			} = mapParsedQsos(
+				parsedQsos,
+				currentSeason.startsAt,
+				currentSeason.endsAt,
+				currentSeason.id,
+				team,
+				userId,
+				userCallsign
+			);
+
+			const exactDeduped = await filterExactQsoDuplicates(tx, insertParams);
+			const exactDupErrors = collectFilteredErrors(
+				insertParams,
+				exactDeduped,
+				metaMap,
+				"exactDuplicate"
+			);
+
+			const ruleSet = getScoringRuleSet(currentSeason.id);
+			const toInsert = await ruleSet.filterBulkInserts(tx, exactDeduped);
+			const gameDupErrors = collectFilteredErrors(
+				exactDeduped,
+				toInsert,
+				metaMap,
+				"gameDuplicate"
+			);
+
+			if (toInsert.length > 0) {
+				await tx.insert(qso).values(
+					toInsert.map((q) => ({
+						userId,
+						seasonId: currentSeason.id,
+						contactCallsign: q.contactCallsign,
+						band: q.band as typeof qso.band._.data,
+						mode: q.mode as typeof qso.mode._.data,
+						qsoAt: q.qsoAt,
+						team,
+						operatorSquare: q.operatorSquare,
+						contactSquare: q.contactSquare,
+					}))
+				);
+				const deltas = ruleSet.scoreBulkInsert(toInsert);
+				await applyScoreDeltas(tx, currentSeason.id, deltas);
+			}
+
+			const errors = [
+				...parseImportErrors,
+				...mappingErrors,
+				...exactDupErrors,
+				...gameDupErrors,
+			];
+
+			return {
+				accepted: toInsert.length,
+				skipped: errors.length,
+				errors,
+			};
+		});
+	});
+
 export const qsosRouter = {
 	list,
 	stats,
 	create,
 	bulkCreate,
 	delete: deleteQso,
+	importCabrillo,
 };

@@ -23,6 +23,7 @@ export interface InsertParams {
 }
 
 export interface DeleteParams {
+	contactSquare: string | null;
 	operatorSquare: string;
 	team: "yellow" | "green" | "red";
 	userId: string;

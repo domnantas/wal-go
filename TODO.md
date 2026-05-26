@@ -6,11 +6,17 @@
 - [x] Join season explanation.
 - [x] Countdowns should use HH:mm:ss format when there's less than 24 hours left
 - [x] Mobile design
-- [] Seed script for the db
-- [] Presentation about WAL GO
-- [] ADIF import
-- [] Leaderboard – open question - is it ok to see who is is on what team
-- [] Chat?
-- [] Feature voting
-- [] Spotting/self-spotting feature
+- [x] Seed script for the db
 - [] Email verification
+- [x] Cabrillo import
+- [] Presentation about WAL GO
+- [] Rules page
+- [] Feature voting
+- [] Bug reporting
+- [] Admin page
+- [] Score reconciliation
+- [] Audit trail of uploads
+- [] Leaderboard – open question - is it ok to see who is is on what team
+- [] Spotting/self-spotting feature
+- [] Set up Discord
+- [] Re-draw the logo
