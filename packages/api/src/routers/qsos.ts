@@ -21,7 +21,7 @@ const qsoInput = z.object({
 	mode: z.string().trim().transform(normalizeValue).pipe(z.enum(QSO_MODES)),
 	qsoAt: z.iso.datetime(),
 	operatorSquare: z.string().trim().min(3).max(3),
-	contactSquare: z.string().trim().min(3).max(3).nullable().optional(),
+	contactSquare: z.string().trim().min(2).max(3).nullable().optional(),
 });
 
 const listInput = z
@@ -252,9 +252,10 @@ const create = protectedProcedure
 	.input(qsoInput)
 	.handler(async ({ context, input }) => {
 		const operatorSquare = normalizeWalSquare(input.operatorSquare);
-		const contactSquare = input.contactSquare
+		const rawContactSquare = input.contactSquare
 			? normalizeWalSquare(input.contactSquare)
 			: null;
+		const contactSquare = rawContactSquare === "DX" ? null : rawContactSquare;
 
 		validateSquares(operatorSquare, contactSquare);
 
@@ -400,14 +401,15 @@ const bulkCreate = protectedProcedure
 			// Normalize and filter to valid QSOs within season window
 			const normalized = input.qsos.flatMap((q) => {
 				const operatorSquare = normalizeWalSquare(q.operatorSquare);
-				const contactSquare = q.contactSquare
+				const rawContactSquare = q.contactSquare
 					? normalizeWalSquare(q.contactSquare)
 					: null;
+				const contactSquare =
+					rawContactSquare && isValidWalSquare(rawContactSquare)
+						? rawContactSquare
+						: null;
 				const qsoAt = parseISO(q.qsoAt);
 				if (!isValidWalSquare(operatorSquare)) {
-					return [];
-				}
-				if (contactSquare && !isValidWalSquare(contactSquare)) {
 					return [];
 				}
 				if (!isValid(qsoAt)) {

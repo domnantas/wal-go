@@ -10,6 +10,8 @@ UI text is in Lithuanian.
 
 Document project features in the `docs/` directory to keep a reference for future. Read the relevant documentation when working on those features. Use English language for documentation.
 
+**Always update docs when making changes.** When implementing or modifying a feature, update the corresponding doc file in `docs/` to reflect the new state. If no doc exists for the feature, create one. Do this as part of the same task — never leave docs stale.
+
 ## Development
 
 Do not run the dev server to check if changes are valid. Avoid `let`, prefer immutable/functional approach. Use `date-fns` for dates and time.

@@ -100,7 +100,8 @@ const optionalWalSchema = z
 	.string()
 	.trim()
 	.refine(
-		(value) => value === "" || isValidWalSquare(value),
+		(value) =>
+			value === "" || value.toUpperCase() === "DX" || isValidWalSquare(value),
 		"Neteisingas WAL kvadratas"
 	);
 
@@ -205,9 +206,10 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 				mode: value.mode,
 				qsoAt,
 				operatorSquare: normalizeWalSquare(value.operatorSquare),
-				contactSquare: value.contactSquare
-					? normalizeWalSquare(value.contactSquare)
-					: null,
+				contactSquare:
+					value.contactSquare && value.contactSquare.toUpperCase() !== "DX"
+						? normalizeWalSquare(value.contactSquare)
+						: null,
 			});
 		},
 	});

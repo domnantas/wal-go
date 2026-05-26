@@ -10,13 +10,13 @@
 - [] Email verification
 - [x] Cabrillo import
 - [] Presentation about WAL GO
-- [] Rules page
-- [] Feature voting
-- [] Bug reporting
+- [x] Rules page
+- [x] Set up Discord
+- [x] Feature voting
+- [x] Bug reporting
 - [] Admin page
 - [] Score reconciliation
 - [] Audit trail of uploads
 - [] Leaderboard – open question - is it ok to see who is is on what team
 - [] Spotting/self-spotting feature
-- [] Set up Discord
 - [] Re-draw the logo

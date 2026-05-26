@@ -1,11 +1,10 @@
 # QSO Logging
 
-The `/log` page has two responsibilities: ADIF file import and QSO log review/management.
+The `/log` page has two responsibilities: Cabrillo file import and QSO log review/management.
 
-## Current Implementation: Manual Entry
+## Manual Entry
 
-The first implemented slice supports manual QSO entry for the active season.
-Signed-in users can add QSOs from `/log` after joining the active season.
+Signed-in users can add QSOs manually from `/log` after joining the active season.
 
 Manual entry captures:
 
@@ -18,69 +17,80 @@ Manual entry captures:
 | Operator WAL square | Yes | Explicit WAL code, e.g. `A05`. |
 | Contact WAL square | No | Explicit WAL code when known. |
 
-The backend validates that WAL square codes are valid Lithuanian WAL cells. Duplicate detection, scoring updates, and QSO deletion are implemented for manual entry. ADIF import is planned but not implemented yet.
+The backend validates that WAL square codes are valid Lithuanian WAL cells. Duplicate detection, scoring updates, and QSO deletion are implemented for manual entry.
 
-## ADIF Import
+## Cabrillo Import
 
-ADIF import is planned but not implemented yet.
+Users drop a `.log`, `.cbr`, or `.cabrillo` file onto the dropzone on `/log`. The file must be a valid Cabrillo v3 log for the `LY-WAL` contest.
 
-Users upload an `.adif` file. The server parses every QSO record and awards points to WAL squares.
+### File Requirements
 
-### Square Assignment per QSO
+- `CALLSIGN:` header must be present and match the logged-in user's callsign (normalized — prefix/suffix stripped for comparison).
+- `CONTEST:` header must equal `LY-WAL` (case-insensitive). Any other contest is rejected.
+- File size limit: 2 MB.
 
-For the alpha season, each accepted QSO scores only the operator's square. The contact's square may still be stored when known, but it does not generate points.
+### Accepted file extensions
 
-#### Open decision: locator vs SIG_INFO
+`.log`, `.cbr`, `.cabrillo`
 
-Two ADIF approaches are on the table; final choice is TBD during implementation.
+### QSO Line Format
 
-**Option A — Maidenhead grid locator** (`MY_GRIDSQUARE` / `GRIDSQUARE`)
+Each `QSO:` line must follow the Cabrillo v3 exchange layout:
 
-| Field           | Meaning                  |
-|-----------------|--------------------------|
-| `MY_GRIDSQUARE` | Operator's Maidenhead locator |
-| `GRIDSQUARE`    | Contact's Maidenhead locator  |
+```
+QSO: <freq> <mo> <date> <time> <mycall> <rst> <mysquare> <dxcall> <rst> <theirsquare>
+```
 
-- Pro: nearly all logging software auto-fills `MY_GRIDSQUARE`.
-- Con: 4-char locators (2°×1°) are too coarse — they overlap multiple WAL squares. Need 6-char (~5′×2.5′) to resolve unambiguously to one WAL cell.
-- Con: requires Maidenhead → WAL coordinate conversion server-side.
+| Field | Notes |
+|---|---|
+| `freq` | Frequency in kHz, or Cabrillo band designator (e.g. `144`, `1.2G`) |
+| `mo` | Mode: `CW`, `PH`/`SSB`, `FM`, `RY`/`DG`/`DIGI` |
+| `date` | `YYYY-MM-DD` |
+| `time` | `HHMM` UTC |
+| `mycall` | Operator callsign — must match file `CALLSIGN:` |
+| `rst` | Signal report (ignored) |
+| `mysquare` | Operator's WAL square, e.g. `A05` (format `[A-Z]\d{2}`) |
+| `dxcall` | Contact callsign |
+| `rst` | Contact signal report (ignored) |
+| `theirsquare` | Contact's WAL square (optional; omitted or non-WAL format stored as null) |
 
-**Option B — Special Interest Group reference** (`SIG` / `SIG_INFO` and `MY_SIG` / `MY_SIG_INFO`), modeled on POTA
+### Parser (`packages/api/src/cabrillo/parser.ts`)
 
-| Field           | Value          |
-|-----------------|----------------|
-| `MY_SIG`        | `WAL`          |
-| `MY_SIG_INFO`   | WAL square ID (e.g. `A05`) |
-| `SIG`           | `WAL`          |
-| `SIG_INFO`      | WAL square ID  |
+`parseCabrillo(content)` returns a `CabrilloParseResult`:
 
-- Pro: explicit WAL square ID, zero geocoding ambiguity.
-- Pro: follows existing convention used by POTA, SOTA, etc.
-- Con: requires logging software / operator to fill it explicitly; many won't.
-- Con: contacts almost never log a foreign program's `SIG_INFO`.
+```ts
+interface CabrilloParseResult {
+  callsign: string | null;
+  contest: string | null;
+  qsos: CabrilloQso[];
+  parseErrors: CabrilloParseError[];
+}
+```
 
-**Likely resolution:** support Option A for operator location (universally available) and Option B for explicit WAL-aware logs; allow either; prefer the more specific one when both are present.
+Parse errors carry a `reason`: `invalidBand`, `invalidCallsign`, `invalidMode`, `invalidSquare`, or `malformedLine`.
 
-### Validation
+### Skip Reasons (server-side)
 
-- Operator's WAL square must resolve to a valid Lithuanian cell; QSOs outside Lithuania are silently skipped.
-- Contact's square is optional; missing values are accepted. In the alpha season, a provided contact square is stored for reference but does not score.
-- Exact duplicate detection rejects accidental double submission of the same stored QSO by the same user in the same season.
-- Game duplicate detection is scoring-rule controlled. In the alpha season, only one QSO with the same `CALL`, `BAND`, `MODE`, operator square, and contact square is valid per Lithuanian calendar day. The day boundary is midnight Lithuanian time (Europe/Vilnius, UTC+2/UTC+3). If either station changes square, another QSO with the same call, band, and mode is valid that day.
+After parsing, the server further filters QSOs. Each skipped QSO gets one of:
 
-### Processing Pipeline
+| Reason | Cause |
+|---|---|
+| `callsignMismatch` | `mycall` on QSO line differs from file callsign |
+| `invalidDate` | Date/time cannot be parsed to a valid UTC timestamp |
+| `outsideSeason` | QSO timestamp is before season start or after season end |
+| `invalidSquare` | Operator square fails WAL validation |
+| `exactDuplicate` | Identical QSO already in database for this user/season |
+| `gameDuplicate` | Same call/band/mode/squares on same Lithuanian calendar day |
 
-ADIF files can contain tens of thousands of QSOs. Upload is processed asynchronously:
+### Processing
 
-1. Client posts file to upload endpoint → server stores raw file + creates `adif_import` job row → returns `jobId`.
-2. Background worker picks up the job, parses ADIF in chunks, inserts accepted QSOs and updates `square_score` / `user_season_score` for operator squares in transactions per chunk.
-3. Client polls `imports/:jobId` for progress (`pending` → `processing(N/M)` → `done` / `failed`) and a final summary (accepted, skipped, reasons).
+Import runs synchronously in a single DB transaction (no background job). The endpoint returns immediately with:
 
-Worker runs in the same process initially (DB-backed job queue), can be split into a separate process later if needed.
+```ts
+{ accepted: number; skipped: number; errors: ImportError[] }
+```
 
-### Processing Result
-
-When the job completes, the user sees a summary: how many QSOs were accepted, how many skipped, and reasons for skips.
+Each `ImportError` contains the line number, raw line content, and skip reason. The UI displays a summary and a collapsible error list.
 
 ## QSO Storage
 

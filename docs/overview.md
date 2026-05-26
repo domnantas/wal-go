@@ -12,7 +12,7 @@ Lithuania is divided into a grid of WAL squares (10′ × 10′ lat/lon cells). 
 2. **Add callsign** — required before joining a season; stored on user profile
 3. **Join a season** — available while a season is active (see [seasons.md](seasons.md))
 4. **Spin the wheel** — server assigns player to yellow, green, or red team at random; assignment is permanent for that season
-5. **Log QSOs** — upload `.adif` files on the `/log` page; each valid QSO awards points to WAL squares (see [qso-logging.md](qso-logging.md))
+5. **Log QSOs** — drop a Cabrillo `.log`/`.cbr`/`.cabrillo` file or add QSOs manually on `/log`; each valid QSO awards points to WAL squares (see [qso-logging.md](qso-logging.md))
 6. **Watch the map** — main screen at `/map` shows Lithuania with squares colored by controlling team (see [map.md](map.md))
 
 ## Season Lifecycle
@@ -38,6 +38,7 @@ Three fixed teams per season: **yellow**, **green**, **red**. Team assignment is
 - [auth.md](auth.md) — authentication and session handling
 - [seasons.md](seasons.md) — season schema, team assignment, API endpoints
 - [map.md](map.md) — WAL grid geometry, MapLibre rendering
-- [qso-logging.md](qso-logging.md) — ADIF import, QSO processing, log CRUD
+- [qso-logging.md](qso-logging.md) — Cabrillo import, QSO processing, log CRUD
 - [scoring.md](scoring.md) — territory control rules, leaderboard
 - [design.md](design.md) — color token roles and accessibility guidance
+- [rules.md](rules.md) — public rules page (`/rules`)
