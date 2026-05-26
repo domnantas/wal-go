@@ -429,9 +429,6 @@ function HomeComponent() {
 				<div className="mx-auto grid max-w-6xl gap-8 px-8 py-10 text-sm md:grid-cols-4">
 					<div className="space-y-3">
 						<p className="font-bold font-serif text-xl">WAL GO</p>
-						<p className="text-muted-foreground text-xs leading-relaxed">
-							Komandinis radijo mėgėjų žaidimas Lietuvoje. Alfa versija · 2026.
-						</p>
 					</div>
 					<div>
 						<p className="mb-3 font-bold text-xs uppercase tracking-wider">
