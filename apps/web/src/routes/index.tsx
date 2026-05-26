@@ -447,6 +447,11 @@ function HomeComponent() {
 									Kaip žaisti?
 								</button>
 							</li>
+							<li>
+								<Link className="hover:text-foreground" to="/rules">
+									Taisyklės
+								</Link>
+							</li>
 						</ul>
 					</div>
 					<div>

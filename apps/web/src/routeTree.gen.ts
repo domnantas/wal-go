@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RulesRouteImport } from './routes/rules'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as JoinSeasonRouteImport } from './routes/join-season'
@@ -18,6 +19,11 @@ import { Route as AuthPathRouteImport } from './routes/auth/$path'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const RulesRoute = RulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
   '/map': typeof MapRoute
+  '/rules': typeof RulesRoute
   '/auth/$path': typeof AuthPathRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
   '/map': typeof MapRoute
+  '/rules': typeof RulesRoute
   '/auth/$path': typeof AuthPathRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/join-season': typeof JoinSeasonRoute
   '/log': typeof LogRoute
   '/map': typeof MapRoute
+  '/rules': typeof RulesRoute
   '/auth/$path': typeof AuthPathRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/log'
     | '/map'
+    | '/rules'
     | '/auth/$path'
     | '/settings/$path'
     | '/api/auth/$'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/log'
     | '/map'
+    | '/rules'
     | '/auth/$path'
     | '/settings/$path'
     | '/api/auth/$'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/log'
     | '/map'
+    | '/rules'
     | '/auth/$path'
     | '/settings/$path'
     | '/api/auth/$'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   JoinSeasonRoute: typeof JoinSeasonRoute
   LogRoute: typeof LogRoute
   MapRoute: typeof MapRoute
+  RulesRoute: typeof RulesRoute
   AuthPathRoute: typeof AuthPathRoute
   SettingsPathRoute: typeof SettingsPathRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -136,6 +149,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/rules': {
+      id: '/rules'
+      path: '/rules'
+      fullPath: '/rules'
+      preLoaderRoute: typeof RulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/map': {
       id: '/map'
       path: '/map'
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinSeasonRoute: JoinSeasonRoute,
   LogRoute: LogRoute,
   MapRoute: MapRoute,
+  RulesRoute: RulesRoute,
   AuthPathRoute: AuthPathRoute,
   SettingsPathRoute: SettingsPathRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

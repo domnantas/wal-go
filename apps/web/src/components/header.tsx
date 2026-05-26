@@ -6,7 +6,7 @@ import {
 	DropdownMenuTrigger,
 } from "@WAL-GO/ui/components/dropdown-menu";
 import { Link } from "@tanstack/react-router";
-import { Map as MapIcon, Menu, NotebookPen } from "lucide-react";
+import { BookOpen, Map as MapIcon, Menu, NotebookPen } from "lucide-react";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@/components/user-button";
@@ -20,10 +20,16 @@ interface HeaderProps {
 export default function Header({ session: initialSession }: HeaderProps) {
 	const { data: clientSession, isPending } = authClient.useSession();
 	const isAuthenticated = isPending ? !!initialSession : !!clientSession;
-	const links = [
+	const authLinks = [
 		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },
 	] as const;
+	const publicLinks = [
+		{ to: "/rules", label: "Taisyklės", icon: BookOpen, exact: false },
+	] as const;
+	const allLinks = isAuthenticated
+		? ([...authLinks, ...publicLinks] as const)
+		: publicLinks;
 
 	return (
 		<header className="sticky top-0 z-50 border-border/60 border-b bg-card/50 backdrop-blur-sm">
@@ -37,40 +43,36 @@ export default function Header({ session: initialSession }: HeaderProps) {
 						/>
 					</Link>
 
-					{isAuthenticated && (
-						<>
-							<nav className="hidden gap-1 md:flex">
-								{links.map(({ to, label, icon: Icon, exact }) => (
-									<Link
-										activeOptions={{ exact }}
-										className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground [&.active]:bg-muted [&.active]:text-foreground"
-										key={to}
-										to={to}
-									>
-										<Icon className="size-4" />
-										{label}
-									</Link>
-								))}
-							</nav>
+					<nav className="hidden gap-1 md:flex">
+						{allLinks.map(({ to, label, icon: Icon, exact }) => (
+							<Link
+								activeOptions={{ exact }}
+								className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground [&.active]:bg-muted [&.active]:text-foreground"
+								key={to}
+								to={to}
+							>
+								<Icon className="size-4" />
+								{label}
+							</Link>
+						))}
+					</nav>
 
-							<DropdownMenu>
-								<DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden">
-									<Menu className="size-5" />
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									{links.map(({ to, label, icon: Icon, exact }) => (
-										<DropdownMenuItem
-											key={to}
-											render={<Link activeOptions={{ exact }} to={to} />}
-										>
-											<Icon className="size-4" />
-											{label}
-										</DropdownMenuItem>
-									))}
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</>
-					)}
+					<DropdownMenu>
+						<DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden">
+							<Menu className="size-5" />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							{allLinks.map(({ to, label, icon: Icon, exact }) => (
+								<DropdownMenuItem
+									key={to}
+									render={<Link activeOptions={{ exact }} to={to} />}
+								>
+									<Icon className="size-4" />
+									{label}
+								</DropdownMenuItem>
+							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 
 				<div className="flex items-center gap-2">
