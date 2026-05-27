@@ -79,7 +79,7 @@ The Cloudflare token must be the raw API token value, not the token ID and not a
 
 The deploy workflow follows Alchemy's recommended GitHub Actions shape: it defines a top-level `STAGE`, uses `deploy-${{ github.ref }}` concurrency with `cancel-in-progress: false`, grants `contents: read` and `pull-requests: write`, and runs deploy for non-closed events. `STAGE` is `prod` on `main`, `pr-{N}` for pull requests, and falls back to the branch name for other push refs.
 
-The deploy and destroy commands pass `--yes` because GitHub Actions is non-interactive. Cleanup runs only for closed pull requests and includes a safety check that refuses to destroy `prod`.
+The deploy and destroy commands call `pnpm exec alchemy ...` directly from `packages/infra` and pass `--yes` because GitHub Actions is non-interactive. Root `pnpm deploy` and `pnpm destroy` also bypass Turbo and call the Alchemy CLI directly so flags like `--yes` and `--stage` are parsed by Alchemy. Cleanup runs only for closed pull requests and includes a safety check that refuses to destroy `prod`.
 
 The PlanetScale token must be a service token. Store the service token ID in `PLANETSCALE_API_TOKEN_ID` and the service token value in `PLANETSCALE_API_TOKEN`; PlanetScale authenticates API requests with an `Authorization` header in the `<SERVICE_TOKEN_ID>:<SERVICE_TOKEN>` format. The token must be scoped to the organization in `PLANETSCALE_ORGANIZATION`.
 

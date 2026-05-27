@@ -37,7 +37,7 @@ jobs:
 
       - name: Deploy
         working-directory: packages/infra
-        run: pnpm run deploy -- --yes --stage ${{ env.STAGE }}
+        run: pnpm exec alchemy deploy --yes --stage ${{ env.STAGE }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -78,7 +78,7 @@ jobs:
 
       - name: Destroy Preview
         working-directory: packages/infra
-        run: pnpm run destroy -- --yes --stage ${{ env.STAGE }}
+        run: pnpm exec alchemy destroy --yes --stage ${{ env.STAGE }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

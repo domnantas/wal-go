@@ -16,8 +16,8 @@
     "db:generate": "turbo -F @WAL-GO/db db:generate",
     "db:migrate": "turbo -F @WAL-GO/db db:migrate",
     "db:seed": "turbo -F @WAL-GO/db db:seed",
-    "deploy": "turbo -F @WAL-GO/infra deploy",
-    "destroy": "turbo -F @WAL-GO/infra destroy",
+    "deploy": "pnpm --dir packages/infra exec alchemy deploy",
+    "destroy": "pnpm --dir packages/infra exec alchemy destroy",
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
