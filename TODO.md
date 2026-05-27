@@ -15,8 +15,8 @@
 - [x] Feature voting
 - [x] Bug reporting
 - [] Admin page
+- [] Audit trail of uploads in admin
 - [] Score reconciliation
-- [] Audit trail of uploads
 - [] Leaderboard – open question - is it ok to see who is is on what team
 - [] Spotting/self-spotting feature
 - [] Re-draw the logo

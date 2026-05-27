@@ -29,6 +29,10 @@ Status is derived from timestamps — there is no separate status column. Season
 
 The main screen renders a MapLibre GL map of Lithuania overlaid with the WAL grid. Each square is colored by the team that controls it, or neutral if uncontested or tied. See [map.md](map.md) for grid geometry and rendering details.
 
+## Homepage
+
+The homepage introduces WAL GO, shows live season/team context when available, explains the gameplay loop, demonstrates Cabrillo log processing, answers common questions, and ends with a Discord invite that links to the community server.
+
 ## Teams
 
 Three fixed teams per season: **yellow**, **green**, **red**. Team assignment is random (server-side spin) and cannot be changed within a season. A player who has already joined sees their assigned team immediately instead of the spin UI.

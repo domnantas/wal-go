@@ -3,10 +3,17 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@WAL-GO/ui/components/dropdown-menu";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, Map as MapIcon, Menu, NotebookPen } from "lucide-react";
+import {
+	BookOpen,
+	Map as MapIcon,
+	Menu,
+	NotebookPen,
+	Paintbrush,
+} from "lucide-react";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@/components/user-button";
@@ -71,6 +78,18 @@ export default function Header({ session: initialSession }: HeaderProps) {
 									{label}
 								</DropdownMenuItem>
 							))}
+							{!isAuthenticated && (
+								<>
+									<DropdownMenuSeparator />
+									<div className="flex items-center justify-between px-3 py-1.5 font-medium text-sm">
+										<div className="flex items-center gap-2.5">
+											<Paintbrush className="size-4 text-muted-foreground" />
+											Tema
+										</div>
+										<ThemeToggle />
+									</div>
+								</>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
@@ -80,7 +99,9 @@ export default function Header({ session: initialSession }: HeaderProps) {
 						<UserButton session={initialSession} />
 					) : (
 						<>
-							<ThemeToggle />
+							<div className="hidden md:block">
+								<ThemeToggle />
+							</div>
 							<Button
 								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
 								size="sm"

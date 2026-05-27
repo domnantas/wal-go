@@ -22,3 +22,12 @@ Avoid white text on golden or light team colors. Use the matching foreground tok
 ## Map And Competition UI
 
 Map ownership may use team colors, but should also use a non-color cue where practical, such as stronger outlines, selected states, labels, or future patterned fills.
+
+## Shared Icons
+
+App-specific icons that are reused in multiple web surfaces should live in `apps/web/src/components`. `DiscordIcon` is shared by the account menu and homepage Discord invite.
+When a dropdown item uses a rendered link element with custom visible content, put that visible icon and text inside the rendered element so the menu item remains visible and accessible.
+
+## Header Actions
+
+Desktop public header actions show the theme toggle beside the sign-in button. On mobile, the public theme toggle lives inside the navigation dropdown as a `Tema` row so the header keeps a compact action area. Authenticated users manage the theme from the account dropdown on all breakpoints.

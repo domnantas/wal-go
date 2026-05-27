@@ -1,7 +1,9 @@
-import { Button } from "@WAL-GO/ui/components/button";
+import { Button, buttonVariants } from "@WAL-GO/ui/components/button";
+import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Plus } from "lucide-react";
+import { DiscordIcon } from "@/components/discord-icon";
 import { MapView } from "@/domains/map/map-view";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
@@ -396,30 +398,28 @@ function HomeComponent() {
 				</div>
 			</section>
 
-			{/* ── CTA ──────────────────────────────────────────────── */}
+			{/* ── Discord ──────────────────────────────────────────── */}
 			<section>
 				<div className="mx-auto max-w-4xl px-8 py-24 text-center">
 					<h2 className="font-bold font-serif text-5xl leading-tight tracking-tight md:text-6xl">
-						Radijo mėgėjai
+						Prisijunk prie WAL GO
 						<br />
-						tavęs <em className="text-rust italic">laukia.</em>
+						<em className="text-rust italic">bendruomenės.</em>
 					</h2>
-					<div className="mt-8 flex items-center justify-center gap-3">
-						{session ? (
-							<Button className="px-6" render={<Link to="/map" />} size="lg">
-								Žiūrėti žemėlapį
-								<ArrowRight className="size-4" />
-							</Button>
-						) : (
-							<Button
-								className="px-6"
-								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
-								size="lg"
-							>
-								Prisijungti
-								<ArrowRight className="size-4" />
-							</Button>
-						)}
+					<p className="mx-auto mt-5 max-w-2xl text-base text-foreground/75 leading-relaxed md:text-lg">
+						Aptark taisykles, susirask aktyvius korespondentus, pranešk apie
+						išvykas į WAL kvadratus ir sek naujienas.
+					</p>
+					<div className="mt-8 flex items-center justify-center">
+						<a
+							className={cn(buttonVariants({ size: "lg" }), "px-6")}
+							href="https://discord.gg/RQfcQ29d44"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							<DiscordIcon className="size-4" />
+							Prisijungti prie Discord
+						</a>
 					</div>
 				</div>
 			</section>

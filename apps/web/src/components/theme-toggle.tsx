@@ -6,7 +6,7 @@ export function ThemeToggle() {
 	const { theme, setTheme } = useTheme();
 
 	return (
-		<Tabs className="ml-4" onValueChange={setTheme} value={theme ?? "system"}>
+		<Tabs onValueChange={setTheme} value={theme ?? "system"}>
 			<TabsList className="h-6! gap-0.5">
 				<TabsTrigger
 					aria-label="Sistemos"
