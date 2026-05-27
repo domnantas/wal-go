@@ -77,7 +77,9 @@ The Cloudflare token must be the raw API token value, not the token ID and not a
 - Hyperdrive: Edit
 - Secrets Store: Edit (or Secrets Store Read + Write if Cloudflare shows split permissions)
 
-The deploy workflow verifies the token itself with Cloudflare's token verification endpoint, then checks the account, Workers Scripts, Hyperdrive, and Secrets Store APIs that Alchemy uses. If token verification passes but one of the endpoint checks fails with `401` or `403`, the token is valid but is missing that API permission for the account. A `404` is accepted only for the Workers state-store script settings check because the `alchemy-state-store` Worker may not exist yet on the first deploy. Preview deploys intentionally skip pull requests from forks because repository secrets are not available to those workflow runs.
+The deploy workflow follows Alchemy's recommended GitHub Actions shape: it defines a top-level `STAGE`, uses `deploy-${{ github.ref }}` concurrency with `cancel-in-progress: false`, grants `contents: read` and `pull-requests: write`, and runs deploy for non-closed events. `STAGE` is `prod` on `main`, `pr-{N}` for pull requests, and falls back to the branch name for other push refs.
+
+The deploy and destroy commands pass `--yes` because GitHub Actions is non-interactive. Cleanup runs only for closed pull requests and includes a safety check that refuses to destroy `prod`.
 
 The PlanetScale token must be a service token. Store the service token ID in `PLANETSCALE_API_TOKEN_ID` and the service token value in `PLANETSCALE_API_TOKEN`; PlanetScale authenticates API requests with an `Authorization` header in the `<SERVICE_TOKEN_ID>:<SERVICE_TOKEN>` format. The token must be scoped to the organization in `PLANETSCALE_ORGANIZATION`.
 
@@ -87,8 +89,6 @@ Required PlanetScale access:
 - Database access for all current and future databases, or at least for `wal-go`: `read_database`, `write_database`, `read_branch`, `create_branch`, `delete_branch`, `connect_branch`, `connect_production_branch`, `create_branch_password`, `create_production_branch_password`, `delete_branch_password`, `delete_production_branch_password`
 
 `write_database` is required because Alchemy reconciles PlanetScale database settings with the `PATCH /organizations/{organization}/databases/{database}` endpoint. Password permissions are required because `PostgresRole` creates and deletes branch role credentials for Hyperdrive.
-
-The deploy workflow fails fast if any PlanetScale secret or organization value is unavailable to the run. If that preflight reports `PLANETSCALE_API_TOKEN_ID`, `PLANETSCALE_API_TOKEN`, or `PLANETSCALE_ORGANIZATION` as missing, confirm the value exists in repository secrets and that the workflow event is allowed to read secrets.
 
 Required GitHub variables:
 
