@@ -62,6 +62,7 @@ export default Stack(
 
 		const web = yield* Vite("web", {
 			rootDir: "../../apps/web",
+			domain: isProd ? ["walgo.lt", "www.walgo.lt"] : undefined,
 			compatibility: {
 				flags: ["nodejs_compat", "nodejs_compat_populate_process_env"],
 			},
