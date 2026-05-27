@@ -70,13 +70,13 @@ Required GitHub secrets:
 | `PLANETSCALE_ORGANIZATION` | PlanetScale organization slug |
 | `BETTER_AUTH_SECRET` | better-auth secret key |
 
-The Cloudflare token must be the API token value, not the token ID. It must be scoped to the account in `CLOUDFLARE_ACCOUNT_ID` and allow:
+The Cloudflare token must be the raw API token value, not the token ID and not an `Authorization` header value. Store `abc...` in `CLOUDFLARE_API_TOKEN`, not `Bearer abc...`. It must be scoped to the account in `CLOUDFLARE_ACCOUNT_ID` and allow:
 
 - Account Settings: Read
 - Workers Scripts: Edit
 - Hyperdrive: Edit
 
-The deploy workflow verifies the token can read the configured account and can pass Cloudflare's token verification endpoint before running Alchemy. Preview deploys intentionally skip pull requests from forks because repository secrets are not available to those workflow runs.
+The deploy workflow first verifies the token itself with Cloudflare's token verification endpoint, then verifies that the same token can read the account in `CLOUDFLARE_ACCOUNT_ID`. If token verification passes but account access fails, check that the account ID is correct and that the token has `Account Settings: Read` for that account. Preview deploys intentionally skip pull requests from forks because repository secrets are not available to those workflow runs.
 
 Required GitHub variables:
 
