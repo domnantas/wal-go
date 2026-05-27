@@ -25,7 +25,8 @@ The stack creates:
 2. `PostgresBranch` — isolated branch per PR stage; prod uses `main` directly
 3. `PostgresRole` — credentials with `postgres` inherited role; `.origin` wires directly into Hyperdrive
 4. `Hyperdrive` — pools connections; uses the unique logical id `hyperdrive` so it does not collide with the PlanetScale database resource; `dev` override points to `localhost:5432` for `alchemy dev`
-5. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`
+5. `Drizzle.Schema` — generates migration SQL using drizzle-kit's programmatic API whenever the schema in `packages/db/src/schema/` changes; migrations are written to `packages/db/migrations/`
+6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`
 
 ## Local development
 
@@ -46,6 +47,20 @@ cd packages/infra && pnpm dev
 ```
 
 Runs the Worker in workerd. Hyperdrive `dev` override connects to local Postgres at `localhost:5432`. Requires a local Postgres instance.
+
+## Migrations
+
+Drizzle migrations are managed by Alchemy via the `Drizzle.Schema` resource in `packages/infra/alchemy.run.ts`. On every deploy, alchemy compares the current schema against the latest snapshot and generates a new migration SQL file if anything changed.
+
+Migration files live in `packages/db/migrations/` in the format `{timestamp}_migration/migration.sql` + `snapshot.json`. These should be committed to git. Both `alchemy deploy` and the `drizzle-kit` CLI scripts in `packages/db` use this directory.
+
+Migrations are applied automatically on deploy:
+- **prod** (`main` branch): applied via `PostgresDatabase.migrationsDir`
+- **PR preview** (`pr-{N}` branch): applied via `PostgresBranch.migrationsDir`
+
+The migrations table (`__drizzle_migrations`) is created automatically in each database branch and tracks which migrations have been applied (by filename), so each migration only runs once.
+
+To add a migration: modify the schema in `packages/db/src/schema/`, then deploy. Alchemy generates and applies the migration automatically.
 
 ## Database connection
 

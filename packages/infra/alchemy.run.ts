@@ -5,6 +5,7 @@ import {
 	state,
 	Vite,
 } from "alchemy/Cloudflare";
+import { providers as drizzleProviders, Schema } from "alchemy/Drizzle";
 import { Comment, providers as ghProviders } from "alchemy/GitHub";
 import { interpolate } from "alchemy/Output";
 import {
@@ -18,12 +19,22 @@ import { Effect, Layer, Redacted } from "effect";
 export default Stack(
 	"WAL-GO",
 	{
-		providers: Layer.mergeAll(cfProviders(), psProviders(), ghProviders()),
+		providers: Layer.mergeAll(
+			cfProviders(),
+			psProviders(),
+			ghProviders(),
+			drizzleProviders()
+		),
 		state: state(),
 	},
 	Effect.gen(function* () {
 		const stage = yield* Stage;
 		const isProd = stage === "prod";
+
+		const schema = yield* Schema("db-schema", {
+			schema: "../../packages/db/src/schema/index.ts",
+			out: "../../packages/db/migrations",
+		});
 
 		const db = yield* PostgresDatabase("db", {
 			name: "wal-go",
@@ -33,6 +44,7 @@ export default Stack(
 			region: {
 				slug: "eu-central",
 			},
+			migrationsDir: isProd ? schema.out : undefined,
 		});
 
 		const branch = isProd
@@ -40,6 +52,7 @@ export default Stack(
 			: yield* PostgresBranch("db-branch", {
 					database: db,
 					parentBranch: "main",
+					migrationsDir: schema.out,
 				});
 
 		const role = yield* PostgresRole("db-role", {

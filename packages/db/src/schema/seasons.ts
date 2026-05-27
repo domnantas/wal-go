@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
 	integer,
 	pgEnum,
@@ -8,8 +7,7 @@ import {
 	uniqueIndex,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { user } from "./auth";
-import { qso } from "./qsos";
+import { user } from "./auth.ts";
 
 export const teamColor = pgEnum("team_color", ["yellow", "green", "red"]);
 
@@ -60,23 +58,4 @@ export const seasonMembership = pgTable(
 			table.seasonId
 		),
 	]
-);
-
-export const seasonRelations = relations(season, ({ many }) => ({
-	qsos: many(qso),
-	memberships: many(seasonMembership),
-}));
-
-export const seasonMembershipRelations = relations(
-	seasonMembership,
-	({ one }) => ({
-		season: one(season, {
-			fields: [seasonMembership.seasonId],
-			references: [season.id],
-		}),
-		user: one(user, {
-			fields: [seasonMembership.userId],
-			references: [user.id],
-		}),
-	})
 );

@@ -1,8 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-
-// biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
-import * as schema from "./schema";
+import { relations } from "./schema/relations.ts";
 
 export function createDb(connectionString?: string) {
 	const pool = new Pool({
@@ -10,5 +8,5 @@ export function createDb(connectionString?: string) {
 		maxUses: 1,
 	});
 
-	return drizzle({ client: pool, schema });
+	return drizzle({ client: pool, relations });
 }

@@ -20,6 +20,7 @@ export const env = createEnv({
 export async function getCloudflareEnv(): Promise<CloudflareEnv | undefined> {
 	try {
 		const moduleName = "cloudflare:workers";
+		/* @vite-ignore */
 		const { env: cloudflareEnv } = (await import(moduleName)) as {
 			env: CloudflareEnv;
 		};

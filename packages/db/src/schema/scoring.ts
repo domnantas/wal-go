@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import {
 	check,
 	index,
@@ -8,8 +8,8 @@ import {
 	uniqueIndex,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { user } from "./auth";
-import { season, teamColor } from "./seasons";
+import { user } from "./auth.ts";
+import { season, teamColor } from "./seasons.ts";
 
 export const squareScore = pgTable(
 	"square_score",
@@ -52,25 +52,4 @@ export const userSeasonScore = pgTable(
 		),
 		check("user_season_score_points_non_negative", sql`${table.points} >= 0`),
 	]
-);
-
-export const squareScoreRelations = relations(squareScore, ({ one }) => ({
-	season: one(season, {
-		fields: [squareScore.seasonId],
-		references: [season.id],
-	}),
-}));
-
-export const userSeasonScoreRelations = relations(
-	userSeasonScore,
-	({ one }) => ({
-		season: one(season, {
-			fields: [userSeasonScore.seasonId],
-			references: [season.id],
-		}),
-		user: one(user, {
-			fields: [userSeasonScore.userId],
-			references: [user.id],
-		}),
-	})
 );

@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
 	index,
 	integer,
@@ -9,8 +8,8 @@ import {
 	unique,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { user } from "./auth";
-import { season, teamColor } from "./seasons";
+import { user } from "./auth.ts";
+import { season, teamColor } from "./seasons.ts";
 
 export const QSO_MODES = ["CW", "SSB", "FM", "DIGI"] as const;
 export const QSO_BANDS = [
@@ -91,14 +90,3 @@ export const qso = pgTable(
 		index("qso_season_idx").on(table.seasonId),
 	]
 );
-
-export const qsoRelations = relations(qso, ({ one }) => ({
-	user: one(user, {
-		fields: [qso.userId],
-		references: [user.id],
-	}),
-	season: one(season, {
-		fields: [qso.seasonId],
-		references: [season.id],
-	}),
-}));

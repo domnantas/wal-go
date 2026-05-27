@@ -1,6 +1,5 @@
 import { VALID_WAL_RANGES } from "@WAL-GO/grid";
 import path from "node:path";
-import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { sql } from "drizzle-orm";
@@ -11,9 +10,9 @@ import { Pool } from "pg";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../apps/web/.env") });
 
-// biome-ignore lint/performance/noNamespaceImport: seed script
-import * as schema from "./schema";
-import { QSO_BANDS, QSO_MODES } from "./schema/qsos";
+// biome-ignore lint/performance/noNamespaceImport: seed script needs all tables
+import * as schema from "./schema/index.ts";
+import { QSO_BANDS, QSO_MODES } from "./schema/qsos.ts";
 
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz";
 const nanoid = customAlphabet(ALPHABET, 12);
@@ -96,19 +95,8 @@ async function seed() {
 		throw new Error("DATABASE_URL not set");
 	}
 
-	const rl = createInterface({ input: process.stdin, output: process.stdout });
-	const answer = await rl.question(
-		"This will CLEAR all data in the database. Type 'yes' to continue: "
-	);
-	rl.close();
-
-	if (answer.trim() !== "yes") {
-		console.log("Aborted.");
-		process.exit(0);
-	}
-
 	const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-	const db = drizzle({ client: pool, schema });
+	const db = drizzle({ client: pool });
 
 	await db.execute(sql`
 		TRUNCATE qso, season_membership, season, square_score, user_season_score, session, account, verification, "user" RESTART IDENTITY CASCADE

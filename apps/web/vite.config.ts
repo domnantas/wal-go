@@ -10,5 +10,8 @@ export default defineConfig({
 	resolve: {
 		tsconfigPaths: true,
 	},
+	optimizeDeps: {
+		exclude: ["cloudflare:workers"],
+	},
 	plugins: [tailwindcss(), tanstackStart(), viteReact()],
 });

@@ -87,10 +87,17 @@ After parsing, the server further filters QSOs. Each skipped QSO gets one of:
 Import runs synchronously in a single DB transaction (no background job). The endpoint returns immediately with:
 
 ```ts
-{ accepted: number; skipped: number; errors: ImportError[] }
+{
+  accepted: number;
+  skipped: number;
+  imported: ImportSuccess[];
+  errors: ImportError[];
+}
 ```
 
 Each `ImportError` contains the line number, raw line content, and skip reason. The UI displays a summary and a collapsible error list.
+
+Each `ImportSuccess` contains the source line number, raw line content, and stored QSO. After a successful import, the UI shows the imported QSOs in an expanded result table so users can confirm which contacts were accepted without relying only on the main log refresh.
 
 ## QSO Storage
 

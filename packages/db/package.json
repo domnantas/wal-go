@@ -28,7 +28,7 @@
     "@WAL-GO/config": "workspace:*",
     "@WAL-GO/grid": "workspace:*",
     "@types/pg": "catalog:",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "1.0.0-rc.3",
     "tsx": "^4.21.0",
     "typescript": "catalog:"
   }

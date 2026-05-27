@@ -1,4 +1,8 @@
-import type { ImportError, SkipReason } from "@WAL-GO/api/routers/qsos";
+import type {
+	ImportError,
+	ImportSuccess,
+	SkipReason,
+} from "@WAL-GO/api/routers/qsos";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
@@ -162,6 +166,7 @@ function StatCard({
 interface ImportResult {
 	accepted: number;
 	errors: ImportError[];
+	imported: ImportSuccess[];
 	skipped: number;
 }
 
@@ -180,6 +185,8 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	invalidMode: "Neatpažinta moduliacija",
 	invalidSquare: "Neteisingas WAL kvadratas",
 	outsideSeason: "Už sezono ribų",
+	malformedLine: "Neteisingas formatas",
+	invalidCallsign: "Neteisingas šaukinys",
 };
 
 function CabrilloDropzone() {
@@ -187,11 +194,13 @@ function CabrilloDropzone() {
 	const [state, setState] = useState<DropzoneState>({ status: "idle" });
 	const [isDragging, setIsDragging] = useState(false);
 	const [errorsExpanded, setErrorsExpanded] = useState(false);
+	const [importedExpanded, setImportedExpanded] = useState(true);
 
 	const importMutation = useMutation(
 		orpc.qsos.importCabrillo.mutationOptions({
 			onSuccess: (result) => {
 				setState({ status: "done", result });
+				setImportedExpanded(true);
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.list.queryOptions().queryKey,
 				});
@@ -277,6 +286,7 @@ function CabrilloDropzone() {
 						onClick={() => {
 							setState({ status: "idle" });
 							setErrorsExpanded(false);
+							setImportedExpanded(true);
 						}}
 						size="sm"
 						variant="ghost"
@@ -284,11 +294,84 @@ function CabrilloDropzone() {
 						Įkelti dar kartą
 					</Button>
 				</div>
+				{result.imported.length > 0 && (
+					<div>
+						<button
+							className="flex items-center gap-1 text-muted-foreground text-xs hover:text-foreground"
+							onClick={() => setImportedExpanded((value) => !value)}
+							type="button"
+						>
+							{importedExpanded ? (
+								<ChevronUp className="size-3.5" />
+							) : (
+								<ChevronDown className="size-3.5" />
+							)}
+							Sėkmingai įkelti QSO
+						</button>
+						{importedExpanded && (
+							<div className="mt-2 max-h-72 overflow-y-auto rounded-2xl border border-border">
+								<table className="w-full text-xs">
+									<thead className="bg-muted/40">
+										<tr>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Eilutė
+											</th>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Data
+											</th>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Šaukinys
+											</th>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Diapazonas
+											</th>
+											<th className="px-3 py-2 text-left font-medium text-muted-foreground">
+												Kvadratai
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										{result.imported.map((importedQso) => (
+											<tr
+												className="border-border border-t"
+												key={importedQso.qso.id}
+											>
+												<td className="px-3 py-1.5 text-muted-foreground tabular-nums">
+													{importedQso.line}
+												</td>
+												<td className="whitespace-nowrap px-3 py-1.5 text-muted-foreground tabular-nums">
+													{toDisplayDate(importedQso.qso.qsoAt)}
+												</td>
+												<td className="px-3 py-1.5 font-bold text-foreground">
+													{importedQso.qso.contactCallsign}
+												</td>
+												<td className="px-3 py-1.5 text-muted-foreground">
+													{importedQso.qso.band} / {importedQso.qso.mode}
+												</td>
+												<td className="px-3 py-1.5 text-muted-foreground">
+													<span className="font-mono">
+														{importedQso.qso.operatorSquare}
+													</span>
+													{importedQso.qso.contactSquare ? (
+														<span className="font-mono">
+															{" "}
+															- {importedQso.qso.contactSquare}
+														</span>
+													) : null}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						)}
+					</div>
+				)}
 				{result.errors.length > 0 && (
 					<div>
 						<button
 							className="flex items-center gap-1 text-muted-foreground text-xs hover:text-foreground"
-							onClick={() => setErrorsExpanded((v) => !v)}
+							onClick={() => setErrorsExpanded((value) => !value)}
 							type="button"
 						>
 							{errorsExpanded ? (
@@ -296,7 +379,7 @@ function CabrilloDropzone() {
 							) : (
 								<ChevronDown className="size-3.5" />
 							)}
-							Rodyti praleistas eilutes
+							Praleistos eilutės
 						</button>
 						{errorsExpanded && (
 							<div className="mt-2 max-h-60 overflow-y-auto rounded-2xl border border-border">

@@ -305,7 +305,7 @@ const create = protectedProcedure
 
 			if (!membershipRows[0]) {
 				throw new ORPCError("FORBIDDEN", {
-					message: "Pirma prisijunkite prie sezono",
+					message: "Prisijunkite prie sezono",
 				});
 			}
 
@@ -391,7 +391,7 @@ const bulkCreate = protectedProcedure
 
 			if (!membershipRows[0]) {
 				throw new ORPCError("FORBIDDEN", {
-					message: "Pirma prisijunkite prie sezono",
+					message: "Prisijunkite prie sezono",
 				});
 			}
 
@@ -544,6 +544,12 @@ export interface ImportError {
 	content: string;
 	line: number;
 	reason: SkipReason;
+}
+
+export interface ImportSuccess {
+	content: string;
+	line: number;
+	qso: ReturnType<typeof serializeQso>;
 }
 
 interface LineMeta {
@@ -710,7 +716,7 @@ const importCabrillo = protectedProcedure
 
 			if (!membershipRows[0]) {
 				throw new ORPCError("FORBIDDEN", {
-					message: "Pirma prisijunkite prie sezono",
+					message: "Prisijunkite prie sezono",
 				});
 			}
 
@@ -748,20 +754,38 @@ const importCabrillo = protectedProcedure
 				"gameDuplicate"
 			);
 
+			const imported: ImportSuccess[] = [];
+
 			if (toInsert.length > 0) {
-				await tx.insert(qso).values(
-					toInsert.map((q) => ({
-						userId,
-						seasonId: currentSeason.id,
-						contactCallsign: q.contactCallsign,
-						band: q.band as typeof qso.band._.data,
-						mode: q.mode as typeof qso.mode._.data,
-						qsoAt: q.qsoAt,
-						team,
-						operatorSquare: q.operatorSquare,
-						contactSquare: q.contactSquare,
-					}))
-				);
+				const insertedRows = await tx
+					.insert(qso)
+					.values(
+						toInsert.map((q) => ({
+							userId,
+							seasonId: currentSeason.id,
+							contactCallsign: q.contactCallsign,
+							band: q.band as typeof qso.band._.data,
+							mode: q.mode as typeof qso.mode._.data,
+							qsoAt: q.qsoAt,
+							team,
+							operatorSquare: q.operatorSquare,
+							contactSquare: q.contactSquare,
+						}))
+					)
+					.returning();
+
+				for (const [index, insertedRow] of insertedRows.entries()) {
+					const source = toInsert[index];
+					const meta = source ? metaMap.get(source) : undefined;
+					if (meta) {
+						imported.push({
+							content: meta.rawLine,
+							line: meta.lineNumber,
+							qso: serializeQso(insertedRow),
+						});
+					}
+				}
+
 				const deltas = ruleSet.scoreBulkInsert(toInsert);
 				await applyScoreDeltas(tx, currentSeason.id, deltas);
 			}
@@ -777,6 +801,7 @@ const importCabrillo = protectedProcedure
 				accepted: toInsert.length,
 				skipped: errors.length,
 				errors,
+				imported,
 			};
 		});
 	});
