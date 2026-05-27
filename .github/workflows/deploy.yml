@@ -33,7 +33,7 @@ jobs:
 
       - name: Deploy
         working-directory: packages/infra
-        run: pnpm run deploy -- --stage ${{ env.STAGE }} --yes
+        run: pnpm run deploy -- --yes --stage ${{ env.STAGE }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Destroy preview
         working-directory: packages/infra
-        run: pnpm run destroy -- --stage pr-${{ github.event.pull_request.number }}
+        run: pnpm run destroy -- --yes --stage pr-${{ github.event.pull_request.number }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
