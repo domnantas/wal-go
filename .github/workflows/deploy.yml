@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy:
-    if: github.event_name == 'push' || github.event.action != 'closed'
+    if: github.event_name == 'push' || (github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,26 @@ jobs:
             echo "STAGE=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           fi
 
+      - name: Verify Cloudflare credentials
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          curl --fail-with-body --silent --show-error \
+            --request GET \
+            --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}" \
+            > /dev/null
+          curl --fail-with-body --silent --show-error \
+            --request GET \
+            --header "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+            > /dev/null
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Deploy
         working-directory: packages/infra
         run: pnpm run deploy -- --stage ${{ env.STAGE }}
@@ -47,7 +67,7 @@ jobs:
           PULL_REQUEST: ${{ github.event.pull_request.number }}
 
   cleanup:
-    if: github.event.action == 'closed'
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -63,7 +83,7 @@ jobs:
 
       - name: Destroy preview
         working-directory: packages/infra
-        run: pnpm destroy --stage pr-${{ github.event.pull_request.number }}
+        run: pnpm run destroy -- --stage pr-${{ github.event.pull_request.number }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

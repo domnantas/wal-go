@@ -70,6 +70,14 @@ Required GitHub secrets:
 | `PLANETSCALE_ORGANIZATION` | PlanetScale organization slug |
 | `BETTER_AUTH_SECRET` | better-auth secret key |
 
+The Cloudflare token must be the API token value, not the token ID. It must be scoped to the account in `CLOUDFLARE_ACCOUNT_ID` and allow:
+
+- Account Settings: Read
+- Workers Scripts: Edit
+- Hyperdrive: Edit
+
+The deploy workflow verifies the token can read the configured account and can pass Cloudflare's token verification endpoint before running Alchemy. Preview deploys intentionally skip pull requests from forks because repository secrets are not available to those workflow runs.
+
 Required GitHub variables:
 
 | Variable | Description |
