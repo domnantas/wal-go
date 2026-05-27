@@ -14,7 +14,6 @@
   },
   "devDependencies": {
     "@WAL-GO/config": "workspace:*",
-    "@WAL-GO/infra": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:"
   }

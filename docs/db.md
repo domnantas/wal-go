@@ -47,6 +47,14 @@ User-facing event timestamps (e.g. `joined_at`, `starts_at`) take `{ precision: 
 
 Declare relations in a separate `xRelations = relations(...)` export, mirroring `schema/auth.ts`. Cyclic imports between schema files are fine — Drizzle resolves relations lazily.
 
+## Connection
+
+`createDb(connectionString?: string)` accepts an optional connection string:
+- In Cloudflare Workers (deployed or `alchemy dev`): pass the result of `getHyperdriveConnectionString()` from `@WAL-GO/env/server`
+- Without a connection string: falls back to `process.env.DATABASE_URL`
+
+The API context, auth route, and auth middleware resolve this automatically so auth and application queries use the same connection source.
+
 ## Migrations
 
 Schema changes always go through generated migrations:

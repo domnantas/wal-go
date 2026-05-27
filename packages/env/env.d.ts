@@ -1,15 +1,19 @@
-import type { web as server } from "@WAL-GO/infra/alchemy.run";
-
-// This file infers types for the cloudflare:workers environment from your Alchemy Worker.
-// @see https://alchemy.run/concepts/bindings/#type-safe-bindings
-
-export type CloudflareEnv = typeof server.Env;
+export {};
 
 declare global {
+	interface CloudflareEnv {
+		BETTER_AUTH_SECRET: string;
+		BETTER_AUTH_URL: string;
+		CORS_ORIGIN: string;
+		HYPERDRIVE?: { connectionString: string };
+	}
+
 	type Env = CloudflareEnv;
 }
 
 declare module "cloudflare:workers" {
+	export const env: CloudflareEnv;
+
 	// biome-ignore lint/style/noNamespace: It's ok for Cloudflare
 	namespace Cloudflare {
 		export interface Env extends CloudflareEnv {}

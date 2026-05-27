@@ -1,23 +1,91 @@
-/** biome-ignore-all lint/style/noNonNullAssertion: It's ok for envs */
-import alchemy from "alchemy";
-import { TanStackStart } from "alchemy/cloudflare";
-import { config } from "dotenv";
+import { Secret, Stack, Stage, Variable } from "alchemy";
+import {
+	providers as cfProviders,
+	Hyperdrive,
+	state,
+	Vite,
+} from "alchemy/Cloudflare";
+import { Comment, providers as ghProviders } from "alchemy/GitHub";
+import { interpolate } from "alchemy/Output";
+import {
+	PostgresBranch,
+	PostgresDatabase,
+	PostgresRole,
+	providers as psProviders,
+} from "alchemy/Planetscale";
+import { Effect, Layer, Redacted } from "effect";
 
-config({ path: "./.env" });
-config({ path: "../../apps/web/.env" });
-
-const app = await alchemy("WAL-GO");
-
-export const web = await TanStackStart("web", {
-	cwd: "../../apps/web",
-	bindings: {
-		DATABASE_URL: alchemy.secret.env.DATABASE_URL!,
-		CORS_ORIGIN: alchemy.env.CORS_ORIGIN!,
-		BETTER_AUTH_SECRET: alchemy.secret.env.BETTER_AUTH_SECRET!,
-		BETTER_AUTH_URL: alchemy.env.BETTER_AUTH_URL!,
+export default Stack(
+	"WAL-GO",
+	{
+		providers: Layer.mergeAll(cfProviders(), psProviders(), ghProviders()),
+		state: state(),
 	},
-});
+	Effect.gen(function* () {
+		const stage = yield* Stage;
+		const isProd = stage === "prod";
 
-console.log(`Web    -> ${web.url}`);
+		const db = yield* PostgresDatabase("db", {
+			name: "wal-go",
+			clusterSize: "PS_5",
+			replicas: 0,
+			arch: "arm",
+			region: {
+				slug: "eu-central",
+			},
+		});
 
-await app.finalize();
+		const branch = isProd
+			? "main"
+			: yield* PostgresBranch("db-branch", {
+					database: db,
+					parentBranch: "main",
+				});
+
+		const role = yield* PostgresRole("db-role", {
+			database: db,
+			branch,
+			inheritedRoles: ["postgres"],
+		});
+
+		const hyperdrive = yield* Hyperdrive("hyperdrive", {
+			origin: role.origin,
+			dev: {
+				scheme: "postgres",
+				host: "localhost",
+				port: 5432,
+				database: "wal-go",
+				user: "postgres",
+				password: Redacted.make("postgres"),
+			},
+		});
+
+		const web = yield* Vite("web", {
+			rootDir: "../../apps/web",
+			compatibility: {
+				flags: ["nodejs_compat", "nodejs_compat_populate_process_env"],
+			},
+			bindings: { HYPERDRIVE: hyperdrive },
+			env: {
+				CORS_ORIGIN: Variable("CORS_ORIGIN"),
+				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
+				BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
+			},
+		});
+
+		const prNumber = process.env.PULL_REQUEST
+			? Number(process.env.PULL_REQUEST)
+			: undefined;
+
+		if (prNumber !== undefined) {
+			yield* Comment("preview-url", {
+				owner: "domnantas",
+				repository: "wal-go",
+				issueNumber: prNumber,
+				body: interpolate`## Preview deployed\n\n**URL:** ${web.url}`,
+			});
+		}
+
+		return { url: web.url };
+	})
+);

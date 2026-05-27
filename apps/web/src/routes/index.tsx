@@ -285,13 +285,13 @@ function HomeComponent() {
 					<div>
 						<SectionEyebrow>Žurnalas</SectionEyebrow>
 						<h2 className="mt-3 font-bold font-serif text-4xl leading-tight tracking-tight md:text-5xl">
-							QSO į taškus.
+							Kiekvienas QSO –
 							<br />
-							<em className="text-olive italic">Automatiškai.</em>
+							<em className="text-olive italic">taškas komandai.</em>
 						</h2>
 						<p className="mt-5 text-base text-foreground/75 leading-relaxed">
-							Įkelk ADIF iš savo loggerio. Mes paskirstysim taškus į WAL
-							kvadratus ir atnaujinsim žemėlapį per kelias sekundes.
+							Įkelk Cabrillo failą iš savo loggerio – taškus pagal WAL kvadratus
+							suskaičiuosim mes, o žemėlapis atsinaujins per kelias sekundes.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-2">
 							{[
@@ -316,7 +316,7 @@ function HomeComponent() {
 					<div className="rounded-4xl border border-border bg-card p-5">
 						<div className="mb-4 flex items-center justify-between border-border border-b pb-3">
 							<span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">
-								log_2026_04_18.adi
+								log_2026_04_18.cbr
 							</span>
 							<span className="font-semibold text-olive text-xs">
 								✓ Apdorota

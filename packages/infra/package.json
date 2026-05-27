@@ -8,7 +8,8 @@
     "destroy": "alchemy destroy"
   },
   "dependencies": {
-    "dotenv": "catalog:",
+    "@effect/platform-node": "4.0.0-beta.71",
+    "effect": "4.0.0-beta.71",
     "zod": "catalog:"
   },
   "devDependencies": {
