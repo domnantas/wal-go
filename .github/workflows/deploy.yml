@@ -33,9 +33,17 @@ jobs:
 
       - name: Verify PlanetScale credentials
         run: |
-          test -n "$PLANETSCALE_API_TOKEN_ID"
-          test -n "$PLANETSCALE_API_TOKEN"
-          test -n "$PLANETSCALE_ORGANIZATION"
+          require_env() {
+            local name="$1"
+            if [ -z "${!name}" ]; then
+              echo "::error title=Missing PlanetScale configuration::${name} is not set for this workflow run"
+              exit 1
+            fi
+          }
+
+          require_env "PLANETSCALE_API_TOKEN_ID"
+          require_env "PLANETSCALE_API_TOKEN"
+          require_env "PLANETSCALE_ORGANIZATION"
 
           check_planetscale_access() {
             local label="$1"

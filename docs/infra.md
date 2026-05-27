@@ -88,6 +88,8 @@ Required PlanetScale access:
 
 `write_database` is required because Alchemy reconciles PlanetScale database settings with the `PATCH /organizations/{organization}/databases/{database}` endpoint. Password permissions are required because `PostgresRole` creates and deletes branch role credentials for Hyperdrive.
 
+The deploy workflow fails fast if any PlanetScale secret or organization value is unavailable to the run. If that preflight reports `PLANETSCALE_API_TOKEN_ID`, `PLANETSCALE_API_TOKEN`, or `PLANETSCALE_ORGANIZATION` as missing, confirm the value exists in repository secrets and that the workflow event is allowed to read secrets.
+
 Required GitHub variables:
 
 | Variable | Description |
