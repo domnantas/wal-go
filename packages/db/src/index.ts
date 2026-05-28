@@ -8,5 +8,9 @@ export function createDb(connectionString?: string) {
 		maxUses: 1,
 	});
 
+	pool.on("error", (err) => {
+		console.error("[db] pool error:", err);
+	});
+
 	return drizzle({ client: pool, relations });
 }
