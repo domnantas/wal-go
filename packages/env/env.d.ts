@@ -5,6 +5,7 @@ declare global {
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL: string;
 		CORS_ORIGIN: string;
+		DATABASE_URL?: string;
 		HYPERDRIVE?: { connectionString: string };
 	}
 

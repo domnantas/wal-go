@@ -94,6 +94,7 @@ export default Stack(
 				CORS_ORIGIN: Variable("CORS_ORIGIN"),
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
 				BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
+				DATABASE_URL: role.connectionUrl,
 			},
 		});
 

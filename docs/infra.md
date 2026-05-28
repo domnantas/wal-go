@@ -26,7 +26,7 @@ The stack creates:
 3. `PostgresRole` — credentials with `postgres` inherited role; `.origin` wires directly into Hyperdrive
 4. `Hyperdrive` — pools connections; uses the unique logical id `hyperdrive` so it does not collide with the PlanetScale database resource; `dev` override points to `localhost:5432` for `alchemy dev`
 5. `Drizzle.Schema` — generates migration SQL using drizzle-kit's programmatic API whenever the schema in `packages/db/src/schema/` changes; migrations are written to `packages/db/migrations/`
-6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`
+6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding, a direct `DATABASE_URL` secret from the PlanetScale role, and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`
 
 ## Local development
 
@@ -65,10 +65,31 @@ To add a migration: modify the schema in `packages/db/src/schema/`, then deploy.
 ## Database connection
 
 `createDb()` in `packages/db/src/index.ts` accepts an optional `connectionString`:
-- In workerd (deployed or `alchemy dev`): `getHyperdriveConnectionString()` in `@WAL-GO/env/server` reads `env.HYPERDRIVE.connectionString` from the `cloudflare:workers` virtual module and passes it into API and auth database clients
+- In deployed Workers: the Worker receives both `DATABASE_URL` and `HYPERDRIVE`. `DATABASE_URL` is preferred so production can connect directly to PlanetScale while Hyperdrive remains available as a fallback.
+- In `alchemy dev`: Hyperdrive's `dev` override connects to local Postgres at `localhost:5432` unless a `DATABASE_URL` is present in the local environment.
 - In Node.js (`vite dev`): no Hyperdrive binding exists, so database clients fall back to `process.env.DATABASE_URL`
 
 The context layer (`packages/api/src/context.ts`) resolves this automatically.
+
+## Production debugging
+
+Cloudflare Workers do not expose a long-running Node.js process console. Use Workers Logs instead:
+
+```sh
+pnpm --dir apps/web exec wrangler tail wal-go-web-prod-qpklntmn3zhnzpcb --format pretty
+```
+
+Then reproduce the request, for example by loading `https://walgo.lt/`. `console.error` output from the Worker appears in the tail stream and in Cloudflare Workers Observability. The production script name changes when Alchemy recreates the Worker, so confirm the current name in the Cloudflare dashboard or from the deploy output before tailing.
+
+For database-specific checks, query PlanetScale directly and look for Hyperdrive sessions:
+
+```sql
+SELECT DISTINCT usename, application_name
+FROM pg_stat_activity
+WHERE application_name = 'Cloudflare Hyperdrive';
+```
+
+If direct `DATABASE_URL` works but Hyperdrive does not, check the Hyperdrive origin host, port, database, user, password, and SSL mode in Cloudflare, then compare them with the current PlanetScale role values.
 
 ## Deployment
 

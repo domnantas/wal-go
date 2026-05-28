@@ -50,7 +50,8 @@ Declare relations in a separate `xRelations = relations(...)` export, mirroring 
 ## Connection
 
 `createDb(connectionString?: string)` accepts an optional connection string:
-- In Cloudflare Workers (deployed or `alchemy dev`): pass the result of `getHyperdriveConnectionString()` from `@WAL-GO/env/server`
+- In deployed Cloudflare Workers: `DATABASE_URL` is preferred for a direct PlanetScale connection; `HYPERDRIVE.connectionString` remains the fallback
+- In `alchemy dev`: Hyperdrive's local override is used unless a local `DATABASE_URL` is present
 - Without a connection string: falls back to `process.env.DATABASE_URL`
 
 The API context, auth route, and auth middleware resolve this automatically so auth and application queries use the same connection source.
