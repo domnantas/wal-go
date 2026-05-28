@@ -22,7 +22,7 @@ export interface RouterAppContext {
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	async beforeLoad() {
-		const session = await getUser();
+		const session = await getRootSession();
 		return { session };
 	},
 	loader: ({ context }) => ({ session: context.session }),
@@ -41,6 +41,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 		],
 		links: [
 			{
+				rel: "icon",
+				href: "/favicon.svg",
+				type: "image/svg+xml",
+			},
+			{
 				rel: "stylesheet",
 				href: appCss,
 			},
@@ -49,6 +54,15 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 	shellComponent: RootDocument,
 });
+
+async function getRootSession(): Promise<SessionContext> {
+	try {
+		return await getUser();
+	} catch (error) {
+		console.error("[root] getSession failed:", error);
+		return null;
+	}
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const { session } = Route.useLoaderData();
