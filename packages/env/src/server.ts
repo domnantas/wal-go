@@ -1,21 +1,22 @@
 /// <reference path="../env.d.ts" />
-import { createEnv } from "@t3-oss/env-core";
-import { z } from "zod";
 
-const importMetaEnv =
-	(import.meta as { env?: Record<string, string | undefined> }).env ?? {};
-const runtimeEnv = { ...importMetaEnv, ...process.env };
-
-export const env = createEnv({
-	server: {
-		CORS_ORIGIN: z.string().min(1),
-		BETTER_AUTH_SECRET: z.string().min(1),
-		BETTER_AUTH_URL: z.string().url(),
-		DATABASE_URL: z.string().optional(),
+// Lazy getters so that process.env is read at access time (inside request
+// handlers), not at module initialization. CF Workers may not populate
+// process.env from bindings until the first fetch handler runs.
+export const env = {
+	get CORS_ORIGIN() {
+		return process.env.CORS_ORIGIN ?? "";
 	},
-	runtimeEnv,
-	emptyStringAsUndefined: true,
-});
+	get BETTER_AUTH_SECRET() {
+		return process.env.BETTER_AUTH_SECRET ?? "";
+	},
+	get BETTER_AUTH_URL() {
+		return process.env.BETTER_AUTH_URL ?? "";
+	},
+	get DATABASE_URL() {
+		return process.env.DATABASE_URL;
+	},
+} as const;
 
 export async function getCloudflareEnv(): Promise<CloudflareEnv | undefined> {
 	try {
