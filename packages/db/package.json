@@ -21,13 +21,12 @@
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "nanoid": "^5.1.6",
-    "pg": "^8.17.1",
+    "postgres": "^3.4.5",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@WAL-GO/config": "workspace:*",
     "@WAL-GO/grid": "workspace:*",
-    "@types/pg": "catalog:",
     "drizzle-kit": "1.0.0-rc.3",
     "tsx": "^4.21.0",
     "typescript": "catalog:"

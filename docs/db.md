@@ -49,9 +49,10 @@ Declare relations in a separate `xRelations = relations(...)` export, mirroring 
 
 ## Connection
 
+Uses the `postgres` (postgres.js) package with the `drizzle-orm/postgres-js` adapter. Compatible with Cloudflare Workers without Node.js polyfills for networking.
+
 `createDb(connectionString?: string)` accepts an optional connection string:
-- In deployed Cloudflare Workers: `DATABASE_URL` is preferred for a direct PlanetScale connection; `HYPERDRIVE.connectionString` remains the fallback
-- In `alchemy dev`: Hyperdrive's local override is used unless a local `DATABASE_URL` is present
+- In deployed Cloudflare Workers: `DATABASE_URL` (CF secret) is preferred for a direct PlanetScale connection; `HYPERDRIVE.connectionString` remains the fallback
 - Without a connection string: falls back to `process.env.DATABASE_URL`
 
 The API context, auth route, and auth middleware resolve this automatically so auth and application queries use the same connection source.

@@ -1,5 +1,4 @@
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { relations } from "./schema/relations.ts";
 
 interface ConnectionResolution {
@@ -59,12 +58,8 @@ export async function createDb(connectionString?: string) {
 			"[db] No database connection string configured. Set DATABASE_URL or bind HYPERDRIVE."
 		);
 	}
-	const pool = new Pool({
-		connectionString: resolved.connectionString,
-		maxUses: 1,
+	return drizzle({
+		connection: { url: resolved.connectionString, max: 1 },
+		relations,
 	});
-	pool.on("error", (err) => {
-		console.error(`[db] ${resolved.source} pool error:`, err);
-	});
-	return drizzle({ client: pool, relations });
 }

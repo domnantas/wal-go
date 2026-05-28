@@ -3,9 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { customAlphabet } from "nanoid";
-import { Pool } from "pg";
+import postgres from "postgres";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../apps/web/.env") });
@@ -95,8 +95,8 @@ async function seed() {
 		throw new Error("DATABASE_URL not set");
 	}
 
-	const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-	const db = drizzle({ client: pool });
+	const client = postgres(process.env.DATABASE_URL);
+	const db = drizzle({ client });
 
 	await db.execute(sql`
 		TRUNCATE qso, season_membership, season, square_score, user_season_score, session, account, verification, "user" RESTART IDENTITY CASCADE
@@ -210,7 +210,7 @@ async function seed() {
 		`Scores inserted: ${squareTotals.size} squares, ${userTotals.size} users`
 	);
 
-	await pool.end();
+	await client.end();
 }
 
 seed().catch((err) => {
