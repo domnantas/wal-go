@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/")({
+	ssr: false,
 	component: HomeComponent,
 });
 

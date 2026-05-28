@@ -5,13 +5,16 @@ import { MapView } from "@/domains/map/map-view";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { TeamControlledSquaresBox } from "@/domains/scoring/team-controlled-squares-box";
 import { SeasonSidebarBox } from "@/domains/season/season-sidebar-box";
+import { getUser } from "@/functions/get-user";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/map")({
-	beforeLoad({ context }) {
-		if (!context.session?.user) {
+	async beforeLoad() {
+		const session = await getUser();
+		if (!session?.user) {
 			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}
+		return { session };
 	},
 	async loader({ context: { queryClient } }) {
 		await Promise.all([

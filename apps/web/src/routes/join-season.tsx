@@ -12,13 +12,16 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Info } from "lucide-react";
 import { type RefObject, useEffect, useRef, useState } from "react";
 
+import { getUser } from "@/functions/get-user";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/join-season")({
-	beforeLoad({ context }) {
-		if (!context.session?.user) {
+	async beforeLoad() {
+		const session = await getUser();
+		if (!session?.user) {
 			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}
+		return { session };
 	},
 	component: RouteComponent,
 });

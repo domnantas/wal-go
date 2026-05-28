@@ -14,7 +14,7 @@ WAL GO uses Better Auth. The session is stored in cookies, and the server reads 
 
 ## Router context
 
-The root route `beforeLoad` calls the `getUser()` server function and stores the session in router context. If session loading fails, the error is logged and the root context falls back to `session: null` so public pages can still render while production auth/database issues are investigated. This allows:
+The root route does not perform a server-side session lookup. The homepage route disables SSR and public pages render with `session: null` during the shell render, then the header refreshes auth state on the client through Better Auth hooks. Protected routes call the `getUser()` server function in their own `beforeLoad` handlers and store the session in route context. This allows:
 
 - Correct header navigation during SSR.
 - Protected pages to redirect before the component renders.

@@ -6,7 +6,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "tanstack-theme-kit";
-import { getUser } from "@/functions/get-user";
+import type { getUser } from "@/functions/get-user";
 import type { orpc } from "@/utils/orpc";
 import Header from "../components/header";
 import { Providers } from "../components/providers";
@@ -21,10 +21,7 @@ export interface RouterAppContext {
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
-	async beforeLoad() {
-		const session = await getRootSession();
-		return { session };
-	},
+	beforeLoad: () => ({ session: null }),
 	loader: ({ context }) => ({ session: context.session }),
 	head: () => ({
 		meta: [
@@ -54,15 +51,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 	shellComponent: RootDocument,
 });
-
-async function getRootSession(): Promise<SessionContext> {
-	try {
-		return await getUser();
-	} catch (error) {
-		console.error("[root] getSession failed:", error);
-		return null;
-	}
-}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const { session } = Route.useLoaderData();

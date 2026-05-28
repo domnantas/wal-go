@@ -39,13 +39,16 @@ import {
 import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
+import { getUser } from "@/functions/get-user";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/log")({
-	beforeLoad({ context }) {
-		if (!context.session) {
+	async beforeLoad() {
+		const session = await getUser();
+		if (!session) {
 			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}
+		return { session };
 	},
 	component: RouteComponent,
 });
