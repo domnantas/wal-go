@@ -80,6 +80,16 @@ export default Stack(
 				flags: ["nodejs_compat", "nodejs_compat_populate_process_env"],
 			},
 			bindings: { HYPERDRIVE: hyperdrive },
+			observability: {
+				enabled: true,
+				logs: {
+					enabled: true,
+					invocationLogs: true,
+				},
+				traces: {
+					enabled: true,
+				},
+			},
 			env: {
 				CORS_ORIGIN: Variable("CORS_ORIGIN"),
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
