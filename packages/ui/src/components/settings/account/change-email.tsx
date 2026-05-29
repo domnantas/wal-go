@@ -24,7 +24,7 @@ export interface ChangeEmailProps {
  * @returns A JSX element rendering the change-email card and form
  */
 export function ChangeEmail({ className }: ChangeEmailProps) {
-	const { authClient, baseURL, localization, viewPaths } = useAuth();
+	const { authClient, basePaths, localization, viewPaths } = useAuth();
 	const { data: session } = useSession(authClient);
 
 	const { mutate: changeEmail, isPending } = useChangeEmail(authClient, {
@@ -41,7 +41,7 @@ export function ChangeEmail({ className }: ChangeEmailProps) {
 		const formData = new FormData(e.currentTarget);
 		changeEmail({
 			newEmail: formData.get("email") as string,
-			callbackURL: `${baseURL}/${viewPaths.settings.account}`,
+			callbackURL: `${basePaths.settings}/${viewPaths.settings.account}`,
 		});
 	}
 

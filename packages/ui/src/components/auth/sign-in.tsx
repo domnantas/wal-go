@@ -20,13 +20,10 @@ import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import { usernamePlugin } from "@better-auth-ui/core/plugins";
 import {
 	useAuth,
-	useAuthPlugin,
 	useSendVerificationEmail,
 	useSignInEmail,
-	useSignInUsername,
 } from "@better-auth-ui/react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
@@ -40,8 +37,6 @@ export interface SignInProps {
 	socialLayout?: SocialLayout;
 	socialPosition?: "top" | "bottom";
 }
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const signInEmailSchema = z
 	.email("Neteisingas el. pašto formatas")
@@ -72,8 +67,6 @@ export function SignIn({
 		navigate,
 	} = useAuth();
 
-	const usernameConfig = useAuthPlugin(usernamePlugin);
-
 	const hasMagicLink = plugins?.some((p) => p.id === "magicLink") ?? false;
 	const hasPasskey = plugins?.some((p) => p.id === "passkey") ?? false;
 
@@ -84,41 +77,27 @@ export function SignIn({
 		}
 	);
 
-	const { mutate: signInEmail, isPending: signInEmailPending } = useSignInEmail(
-		authClient,
-		{
-			onError: (error, { email }) => {
-				form.setFieldValue("password", "");
+	const { mutate: signInEmail, isPending } = useSignInEmail(authClient, {
+		onError: (error, { email }) => {
+			form.setFieldValue("password", "");
 
-				if (error.error?.code === "EMAIL_NOT_VERIFIED") {
-					toast.error(error.error?.message || error.message, {
-						action: {
-							label: localization.auth.resend,
-							onClick: () =>
-								sendVerificationEmail({
-									email,
-									callbackURL: `${baseURL}${redirectTo}`,
-								}),
-						},
-					});
-				} else {
-					toast.error(error.error?.message || error.message);
-				}
-			},
-			onSuccess: () => navigate({ to: redirectTo }),
-		}
-	);
-
-	const { mutate: signInUsername, isPending: signInUsernamePending } =
-		useSignInUsername(authClient, {
-			onError: (error) => {
-				form.setFieldValue("password", "");
+			if (error.error?.code === "EMAIL_NOT_VERIFIED") {
+				toast.error(error.error?.message || error.message, {
+					action: {
+						label: localization.auth.resend,
+						onClick: () =>
+							sendVerificationEmail({
+								email,
+								callbackURL: `${baseURL}${redirectTo}`,
+							}),
+					},
+				});
+			} else {
 				toast.error(error.error?.message || error.message);
-			},
-			onSuccess: () => navigate({ to: redirectTo }),
-		});
-
-	const isPending = signInEmailPending || signInUsernamePending;
+			}
+		},
+		onSuccess: () => navigate({ to: redirectTo }),
+	});
 
 	const form = useForm({
 		defaultValues: {
@@ -133,18 +112,11 @@ export function SignIn({
 				document.querySelector<HTMLInputElement>("#rememberMe")?.checked ??
 				false;
 
-			if (usernameConfig && !EMAIL_REGEX.test(value.email)) {
-				signInUsername({
-					username: value.email,
-					password: value.password,
-				});
-			} else {
-				signInEmail({
-					email: value.email,
-					password: value.password,
-					...(emailAndPassword?.rememberMe ? { rememberMe } : {}),
-				});
-			}
+			signInEmail({
+				email: value.email,
+				password: value.password,
+				...(emailAndPassword?.rememberMe ? { rememberMe } : {}),
+			});
 		},
 	});
 
@@ -195,17 +167,11 @@ export function SignIn({
 											field.state.meta.isTouched && !field.state.meta.isValid;
 										return (
 											<Field data-invalid={isInvalid}>
-												<Label htmlFor="email">
-													{usernameConfig
-														? usernameConfig.localization.username
-														: localization.auth.email}
-												</Label>
+												<Label htmlFor="email">{localization.auth.email}</Label>
 
 												<Input
 													aria-invalid={isInvalid}
-													autoComplete={
-														usernameConfig ? "username email" : "email"
-													}
+													autoComplete="email"
 													disabled={isPending}
 													id="email"
 													name="email"
@@ -213,12 +179,7 @@ export function SignIn({
 													onChange={(e) =>
 														handleFieldChange(field, e.target.value)
 													}
-													placeholder={
-														usernameConfig
-															? usernameConfig.localization
-																	.usernameOrEmailPlaceholder
-															: localization.auth.emailPlaceholder
-													}
+													placeholder={localization.auth.emailPlaceholder}
 													type="text"
 													value={field.state.value}
 												/>

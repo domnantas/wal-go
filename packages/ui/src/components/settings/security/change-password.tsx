@@ -167,13 +167,18 @@ function ChangePasswordForm({
 				`Slaptažodį turi sudaryti ne daugiau kaip ${emailAndPassword.maxPasswordLength} simboliai`
 			)
 		: newPasswordMinSchema;
+	const confirmPasswordSchema = emailAndPassword.confirmPassword
+		? newPasswordFieldSchema
+		: z.string().optional();
 	const schema =
 		emailAndPassword.minPasswordLength || emailAndPassword.maxPasswordLength
 			? changePasswordSchema.extend({
 					newPassword: newPasswordFieldSchema,
-					confirmPassword: newPasswordFieldSchema,
+					confirmPassword: confirmPasswordSchema,
 				})
-			: changePasswordSchema;
+			: changePasswordSchema.extend({
+					confirmPassword: confirmPasswordSchema,
+				});
 
 	const form = useForm({
 		defaultValues: {

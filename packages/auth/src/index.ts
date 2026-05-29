@@ -75,6 +75,11 @@ export async function createAuth() {
 				id,
 			}),
 		},
+		user: {
+			changeEmail: {
+				enabled: true,
+			},
+		},
 		emailVerification: {
 			autoSignInAfterVerification: true,
 			sendVerificationEmail: async ({ user, url }) => {

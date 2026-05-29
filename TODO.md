@@ -9,13 +9,16 @@
 - [x] Seed script for the db
 - [x] Email verification
 - [x] Cabrillo import
-- [] Forgot email
-- [] Change email
-- [] Presentation about WAL GO
+- [x] Forgot email
+- [x] Change email
+- [x] Change password
+- [] Error pages with discord link
+- [] Set up better auth with SSR
 - [x] Rules page
 - [x] Set up Discord
 - [x] Feature voting
 - [x] Bug reporting
+- [] Presentation about WAL GO
 - [] Admin page
 - [] Audit trail of uploads in admin
 - [] Score reconciliation

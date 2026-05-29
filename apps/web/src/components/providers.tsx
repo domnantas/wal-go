@@ -20,7 +20,6 @@ export function Providers({ children }: { children: ReactNode }) {
 			localization={{
 				auth: {
 					account: "Paskyra",
-					addAccount: "Pridėti paskyrą",
 					alreadyHaveAnAccount: "Jau turite paskyrą?",
 					confirmPassword: "Patvirtinkite slaptažodį",
 					confirmPasswordPlaceholder: "Pakartokite slaptažodį",
@@ -31,8 +30,6 @@ export function Providers({ children }: { children: ReactNode }) {
 					forgotPasswordLink: "Pamiršote slaptažodį?",
 					hidePassword: "Slėpti slaptažodį",
 					invalidResetPasswordToken: "Netinkamas slaptažodžio atkūrimo raktas",
-					magicLink: "Magiška nuoroda",
-					magicLinkSent: "Magiška nuoroda išsiųsta į jūsų el. paštą",
 					signIn: "Prisijungti",
 					signOut: "Atsijungti",
 					signUp: "Registruotis",
@@ -42,7 +39,6 @@ export function Providers({ children }: { children: ReactNode }) {
 					newPassword: "Naujas slaptažodis",
 					newPasswordPlaceholder: "Įveskite naują slaptažodį",
 					or: "ARBA",
-					passkey: "Prieigos raktas",
 					password: "Slaptažodis",
 					passwordPlaceholder: "Įveskite slaptažodį",
 					passwordResetEmailSent: "Slaptažodžio atkūrimo laiškas išsiųstas",
@@ -52,15 +48,8 @@ export function Providers({ children }: { children: ReactNode }) {
 					rememberYourPassword: "Prisiminėte slaptažodį?",
 					resend: "Siųsti dar kartą",
 					resetPassword: "Atkurti slaptažodį",
-					sendMagicLink: "Siųsti magišką nuorodą",
 					sendResetLink: "Siųsti atkūrimo nuorodą",
 					showPassword: "Rodyti slaptažodį",
-					switchAccount: "Perjungti paskyrą",
-					username: "Naudotojo vardas",
-					usernameAvailable: "Naudotojo vardas laisvas",
-					usernameOrEmailPlaceholder: "Įveskite naudotojo vardą arba el. paštą",
-					usernamePlaceholder: "Įveskite naudotojo vardą",
-					usernameTaken: "Šis naudotojo vardas jau užimtas. Bandykite kitą.",
 					verificationEmailSent: "Patvirtinimo laiškas išsiųstas!",
 					verifyYourEmail: "Patvirtinkite savo el. paštą",
 				},
@@ -74,7 +63,6 @@ export function Providers({ children }: { children: ReactNode }) {
 					link: "Susieti",
 					linkedAccounts: "Susietos paskyros",
 					linkProvider: "Susieti jūsų {{provider}} paskyrą",
-					appearance: "Išvaizda",
 					cancel: "Atšaukti",
 					changeEmail: "Keisti el. paštą",
 					changeEmailSuccess:
@@ -83,23 +71,8 @@ export function Providers({ children }: { children: ReactNode }) {
 					changePasswordSuccess: "Slaptažodis sėkmingai pakeistas",
 					currentPassword: "Dabartinis slaptažodis",
 					currentPasswordPlaceholder: "Įveskite dabartinį slaptažodį",
-					dark: "Tamsi",
 					dangerZone: "Pavojinga zona",
-					deleteUser: "Ištrinti naudotoją",
-					deleteUserDescription:
-						"Visam laikui pašalinti jūsų paskyrą ir visus susijusius duomenis. Šio veiksmo atšaukti negalima.",
-					deleteUserVerificationSent:
-						"Patvirtinkite paskyros ištrynimą savo el. pašte.",
-					deleteUserSuccess: "Jūsų paskyra ištrinta.",
-					light: "Šviesi",
-					manageAccounts: "Tvarkyti paskyras",
-					addPasskey: "Pridėti prieigos raktą",
 					delete: "Ištrinti",
-					passkeys: "Prieigos raktai",
-					passkeysDescription:
-						"Tvarkykite savo prieigos raktus saugiam prisijungimui.",
-					passkeysInstructions:
-						"Saugiai pasiekite savo paskyrą be slaptažodžio.",
 					userProfile: "Profilis",
 					profileUpdatedSuccess: "Profilis sėkmingai atnaujintas",
 					revoke: "Atšaukti",
@@ -111,8 +84,6 @@ export function Providers({ children }: { children: ReactNode }) {
 						"Dar neturite slaptažodžio. Paprašykite atkūrimo nuorodos, kad galėtumėte jį nustatyti.",
 					security: "Saugumas",
 					settings: "Nustatymai",
-					system: "Sistemos",
-					theme: "Tema",
 					unlinkProvider: "Atsieti {{provider}}",
 					updateEmail: "Atnaujinti el. paštą",
 					updatePassword: "Atnaujinti slaptažodį",
@@ -120,7 +91,17 @@ export function Providers({ children }: { children: ReactNode }) {
 			}}
 			navigate={navigate}
 			plugins={[
-				themePlugin({ setTheme, theme }),
+				themePlugin({
+					setTheme,
+					theme,
+					localization: {
+						appearance: "Išvaizda",
+						dark: "Tamsi",
+						light: "Šviesi",
+						system: "Sistemos",
+						theme: "Tema",
+					},
+				}),
 				usernamePlugin({
 					localization: {
 						username: "Šaukinys",
