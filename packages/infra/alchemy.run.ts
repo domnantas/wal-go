@@ -77,6 +77,7 @@ export default Stack(
 			rootDir: "../../apps/web",
 			memo: {
 				include: ["../../apps/**", "../../packages/**", "../../pnpm-lock.yaml"],
+				exclude: ["**/node_modules/**", "**/.git/**", "**/dist/**"],
 			},
 			domain: isProd ? ["walgo.lt", "www.walgo.lt"] : undefined,
 			compatibility: {
