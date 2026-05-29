@@ -30,16 +30,16 @@ async function resolveConnectionString(
 	}
 
 	const cloudflareEnv = await getCloudflareEnv();
-	if (isConfigured(cloudflareEnv?.DATABASE_URL)) {
-		return {
-			connectionString: cloudflareEnv.DATABASE_URL,
-			source: "database-url",
-		};
-	}
 	if (isConfigured(cloudflareEnv?.HYPERDRIVE?.connectionString)) {
 		return {
 			connectionString: cloudflareEnv.HYPERDRIVE.connectionString,
 			source: "hyperdrive",
+		};
+	}
+	if (isConfigured(cloudflareEnv?.DATABASE_URL)) {
+		return {
+			connectionString: cloudflareEnv.DATABASE_URL,
+			source: "database-url",
 		};
 	}
 	if (isConfigured(process.env.DATABASE_URL)) {
