@@ -23,8 +23,10 @@ import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { usernamePlugin } from "@better-auth-ui/core/plugins";
 import {
 	useAuth,
+	useAuthPlugin,
 	useIsUsernameAvailable,
 	useSignUpEmail,
 } from "@better-auth-ui/react";
@@ -68,17 +70,19 @@ export function SignUp({
 	socialPosition = "bottom",
 }: SignUpProps) {
 	const {
+		authClient,
 		basePaths,
 		emailAndPassword,
 		localization,
-		magicLink,
+		plugins,
 		redirectTo,
 		socialProviders,
-		username: usernameConfig,
 		viewPaths,
 		navigate,
-		Link,
 	} = useAuth();
+
+	const usernameConfig = useAuthPlugin(usernamePlugin);
+	const hasMagicLink = plugins?.some((p) => p.id === "magicLink") ?? false;
 
 	const [username, setUsername] = useState("");
 
@@ -87,7 +91,7 @@ export function SignUp({
 		data: usernameData,
 		error: usernameError,
 		reset: resetUsername,
-	} = useIsUsernameAvailable();
+	} = useIsUsernameAvailable(authClient);
 
 	const usernameDebouncer = useDebouncer(
 		(value: string) => {
@@ -110,21 +114,24 @@ export function SignUp({
 		}
 	}
 
-	const { mutate: signUpEmail, isPending: signUpPending } = useSignUpEmail({
-		onError: (error) => {
-			form.setFieldValue("password", "");
-			form.setFieldValue("confirmPassword", "");
-			toast.error(error.error?.message || error.message);
-		},
-		onSuccess: () => {
-			if (emailAndPassword?.requireEmailVerification) {
-				toast.success(localization.auth.verifyYourEmail);
-				navigate({ to: `${basePaths.auth}/${viewPaths.auth.signIn}` });
-			} else {
-				navigate({ to: redirectTo });
-			}
-		},
-	});
+	const { mutate: signUpEmail, isPending: signUpPending } = useSignUpEmail(
+		authClient,
+		{
+			onError: (error) => {
+				form.setFieldValue("password", "");
+				form.setFieldValue("confirmPassword", "");
+				toast.error(error.error?.message || error.message);
+			},
+			onSuccess: () => {
+				if (emailAndPassword?.requireEmailVerification) {
+					toast.success(localization.auth.verifyYourEmail);
+					navigate({ to: `${basePaths.auth}/${viewPaths.auth.signIn}` });
+				} else {
+					navigate({ to: redirectTo });
+				}
+			},
+		}
+	);
 
 	const isPending = signUpPending;
 
@@ -171,7 +178,7 @@ export function SignUp({
 				name: value.name,
 				email: value.email,
 				password: value.password,
-				...(usernameConfig?.enabled
+				...(usernameConfig
 					? {
 							username: username.trim(),
 							...(usernameConfig.displayUsername
@@ -255,7 +262,7 @@ export function SignUp({
 									}}
 								</form.Field>
 
-								{usernameConfig?.enabled && (
+								{usernameConfig && (
 									<UsernameField
 										isPending={isPending}
 										localization={localization}
@@ -430,7 +437,7 @@ export function SignUp({
 										{localization.auth.signUp}
 									</Button>
 
-									{magicLink && (
+									{hasMagicLink && (
 										<MagicLinkButton isPending={isPending} view="signUp" />
 									)}
 								</div>
@@ -460,12 +467,12 @@ export function SignUp({
 					<div className="mt-4 flex w-full flex-col items-center gap-3">
 						<FieldDescription className="text-center">
 							{localization.auth.alreadyHaveAnAccount}{" "}
-							<Link
+							<a
 								className="underline underline-offset-4"
 								href={`${basePaths.auth}/${viewPaths.auth.signIn}`}
 							>
 								{localization.auth.signIn}
-							</Link>
+							</a>
 						</FieldDescription>
 					</div>
 				)}
@@ -487,9 +494,13 @@ function UsernameField({
 	localization: ReturnType<typeof useAuth>["localization"];
 	onUsernameChange: (value: string) => void;
 	username: string;
-	usernameConfig: NonNullable<ReturnType<typeof useAuth>["username"]>;
-	usernameData: ReturnType<typeof useIsUsernameAvailable>["data"];
-	usernameError: ReturnType<typeof useIsUsernameAvailable>["error"];
+	usernameConfig: {
+		maxUsernameLength?: number;
+		minUsernameLength?: number;
+		isUsernameAvailable?: boolean;
+	};
+	usernameData: { available: boolean } | undefined;
+	usernameError: { error?: { message?: string }; message?: string } | null;
 }) {
 	return (
 		<Field
@@ -497,7 +508,9 @@ function UsernameField({
 				!!usernameError || (usernameData && !usernameData.available)
 			}
 		>
-			<Label htmlFor="username">{localization.auth.username}</Label>
+			<Label htmlFor="username">
+				{(localization.auth as Record<string, string>).username}
+			</Label>
 
 			<InputGroup>
 				<InputGroupInput
@@ -511,7 +524,9 @@ function UsernameField({
 					minLength={usernameConfig.minUsernameLength}
 					name="username"
 					onChange={(e) => onUsernameChange(e.target.value)}
-					placeholder={localization.auth.usernamePlaceholder}
+					placeholder={
+						(localization.auth as Record<string, string>).usernamePlaceholder
+					}
 					required
 					type="text"
 					value={username}
@@ -532,7 +547,7 @@ function UsernameField({
 				{usernameError?.error?.message ||
 					usernameError?.message ||
 					(usernameData?.available === false
-						? localization.auth.usernameTaken
+						? (localization.auth as Record<string, string>).usernameTaken
 						: null)}
 			</FieldError>
 		</Field>

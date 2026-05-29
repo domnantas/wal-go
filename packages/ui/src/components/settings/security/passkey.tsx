@@ -13,9 +13,12 @@ export interface PasskeyProps {
 }
 
 export function Passkey({ passkey }: PasskeyProps) {
-	const { localization } = useAuth();
+	const { authClient, localization } = useAuth();
 
-	const { mutate: deletePasskey, isPending } = useDeletePasskey();
+	// biome-ignore lint/suspicious/noExplicitAny: passkey plugin not in base authClient type
+	const { mutate: deletePasskey, isPending } = useDeletePasskey(
+		authClient as any
+	);
 
 	return (
 		<Card className="border-0 bg-transparent shadow-none ring-0">
@@ -26,7 +29,8 @@ export function Passkey({ passkey }: PasskeyProps) {
 
 				<div className="flex min-w-0 flex-col">
 					<span className="font-medium text-sm leading-tight">
-						{passkey.name || localization.auth.passkey}
+						{passkey.name ||
+							(localization.auth as Record<string, string>).passkey}
 					</span>
 
 					<span className="text-muted-foreground text-xs">

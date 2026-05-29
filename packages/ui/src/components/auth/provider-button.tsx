@@ -1,7 +1,7 @@
 import { Button } from "@WAL-GO/ui/components/button";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
+import { getProviderName } from "@better-auth-ui/core";
 import { providerIcons, useAuth, useSignInSocial } from "@better-auth-ui/react";
-import { getProviderName } from "@better-auth-ui/react/core";
 import type { SocialProvider } from "better-auth/social-providers";
 import { type ComponentProps, useState } from "react";
 
@@ -25,13 +25,13 @@ export function ProviderButton({
 	variant = "outline",
 	...props
 }: ProviderButtonProps) {
-	const { baseURL, localization, redirectTo } = useAuth();
+	const { authClient, baseURL, localization, redirectTo } = useAuth();
 
 	const callbackURL = `${baseURL}${redirectTo}`;
 
 	const [redirecting, setRedirecting] = useState(false);
 
-	const { mutate: signInSocial, isPending } = useSignInSocial({
+	const { mutate: signInSocial, isPending } = useSignInSocial(authClient, {
 		onSuccess: () => {
 			setRedirecting(true);
 
@@ -53,7 +53,7 @@ export function ProviderButton({
 			variant={variant}
 			{...props}
 		>
-			{pending ? <Spinner /> : <ProviderIcon />}
+			{pending || !ProviderIcon ? <Spinner /> : <ProviderIcon />}
 
 			{label === "continueWith"
 				? localization.auth.continueWith.replace(

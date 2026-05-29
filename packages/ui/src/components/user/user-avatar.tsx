@@ -7,7 +7,7 @@ import {
 } from "@WAL-GO/ui/components/avatar";
 import { Skeleton } from "@WAL-GO/ui/components/skeleton";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import { useSession } from "@better-auth-ui/react";
+import { useAuth, useSession } from "@better-auth-ui/react";
 import type { User } from "better-auth";
 import { User2 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -37,9 +37,8 @@ export function UserAvatar({
 	isPending,
 	fallback,
 }: UserAvatarProps) {
-	const { data: session, isPending: sessionPending } = useSession({
-		enabled: !(user || isPending),
-	});
+	const { authClient } = useAuth();
+	const { data: session, isPending: sessionPending } = useSession(authClient);
 
 	if ((isPending || sessionPending) && !user) {
 		return <Skeleton className={cn("size-8 rounded-full", className)} />;
@@ -47,8 +46,14 @@ export function UserAvatar({
 
 	const resolvedUser = user ?? session?.user;
 
+	const resolvedUserExt = resolvedUser as
+		| (typeof resolvedUser & {
+				username?: string | null;
+				displayUsername?: string | null;
+		  })
+		| undefined;
 	const initials = (
-		resolvedUser?.username ||
+		resolvedUserExt?.username ||
 		resolvedUser?.name ||
 		resolvedUser?.email
 	)
@@ -64,7 +69,7 @@ export function UserAvatar({
 		>
 			<AvatarImage
 				alt={
-					resolvedUser?.displayUsername ||
+					resolvedUserExt?.displayUsername ||
 					resolvedUser?.name ||
 					resolvedUser?.email
 				}

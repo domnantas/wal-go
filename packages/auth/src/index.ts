@@ -2,18 +2,24 @@ import { createDb } from "@WAL-GO/db";
 // biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
 import * as schema from "@WAL-GO/db/schema/auth";
 import { env } from "@WAL-GO/env/server";
+import { EmailVerificationEmail } from "@WAL-GO/ui/components/auth/email/email-verification";
+import { ResetPasswordEmail } from "@WAL-GO/ui/components/auth/email/reset-password-email";
 import { i18n } from "@better-auth/i18n";
+import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { eq } from "drizzle-orm";
+import { createElement } from "react";
+import { Resend } from "resend";
 
 const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
 
 export async function createAuth() {
 	const db = await createDb();
+	const resend = new Resend(env.RESEND_API_KEY);
 
 	return betterAuth({
 		database: drizzleAdapter(db, {
@@ -23,7 +29,90 @@ export async function createAuth() {
 		trustedOrigins: [env.CORS_ORIGIN],
 		emailAndPassword: {
 			enabled: true,
-			requireEmailVerification: false,
+			requireEmailVerification: true,
+			sendResetPassword: async ({ user, url }) => {
+				const html = await render(
+					createElement(ResetPasswordEmail, {
+						url,
+						appName: "WAL GO (https://walgo.lt)",
+						poweredBy: false,
+						logoURL: {
+							light: "https://walgo.lt/logo.png",
+							dark: "https://walgo.lt/logo.png",
+						},
+						expirationMinutes: 60,
+						localization: {
+							RESET_YOUR_PASSWORD: "Atkurkite slaptažodį",
+							LOGO: "Logotipas",
+							CLICK_BUTTON_TO_RESET_PASSWORD:
+								"Paspauskite žemiau esantį mygtuką, kad atkurtumėte {appName} paskyros slaptažodį.",
+							RESET_PASSWORD: "Atkurti slaptažodį",
+							OR_COPY_AND_PASTE_URL:
+								"Arba nukopijuokite šią nuorodą į naršyklę:",
+							THIS_LINK_EXPIRES_IN_MINUTES:
+								"Nuoroda galioja {expirationMinutes} min.",
+							EMAIL_SENT_BY: "Laišką išsiuntė {appName}.",
+							IF_YOU_DIDNT_REQUEST_THIS_EMAIL:
+								"Jei neprašėte atkurti slaptažodžio, ignoruokite šį laišką. Jūsų slaptažodis nebus pakeistas.",
+						},
+					})
+				);
+				await resend.emails.send({
+					from: "WAL GO <noreply@walgo.lt>",
+					to: user.email,
+					subject: "Atkurkite slaptažodį – WAL GO",
+					html,
+				});
+			},
+			customSyntheticUser: ({ coreFields, additionalFields, id }) => ({
+				...coreFields,
+				// Admin plugin fields (in schema order)
+				role: "user", // or your configured defaultRole
+				banned: false,
+				banReason: null,
+				banExpires: null,
+				...additionalFields,
+				id,
+			}),
+		},
+		emailVerification: {
+			autoSignInAfterVerification: true,
+			sendVerificationEmail: async ({ user, url }) => {
+				const html = await render(
+					createElement(EmailVerificationEmail, {
+						url,
+						email: user.email,
+						appName: "WAL GO (https://walgo.lt)",
+						poweredBy: false,
+						logoUrl: {
+							light: "https://walgo.lt/logo.png",
+							dark: "https://walgo.lt/logo.png",
+						},
+						expirationMinutes: 60,
+						localization: {
+							VERIFY_YOUR_EMAIL_ADDRESS: "Patvirtinkite el. paštą",
+							LOGO: "Logotipas",
+							CLICK_BUTTON_TO_VERIFY_EMAIL:
+								"Paspauskite žemiau esantį mygtuką, kad patvirtintumėte el. pašto adresą {emailAddress}.",
+							VERIFY_EMAIL_ADDRESS: "Patvirtinti el. paštą",
+							OR_COPY_AND_PASTE_URL:
+								"Arba nukopijuokite šią nuorodą į naršyklę:",
+							THIS_LINK_EXPIRES_IN_MINUTES:
+								"Nuoroda galioja {expirationMinutes} min.",
+							EMAIL_SENT_BY: "Laišką išsiuntė {appName}.",
+							IF_YOU_DIDNT_REQUEST_THIS_EMAIL:
+								"Jei nesiregistravote WAL GO, ignoruokite šį laišką.",
+						},
+					})
+				);
+				await resend.emails.send({
+					from: "WAL GO <noreply@walgo.lt>",
+					to: user.email,
+					subject: "Patvirtinkite el. paštą – WAL GO",
+					html,
+				});
+			},
+			sendOnSignUp: true,
 		},
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,

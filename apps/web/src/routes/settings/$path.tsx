@@ -1,11 +1,12 @@
 import { Settings } from "@WAL-GO/ui/components/settings/settings";
-import { viewPaths } from "@better-auth-ui/react/core";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { getUser } from "@/functions/get-user";
 
+const SETTINGS_PATHS = ["account", "security"] as const;
+
 export const Route = createFileRoute("/settings/$path")({
 	async beforeLoad({ params: { path } }) {
-		if (!Object.values(viewPaths.settings).includes(path)) {
+		if (!(SETTINGS_PATHS as readonly string[]).includes(path)) {
 			throw notFound();
 		}
 		const session = await getUser();

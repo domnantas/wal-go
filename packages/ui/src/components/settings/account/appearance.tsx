@@ -10,11 +10,13 @@ import {
 import { Label } from "@WAL-GO/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@WAL-GO/ui/components/radio-group";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { themePlugin } from "@better-auth-ui/core/plugins";
 import {
 	ThemePreviewDark,
 	ThemePreviewLight,
 	ThemePreviewSystem,
 	useAuth,
+	useAuthPlugin,
 	useSession,
 } from "@better-auth-ui/react";
 import { Monitor, Moon, Sun } from "lucide-react";
@@ -34,22 +36,18 @@ export interface AppearanceProps {
  * @returns A JSX element containing the theme selector card, or null if theme settings are not configured.
  */
 export function Appearance({ className }: AppearanceProps) {
-	const {
-		localization,
-		appearance: { theme, setTheme, themes },
-	} = useAuth();
-	const { data: session } = useSession();
+	const { authClient } = useAuth();
+	const { theme, setTheme, themes, localization } = useAuthPlugin(themePlugin);
+	const { data: session } = useSession(authClient);
 
 	return (
 		<div>
-			<h2 className="mb-3 font-semibold text-sm">
-				{localization.settings.appearance}
-			</h2>
+			<h2 className="mb-3 font-semibold text-sm">{localization.appearance}</h2>
 
 			<Card className={cn(className)}>
 				<CardContent>
 					<Field>
-						<Label>{localization.settings.theme}</Label>
+						<Label>{localization.theme}</Label>
 
 						<RadioGroup
 							className="grid grid-cols-2 gap-3 sm:grid-cols-3"
@@ -65,7 +63,7 @@ export function Appearance({ className }: AppearanceProps) {
 												<FieldTitle>
 													<Monitor className="size-4 text-muted-foreground" />
 
-													{localization.settings.system}
+													{localization.system}
 												</FieldTitle>
 
 												<RadioGroupItem id="system" value="system" />
@@ -85,7 +83,7 @@ export function Appearance({ className }: AppearanceProps) {
 												<FieldTitle>
 													<Sun className="size-4 text-muted-foreground" />
 
-													{localization.settings.light}
+													{localization.light}
 												</FieldTitle>
 
 												<RadioGroupItem id="light" value="light" />
@@ -105,7 +103,7 @@ export function Appearance({ className }: AppearanceProps) {
 												<FieldTitle>
 													<Moon className="size-4 text-muted-foreground" />
 
-													{localization.settings.dark}
+													{localization.dark}
 												</FieldTitle>
 
 												<RadioGroupItem id="dark" value="dark" />

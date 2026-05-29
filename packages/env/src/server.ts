@@ -16,6 +16,9 @@ export const env = {
 	get DATABASE_URL() {
 		return process.env.DATABASE_URL;
 	},
+	get RESEND_API_KEY() {
+		return process.env.RESEND_API_KEY ?? "";
+	},
 } as const;
 
 export async function getCloudflareEnv(): Promise<CloudflareEnv | undefined> {

@@ -14,7 +14,8 @@ import {
 } from "@WAL-GO/ui/components/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@WAL-GO/ui/components/tabs";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import { useAuth, useSession } from "@better-auth-ui/react";
+import { themePlugin } from "@better-auth-ui/core/plugins";
+import { useAuth, useAuthPlugin, useSession } from "@better-auth-ui/react";
 import {
 	ChevronsUpDown,
 	LogIn,
@@ -68,16 +69,18 @@ export function UserButton({
 	themeToggle = true,
 	variant = "ghost",
 }: UserButtonProps) {
+	const { authClient, basePaths, viewPaths, localization, plugins } = useAuth();
 	const {
-		basePaths,
-		viewPaths,
-		localization,
-		multiSession,
-		Link,
-		appearance: { theme, setTheme, themes },
-	} = useAuth();
+		theme,
+		setTheme,
+		themes,
+		localization: themeLocalization,
+	} = useAuthPlugin(themePlugin);
 
-	const { data: session, isPending: sessionPending } = useSession();
+	const hasMultiSession =
+		plugins?.some((p) => p.id === "multiSession") ?? false;
+
+	const { data: session, isPending: sessionPending } = useSession(authClient);
 
 	return (
 		<DropdownMenu>
@@ -133,7 +136,7 @@ export function UserButton({
 					<>
 						<DropdownMenuItem
 							render={
-								<Link
+								<a
 									href={`${basePaths.settings}/${viewPaths.settings.account}`}
 								/>
 							}
@@ -142,12 +145,12 @@ export function UserButton({
 							{localization.settings.settings}
 						</DropdownMenuItem>
 
-						{multiSession && (
+						{hasMultiSession && (
 							<DropdownMenuSub>
 								<DropdownMenuSubTrigger>
 									<UsersRound className="text-muted-foreground" />
 
-									{localization.auth.switchAccount}
+									{(localization.auth as Record<string, string>).switchAccount}
 								</DropdownMenuSubTrigger>
 
 								<SwitchAccountMenu />
@@ -159,18 +162,14 @@ export function UserButton({
 				) : (
 					<>
 						<DropdownMenuItem
-							render={
-								<Link href={`${basePaths.auth}/${viewPaths.auth.signIn}`} />
-							}
+							render={<a href={`${basePaths.auth}/${viewPaths.auth.signIn}`} />}
 						>
 							<LogIn className="text-muted-foreground" />
 							{localization.auth.signIn}
 						</DropdownMenuItem>
 
 						<DropdownMenuItem
-							render={
-								<Link href={`${basePaths.auth}/${viewPaths.auth.signUp}`} />
-							}
+							render={<a href={`${basePaths.auth}/${viewPaths.auth.signUp}`} />}
 						>
 							<UserPlus2 className="text-muted-foreground" />
 							{localization.auth.signUp}
@@ -184,14 +183,14 @@ export function UserButton({
 					<div className="flex items-center justify-between px-3 py-1.5 font-medium text-sm">
 						<div className="flex items-center gap-2.5">
 							<Paintbrush className="size-4 text-muted-foreground" />
-							{localization.settings.theme}
+							{themeLocalization.theme}
 						</div>
 
 						<Tabs className="ml-4" onValueChange={setTheme} value={theme}>
 							<TabsList className="h-6! gap-0.5">
 								{themes.includes("system") && (
 									<TabsTrigger
-										aria-label={localization.settings.system}
+										aria-label={themeLocalization.system}
 										className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
 										value="system"
 									>
@@ -200,7 +199,7 @@ export function UserButton({
 								)}
 								{themes.includes("light") && (
 									<TabsTrigger
-										aria-label={localization.settings.light}
+										aria-label={themeLocalization.light}
 										className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
 										value="light"
 									>
@@ -209,7 +208,7 @@ export function UserButton({
 								)}
 								{themes.includes("dark") && (
 									<TabsTrigger
-										aria-label={localization.settings.dark}
+										aria-label={themeLocalization.dark}
 										className="size-5 p-0 hover:bg-accent/40 hover:text-foreground"
 										value="dark"
 									>
@@ -227,7 +226,7 @@ export function UserButton({
 
 						<DropdownMenuItem
 							render={
-								<Link href={`${basePaths.auth}/${viewPaths.auth.signOut}`} />
+								<a href={`${basePaths.auth}/${viewPaths.auth.signOut}`} />
 							}
 						>
 							<LogOut className="text-muted-foreground" />

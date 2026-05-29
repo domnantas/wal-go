@@ -13,8 +13,10 @@ import { Label } from "@WAL-GO/ui/components/label";
 import { Skeleton } from "@WAL-GO/ui/components/skeleton";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { usernamePlugin } from "@better-auth-ui/core/plugins";
 import {
 	useAuth,
+	useAuthPlugin,
 	useIsUsernameAvailable,
 	useSession,
 	useUpdateUser,
@@ -60,13 +62,16 @@ function getUsernameAvailabilityIcon({
  * @returns A JSX element containing the profile card with editable username fields
  */
 export function UserProfile({ className }: UserProfileProps) {
-	const { localization, username: usernameConfig } = useAuth();
-	const { data: session } = useSession();
+	const { authClient, localization } = useAuth();
+	const usernameConfig = useAuthPlugin(usernamePlugin);
+	const { data: session } = useSession(authClient);
 
 	const currentUsername =
-		(usernameConfig?.displayUsername
-			? session?.user?.displayUsername
-			: session?.user?.username) || "";
+		((usernameConfig?.displayUsername
+			? (session?.user as Record<string, unknown>)?.displayUsername
+			: (session?.user as Record<string, unknown>)?.username) as
+			| string
+			| undefined) || "";
 
 	const [username, setUsername] = useState(currentUsername);
 
@@ -79,7 +84,7 @@ export function UserProfile({ className }: UserProfileProps) {
 		data: usernameData,
 		error: usernameError,
 		reset: resetUsername,
-	} = useIsUsernameAvailable();
+	} = useIsUsernameAvailable(authClient);
 
 	const usernameDebouncer = useDebouncer(
 		(value: string) => {
@@ -102,15 +107,16 @@ export function UserProfile({ className }: UserProfileProps) {
 		}
 	}
 
-	const { mutate: updateUser, isPending } = useUpdateUser({
+	const { mutate: updateUser, isPending } = useUpdateUser(authClient, {
 		onSuccess: () => toast.success(localization.settings.profileUpdatedSuccess),
 	});
 
 	function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
 		e.preventDefault();
 
+		// biome-ignore lint/suspicious/noExplicitAny: username/displayUsername are plugin-extended fields
 		updateUser({
-			...(usernameConfig?.enabled
+			...(usernameConfig
 				? {
 						username: username.trim(),
 						...(usernameConfig.displayUsername
@@ -118,7 +124,7 @@ export function UserProfile({ className }: UserProfileProps) {
 							: {}),
 					}
 				: {}),
-		});
+		} as any);
 	}
 
 	const showAvailabilityIndicator =
@@ -128,14 +134,14 @@ export function UserProfile({ className }: UserProfileProps) {
 	const hasUsernameAvailabilityError =
 		!!usernameError || usernameData?.available === false;
 
-	if (!usernameConfig?.enabled) {
+	if (!usernameConfig) {
 		return null;
 	}
 
 	return (
 		<div>
 			<h2 className="mb-3 font-semibold text-sm">
-				{localization.settings.profile}
+				{localization.settings.userProfile}
 			</h2>
 
 			<form onSubmit={handleSubmit}>
@@ -146,7 +152,9 @@ export function UserProfile({ className }: UserProfileProps) {
 								!!usernameError || (usernameData && !usernameData.available)
 							}
 						>
-							<Label htmlFor="username">{localization.auth.username}</Label>
+							<Label htmlFor="username">
+								{usernameConfig.localization.username}
+							</Label>
 
 							{session ? (
 								<InputGroup>
@@ -162,7 +170,9 @@ export function UserProfile({ className }: UserProfileProps) {
 										minLength={usernameConfig.minUsernameLength}
 										name="username"
 										onChange={(e) => handleUsernameChange(e.target.value)}
-										placeholder={localization.auth.usernamePlaceholder}
+										placeholder={
+											usernameConfig.localization.usernamePlaceholder
+										}
 										type="text"
 										value={username}
 									/>
@@ -186,7 +196,7 @@ export function UserProfile({ className }: UserProfileProps) {
 								{usernameError?.error?.message ||
 									usernameError?.message ||
 									(usernameData?.available === false &&
-										localization.auth.usernameTaken)}
+										usernameConfig.localization.usernameTaken)}
 							</FieldError>
 						</Field>
 					</CardContent>

@@ -7,6 +7,7 @@ declare global {
 		CORS_ORIGIN: string;
 		DATABASE_URL?: string;
 		HYPERDRIVE?: { connectionString: string };
+		RESEND_API_KEY: string;
 	}
 
 	type Env = CloudflareEnv;

@@ -95,6 +95,7 @@ export default Stack(
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
 				BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
 				DATABASE_URL: role.connectionUrl,
+				RESEND_API_KEY: Secret("RESEND_API_KEY"),
 			},
 		});
 
