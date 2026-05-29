@@ -59,7 +59,7 @@ export async function createDb(connectionString?: string) {
 		);
 	}
 	return drizzle({
-		connection: { url: resolved.connectionString, max: 1 },
+		connection: { url: resolved.connectionString, max: 1, idle_timeout: 20 },
 		relations,
 	});
 }
