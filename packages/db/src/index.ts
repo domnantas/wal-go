@@ -36,12 +36,6 @@ async function resolveConnectionString(
 			source: "hyperdrive",
 		};
 	}
-	if (isConfigured(cloudflareEnv?.DATABASE_URL)) {
-		return {
-			connectionString: cloudflareEnv.DATABASE_URL,
-			source: "database-url",
-		};
-	}
 	if (isConfigured(process.env.DATABASE_URL)) {
 		return {
 			connectionString: process.env.DATABASE_URL,
