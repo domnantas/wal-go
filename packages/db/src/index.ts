@@ -63,18 +63,10 @@ export async function createDb(connectionString?: string) {
 		max: 1,
 		idle_timeout: 20,
 		prepare: false,
-		onclose: (connId) => {
-			console.log("[db] connection closed:", connId);
-		},
 	});
 	return drizzle({ client, relations });
 }
 
-let dbInstance: ReturnType<typeof createDb> | undefined;
-
 export function getDb(): ReturnType<typeof createDb> {
-	if (!dbInstance) {
-		dbInstance = createDb();
-	}
-	return dbInstance;
+	return createDb();
 }
