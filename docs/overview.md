@@ -37,6 +37,14 @@ The homepage introduces WAL GO, shows live season/team context when available, e
 
 Three fixed teams per season: **yellow**, **green**, **red**. Team assignment is random (server-side spin) and cannot be changed within a season. A player who has already joined sees their assigned team immediately instead of the spin UI.
 
+## Error and 404 pages
+
+Unmatched routes render `NotFound` (`apps/web/src/components/not-found.tsx`) via `defaultNotFoundComponent` in `router.tsx`. It shows a Lithuanian message, a home link, and a Discord invite button so users know where to report issues.
+
+Uncaught render errors render `ErrorPage` (`apps/web/src/components/error-page.tsx`) via `defaultErrorComponent`. It displays the error message (if any), a retry button (`reset()`), and the same Discord link.
+
+The Discord URL (`https://discord.gg/RQfcQ29d44`) is hardcoded in both components.
+
 ## Related Docs
 
 - [auth.md](auth.md) — authentication and session handling

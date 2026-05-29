@@ -6,6 +6,7 @@ import { ArrowRight, Plus } from "lucide-react";
 import { DiscordIcon } from "@/components/discord-icon";
 import { MapView } from "@/domains/map/map-view";
 import { authClient } from "@/lib/auth-client";
+import { DISCORD_INVITE_URL } from "@/lib/constants";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/")({
@@ -413,7 +414,7 @@ function HomeComponent() {
 					<div className="mt-8 flex items-center justify-center">
 						<a
 							className={cn(buttonVariants({ size: "lg" }), "px-6")}
-							href="https://discord.gg/RQfcQ29d44"
+							href={DISCORD_INVITE_URL}
 							rel="noopener noreferrer"
 							target="_blank"
 						>

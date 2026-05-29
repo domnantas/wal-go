@@ -13,12 +13,12 @@
 - [x] Change email
 - [x] Change password
 - [] Error pages with discord link
-- [] Set up better auth with SSR
+- [x] Set up better auth with SSR
 - [x] Rules page
 - [x] Set up Discord
 - [x] Feature voting
 - [x] Bug reporting
-- [] Presentation about WAL GO
+- [x] Presentation about WAL GO
 - [] Admin page
 - [] Audit trail of uploads in admin
 - [] Score reconciliation

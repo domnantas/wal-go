@@ -22,6 +22,16 @@ The root route does not perform a server-side session lookup. The homepage route
 
 Router context must not be treated as the only authorization source, because the client can have stale state after sign-out or session expiry. All sensitive actions must use server-side checks through ORPC `protectedProcedure`.
 
+## SSR session hydration
+
+Protected route `beforeLoad` handlers call `getUser()` (a direct `auth.api.getSession` call — no HTTP round-trip) and then write the result into the TanStack Query cache:
+
+```ts
+queryClient.setQueryData(sessionOptions(authClient).queryKey, session)
+```
+
+This populates the `["auth", "getSession"]` cache key before the component tree renders. `@better-auth-ui/react` components (`Settings`, `Auth` forms, `UserButton`) share the same key via `sessionOptions`, so they hydrate from cache on first render instead of making an extra network request. The root `loader` reads back the cached session via `queryClient.getQueryData(sessionOptions(authClient).queryKey)` so the `Header` also has the session value during SSR.
+
 ## Practical rule
 
 - Pages intended only for signed-in users must have a route `beforeLoad` check against `context.session?.user`.

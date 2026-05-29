@@ -12,6 +12,7 @@ import { LogOut, Paintbrush, Settings } from "lucide-react";
 import { DiscordIcon } from "@/components/discord-icon";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
+import { DISCORD_INVITE_URL } from "@/lib/constants";
 import type { SessionContext } from "@/routes/__root";
 import { orpc } from "@/utils/orpc";
 
@@ -84,7 +85,7 @@ export function UserButton({ session: initialSession }: UserButtonProps) {
 					)}
 					render={
 						<a
-							href="https://discord.gg/RQfcQ29d44"
+							href={DISCORD_INVITE_URL}
 							rel="noopener noreferrer"
 							target="_blank"
 						>
