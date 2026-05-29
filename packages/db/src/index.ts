@@ -63,3 +63,12 @@ export async function createDb(connectionString?: string) {
 		relations,
 	});
 }
+
+let dbInstance: ReturnType<typeof createDb> | undefined;
+
+export function getDb(): ReturnType<typeof createDb> {
+	if (!dbInstance) {
+		dbInstance = createDb();
+	}
+	return dbInstance;
+}

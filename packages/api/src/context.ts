@@ -1,8 +1,8 @@
-import { createAuth } from "@WAL-GO/auth";
-import { createDb } from "@WAL-GO/db";
+import { getAuth } from "@WAL-GO/auth";
+import { getDb } from "@WAL-GO/db";
 
 export async function createContext({ req }: { req: Request }) {
-	const auth = await createAuth();
+	const auth = await getAuth();
 	let session: Awaited<ReturnType<typeof auth.api.getSession>> = null;
 	try {
 		session = await auth.api.getSession({ headers: req.headers });
@@ -13,7 +13,7 @@ export async function createContext({ req }: { req: Request }) {
 	return {
 		auth: null,
 		session,
-		db: await createDb(),
+		db: await getDb(),
 	};
 }
 

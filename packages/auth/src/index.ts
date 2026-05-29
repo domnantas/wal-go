@@ -195,3 +195,12 @@ export async function createAuth() {
 		},
 	});
 }
+
+let authInstance: ReturnType<typeof createAuth> | undefined;
+
+export function getAuth(): ReturnType<typeof createAuth> {
+	if (!authInstance) {
+		authInstance = createAuth();
+	}
+	return authInstance;
+}

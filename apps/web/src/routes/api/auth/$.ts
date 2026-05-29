@@ -1,15 +1,15 @@
-import { createAuth } from "@WAL-GO/auth";
+import { getAuth } from "@WAL-GO/auth";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/api/auth/$")({
 	server: {
 		handlers: {
 			GET: async ({ request }) => {
-				const auth = await createAuth();
+				const auth = await getAuth();
 				return auth.handler(request);
 			},
 			POST: async ({ request }) => {
-				const auth = await createAuth();
+				const auth = await getAuth();
 				return auth.handler(request);
 			},
 		},

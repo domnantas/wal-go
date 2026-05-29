@@ -1,10 +1,10 @@
-import { createAuth } from "@WAL-GO/auth";
+import { getAuth } from "@WAL-GO/auth";
 import { createMiddleware } from "@tanstack/react-start";
 
 export const authMiddleware = createMiddleware().server(
 	async ({ next, request }) => {
 		try {
-			const session = await (await createAuth()).api.getSession({
+			const session = await (await getAuth()).api.getSession({
 				headers: request.headers,
 			});
 			return next({ context: { session } });
