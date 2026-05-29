@@ -7,8 +7,10 @@
 - [x] Countdowns should use HH:mm:ss format when there's less than 24 hours left
 - [x] Mobile design
 - [x] Seed script for the db
-- [] Email verification
+- [x] Email verification
 - [x] Cabrillo import
+- [] Forgot email
+- [] Change email
 - [] Presentation about WAL GO
 - [x] Rules page
 - [x] Set up Discord
