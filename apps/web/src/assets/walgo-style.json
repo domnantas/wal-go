@@ -2186,7 +2186,19 @@
       "paint": {
         "line-color": "#e0784c",
         "line-opacity": ["interpolate", ["linear"], ["zoom"], 0, 0.4, 4, 1],
-        "line-width": ["interpolate", ["linear"], ["zoom"], 3, 1, 5, 1.2, 12, 3]
+        "line-width": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          0,
+          2,
+          3,
+          3,
+          5,
+          4,
+          12,
+          6
+        ]
       }
     },
     {
