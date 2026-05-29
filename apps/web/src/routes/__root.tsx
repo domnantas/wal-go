@@ -35,12 +35,35 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			{
 				title: "WAL GO — Lietuvos mėgėjų radijo varžybos",
 			},
+			{
+				name: "apple-mobile-web-app-title",
+				content: "WAL GO",
+			},
 		],
 		links: [
 			{
 				rel: "icon",
+				href: "/favicon-96x96.png",
+				type: "image/png",
+				size: "96x96",
+			},
+			{
+				rel: "icon",
 				href: "/favicon.svg",
 				type: "image/svg+xml",
+			},
+			{
+				rel: "shortcut icon",
+				href: "/favicon.ico",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/apple-touch-icon.png",
+				sizes: "180x180",
+			},
+			{
+				rel: "manifest",
+				href: "/site.webmanifest",
 			},
 			{
 				rel: "stylesheet",

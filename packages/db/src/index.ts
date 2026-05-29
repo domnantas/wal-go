@@ -60,7 +60,7 @@ export async function createDb(connectionString?: string) {
 		);
 	}
 	const client = postgres(resolved.connectionString, {
-		max: 5,
+		max: 1,
 		idle_timeout: 20,
 		prepare: false,
 		onclose: (connId) => {
