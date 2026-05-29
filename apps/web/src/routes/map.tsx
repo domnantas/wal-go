@@ -1,3 +1,4 @@
+import { sessionOptions } from "@better-auth-ui/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
@@ -6,11 +7,13 @@ import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-
 import { TeamControlledSquaresBox } from "@/domains/scoring/team-controlled-squares-box";
 import { SeasonSidebarBox } from "@/domains/season/season-sidebar-box";
 import { getUser } from "@/functions/get-user";
+import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/map")({
-	async beforeLoad() {
+	async beforeLoad({ context: { queryClient } }) {
 		const session = await getUser();
+		queryClient.setQueryData(sessionOptions(authClient).queryKey, session);
 		if (!session?.user) {
 			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}

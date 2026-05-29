@@ -131,7 +131,7 @@ export async function createAuth() {
 						USER_NOT_FOUND: "Naudotojas nerastas",
 						FAILED_TO_CREATE_USER: "Nepavyko sukurti naudotojo",
 						FAILED_TO_CREATE_SESSION: "Nepavyko sukurti sesijos",
-						FAILED_TO_UPDATE_USER: "Nepavyko atnaujinti naudotojo",
+						FAILED_TO_UPDATE_USER: "Nepavyko pakeisti naudotojo",
 						FAILED_TO_GET_SESSION: "Nepavyko gauti sesijos",
 						INVALID_PASSWORD: "Neteisingas slaptažodis",
 						INVALID_EMAIL: "Neteisingas el. paštas",
@@ -150,7 +150,7 @@ export async function createAuth() {
 						USER_ALREADY_EXISTS: "Naudotojas jau egzistuoja",
 						USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
 							"El. paštas jau užregistruotas. Naudokite kitą el. paštą.",
-						EMAIL_CAN_NOT_BE_UPDATED: "El. pašto atnaujinti negalima",
+						EMAIL_CAN_NOT_BE_UPDATED: "El. pašto pakeisti negalima",
 						CREDENTIAL_ACCOUNT_NOT_FOUND: "Prisijungimo paskyra nerasta",
 						SESSION_EXPIRED:
 							"Sesijos galiojimas baigėsi. Prisijunkite iš naujo, kad atliktumėte šį veiksmą.",

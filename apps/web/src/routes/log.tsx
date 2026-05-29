@@ -14,6 +14,7 @@ import {
 	TableRow,
 } from "@WAL-GO/ui/components/table";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { sessionOptions } from "@better-auth-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
@@ -40,11 +41,13 @@ import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
 import { getUser } from "@/functions/get-user";
+import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/log")({
-	async beforeLoad() {
+	async beforeLoad({ context: { queryClient } }) {
 		const session = await getUser();
+		queryClient.setQueryData(sessionOptions(authClient).queryKey, session);
 		if (!session) {
 			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}

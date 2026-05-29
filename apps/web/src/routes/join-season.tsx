@@ -7,17 +7,19 @@ import {
 	CardTitle,
 } from "@WAL-GO/ui/components/card";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
+import { sessionOptions } from "@better-auth-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Info } from "lucide-react";
 import { type RefObject, useEffect, useRef, useState } from "react";
-
 import { getUser } from "@/functions/get-user";
+import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/join-season")({
-	async beforeLoad() {
+	async beforeLoad({ context: { queryClient } }) {
 		const session = await getUser();
+		queryClient.setQueryData(sessionOptions(authClient).queryKey, session);
 		if (!session?.user) {
 			throw redirect({ to: "/auth/$path", params: { path: "sign-in" } });
 		}

@@ -85,8 +85,8 @@ export function Providers({ children }: { children: ReactNode }) {
 					security: "Saugumas",
 					settings: "Nustatymai",
 					unlinkProvider: "Atsieti {{provider}}",
-					updateEmail: "Atnaujinti el. paštą",
-					updatePassword: "Atnaujinti slaptažodį",
+					updateEmail: "Pakeisti el. paštą",
+					updatePassword: "Pakeisti slaptažodį",
 				},
 			}}
 			navigate={navigate}
