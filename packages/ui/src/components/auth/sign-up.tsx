@@ -24,15 +24,9 @@ import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { usernamePlugin } from "@better-auth-ui/core/plugins";
-import {
-	useAuth,
-	useAuthPlugin,
-	useIsUsernameAvailable,
-	useSignUpEmail,
-} from "@better-auth-ui/react";
+import { useAuth, useAuthPlugin, useSignUpEmail } from "@better-auth-ui/react";
 import { useForm } from "@tanstack/react-form";
-import { useDebouncer } from "@tanstack/react-pacer";
-import { Check, Eye, EyeOff, X } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -83,36 +77,6 @@ export function SignUp({
 
 	const usernameConfig = useAuthPlugin(usernamePlugin);
 	const hasMagicLink = plugins?.some((p) => p.id === "magicLink") ?? false;
-
-	const [username, setUsername] = useState("");
-
-	const {
-		mutate: isUsernameAvailable,
-		data: usernameData,
-		error: usernameError,
-		reset: resetUsername,
-	} = useIsUsernameAvailable(authClient);
-
-	const usernameDebouncer = useDebouncer(
-		(value: string) => {
-			if (!value.trim()) {
-				resetUsername();
-				return;
-			}
-
-			isUsernameAvailable({ username: value.trim() });
-		},
-		{ wait: 500 }
-	);
-
-	function handleUsernameChange(value: string) {
-		setUsername(value);
-		resetUsername();
-
-		if (usernameConfig?.isUsernameAvailable) {
-			usernameDebouncer.maybeExecute(value);
-		}
-	}
 
 	const { mutate: signUpEmail, isPending: signUpPending } = useSignUpEmail(
 		authClient,
@@ -180,9 +144,9 @@ export function SignUp({
 				password: value.password,
 				...(usernameConfig
 					? {
-							username: username.trim(),
+							username: value.name.trim(),
 							...(usernameConfig.displayUsername
-								? { displayUsername: username.trim() }
+								? { displayUsername: value.name.trim() }
 								: {}),
 						}
 					: {}),
@@ -261,18 +225,6 @@ export function SignUp({
 										);
 									}}
 								</form.Field>
-
-								{usernameConfig && (
-									<UsernameField
-										isPending={isPending}
-										localization={localization}
-										onUsernameChange={handleUsernameChange}
-										username={username}
-										usernameConfig={usernameConfig}
-										usernameData={usernameData}
-										usernameError={usernameError}
-									/>
-								)}
 
 								<form.Field name="email" validators={{ onBlur: emailSchema }}>
 									{(field) => {
@@ -478,78 +430,5 @@ export function SignUp({
 				)}
 			</CardContent>
 		</Card>
-	);
-}
-
-function UsernameField({
-	isPending,
-	localization,
-	onUsernameChange,
-	username,
-	usernameConfig,
-	usernameData,
-	usernameError,
-}: {
-	isPending: boolean;
-	localization: ReturnType<typeof useAuth>["localization"];
-	onUsernameChange: (value: string) => void;
-	username: string;
-	usernameConfig: {
-		maxUsernameLength?: number;
-		minUsernameLength?: number;
-		isUsernameAvailable?: boolean;
-	};
-	usernameData: { available: boolean } | undefined;
-	usernameError: { error?: { message?: string }; message?: string } | null;
-}) {
-	return (
-		<Field
-			data-invalid={
-				!!usernameError || (usernameData && !usernameData.available)
-			}
-		>
-			<Label htmlFor="username">
-				{(localization.auth as Record<string, string>).username}
-			</Label>
-
-			<InputGroup>
-				<InputGroupInput
-					aria-invalid={
-						!!usernameError || (usernameData && !usernameData.available)
-					}
-					autoComplete="username"
-					disabled={isPending}
-					id="username"
-					maxLength={usernameConfig.maxUsernameLength}
-					minLength={usernameConfig.minUsernameLength}
-					name="username"
-					onChange={(e) => onUsernameChange(e.target.value)}
-					placeholder={
-						(localization.auth as Record<string, string>).usernamePlaceholder
-					}
-					required
-					type="text"
-					value={username}
-				/>
-
-				{usernameConfig.isUsernameAvailable && username.trim() && (
-					<InputGroupAddon align="inline-end">
-						{usernameData?.available && <Check className="text-foreground" />}
-						{(usernameError || usernameData?.available === false) && (
-							<X className="text-destructive" />
-						)}
-						{!(usernameData || usernameError) && <Spinner />}
-					</InputGroupAddon>
-				)}
-			</InputGroup>
-
-			<FieldError>
-				{usernameError?.error?.message ||
-					usernameError?.message ||
-					(usernameData?.available === false
-						? (localization.auth as Record<string, string>).usernameTaken
-						: null)}
-			</FieldError>
-		</Field>
 	);
 }
