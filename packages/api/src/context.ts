@@ -7,7 +7,12 @@ export async function createContext({ req }: { req: Request }) {
 	try {
 		session = await auth.api.getSession({ headers: req.headers });
 	} catch (error) {
-		console.error("[context] getSession failed:", error);
+		console.error(
+			"[context] getSession failed:",
+			error,
+			"cause:",
+			(error as Error)?.cause
+		);
 	}
 
 	return {

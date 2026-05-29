@@ -9,7 +9,12 @@ export const authMiddleware = createMiddleware().server(
 			});
 			return next({ context: { session } });
 		} catch (error) {
-			console.error("[auth] getSession failed:", error);
+			console.error(
+				"[auth] getSession failed:",
+				error,
+				"cause:",
+				(error as Error)?.cause
+			);
 			return next({ context: { session: null } });
 		}
 	}
