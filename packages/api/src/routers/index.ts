@@ -1,6 +1,7 @@
 import type { RouterClient } from "@orpc/server";
 
 import { protectedProcedure, publicProcedure } from "../index";
+import { adminRouter } from "./admin";
 import { qsosRouter } from "./qsos";
 import { scoringRouter } from "./scoring";
 import { seasonsRouter } from "./seasons";
@@ -11,6 +12,7 @@ export const appRouter = {
 		message: "This is private",
 		user: context.session?.user,
 	})),
+	admin: adminRouter,
 	qsos: qsosRouter,
 	scoring: scoringRouter,
 	seasons: seasonsRouter,

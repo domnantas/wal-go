@@ -35,8 +35,23 @@ This populates the `["auth", "getSession"]` cache key before the component tree 
 ## Practical rule
 
 - Pages intended only for signed-in users must have a route `beforeLoad` check against `context.session?.user`.
+- Pages intended only for admins must additionally check `session.user.role === "admin"` and redirect to `/` if the role doesn't match.
 - API procedures that return or mutate user data must be `protectedProcedure`.
 - Client-side `useSession()` / `useAuthenticate()` hooks can improve UX, but must not replace server-side authorization.
+
+## Admin role
+
+The `admin` Better Auth plugin adds a `role` field (`"user"` | `"admin"`) to the user record. The `/admin` route enforces this at the router level in `beforeLoad`:
+
+1. No session → redirect to `/auth/sign-in`
+2. Session with `role !== "admin"` → redirect to `/`
+3. Admin session → route renders
+
+The role is set via the Better Auth admin API (e.g. `authClient.admin.setRole()`). There is no UI for this yet; it must be done directly through the API or database.
+
+### Two-layer protection
+
+`beforeLoad` protects the page UI (runs server-side on SSR, client-side on navigation), but server functions and ORPC procedures can be called directly via HTTP — they bypass `beforeLoad` entirely. Any admin-only API endpoint must use `adminProcedure` from `packages/api/src/index.ts`, which independently enforces `role === "admin"` and throws `FORBIDDEN` otherwise.
 
 ## Email verification
 
