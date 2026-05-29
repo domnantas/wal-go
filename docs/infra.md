@@ -26,7 +26,7 @@ The stack creates:
 3. `PostgresRole` — credentials with `postgres` inherited role; `.origin` wires directly into Hyperdrive
 4. `Hyperdrive` — pools connections; uses the unique logical id `hyperdrive` so it does not collide with the PlanetScale database resource; `dev` override points to `localhost:5432` for `alchemy dev`
 5. `Drizzle.Schema` — generates migration SQL using drizzle-kit's programmatic API whenever the schema in `packages/db/src/schema/` changes; migrations are written to `packages/db/migrations/`
-6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding, a direct `DATABASE_URL` secret from the PlanetScale role, and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`
+6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding, a direct `DATABASE_URL` secret from the PlanetScale role, and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`. `memo.include` is set to `../../apps/**` and `../../packages/**` so changes to any workspace package trigger a rebuild — Alchemy's default hashes only the `packages/infra` cwd.
 
 ## Local development
 
@@ -65,7 +65,7 @@ To add a migration: modify the schema in `packages/db/src/schema/`, then deploy.
 ## Database connection
 
 `createDb()` in `packages/db/src/index.ts` accepts an optional `connectionString`:
-- In deployed Workers: the Worker receives both `DATABASE_URL` and `HYPERDRIVE`. `DATABASE_URL` is preferred so production can connect directly to PlanetScale while Hyperdrive remains available as a fallback.
+- In deployed Workers: the Worker receives both `HYPERDRIVE` and `DATABASE_URL`. `HYPERDRIVE` is preferred because CF Workers cannot make direct TCP connections to external Postgres; `DATABASE_URL` is a fallback for environments without Hyperdrive.
 - In `alchemy dev`: Hyperdrive's `dev` override connects to local Postgres at `localhost:5432` unless a `DATABASE_URL` is present in the local environment.
 - In Node.js (`vite dev`): no Hyperdrive binding exists, so database clients fall back to `process.env.DATABASE_URL`
 

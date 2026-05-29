@@ -75,6 +75,9 @@ export default Stack(
 
 		const web = yield* Vite("web", {
 			rootDir: "../../apps/web",
+			memo: {
+				include: ["../../apps/**", "../../packages/**", "../../pnpm-lock.yaml"],
+			},
 			domain: isProd ? ["walgo.lt", "www.walgo.lt"] : undefined,
 			compatibility: {
 				flags: ["nodejs_compat", "nodejs_compat_populate_process_env"],
