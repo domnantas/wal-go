@@ -3,40 +3,28 @@
 // Lazy getters so that process.env is read at access time (inside request
 // handlers), not at module initialization. CF Workers may not populate
 // process.env from bindings until the first fetch handler runs.
+function required(key: string): string {
+	const value = process.env[key];
+	if (!value) {
+		throw new Error(`Missing required env var: ${key}`);
+	}
+	return value;
+}
+
 export const env = {
 	get CORS_ORIGIN() {
-		return process.env.CORS_ORIGIN ?? "";
+		return required("CORS_ORIGIN");
 	},
 	get BETTER_AUTH_SECRET() {
-		return process.env.BETTER_AUTH_SECRET ?? "";
+		return required("BETTER_AUTH_SECRET");
 	},
 	get BETTER_AUTH_URL() {
-		return process.env.BETTER_AUTH_URL ?? "";
+		return required("BETTER_AUTH_URL");
 	},
 	get DATABASE_URL() {
 		return process.env.DATABASE_URL;
 	},
 	get RESEND_API_KEY() {
-		return process.env.RESEND_API_KEY ?? "";
+		return required("RESEND_API_KEY");
 	},
 } as const;
-
-export async function getCloudflareEnv(): Promise<CloudflareEnv | undefined> {
-	try {
-		const moduleName = "cloudflare:workers";
-		/* @vite-ignore */
-		const { env: cloudflareEnv } = (await import(moduleName)) as {
-			env: CloudflareEnv;
-		};
-		return cloudflareEnv;
-	} catch {
-		return;
-	}
-}
-
-export async function getHyperdriveConnectionString(): Promise<
-	string | undefined
-> {
-	const cloudflareEnv = await getCloudflareEnv();
-	return cloudflareEnv?.HYPERDRIVE?.connectionString;
-}
