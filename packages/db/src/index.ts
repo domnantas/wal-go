@@ -1,4 +1,5 @@
 import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { relations } from "./schema/relations.ts";
 
 interface ConnectionResolution {
@@ -58,15 +59,15 @@ export async function createDb(connectionString?: string) {
 			"[db] No database connection string configured. Set DATABASE_URL or bind HYPERDRIVE."
 		);
 	}
-	return drizzle({
-		connection: {
-			url: resolved.connectionString,
-			max: 5,
-			idle_timeout: 20,
-			prepare: false,
+	const client = postgres(resolved.connectionString, {
+		max: 5,
+		idle_timeout: 20,
+		prepare: false,
+		onclose: (connId) => {
+			console.log("[db] connection closed:", connId);
 		},
-		relations,
 	});
+	return drizzle({ client, relations });
 }
 
 let dbInstance: ReturnType<typeof createDb> | undefined;
