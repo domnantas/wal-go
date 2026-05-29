@@ -1,14 +1,17 @@
 import { Auth } from "@WAL-GO/ui/components/auth/auth";
-import { viewPaths } from "@better-auth-ui/react/core";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+
+const AUTH_PATHS = [
+	"sign-in",
+	"sign-up",
+	"forgot-password",
+	"reset-password",
+	"sign-out",
+] as const;
 
 export const Route = createFileRoute("/auth/$path")({
 	beforeLoad({ params: { path } }) {
-		if (
-			!Object.values(viewPaths.auth)
-				.filter((path) => path !== "magic-link")
-				.includes(path)
-		) {
+		if (!(AUTH_PATHS as readonly string[]).includes(path)) {
 			throw redirect({ to: "/" });
 		}
 	},

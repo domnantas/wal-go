@@ -1,5 +1,6 @@
 import { AuthProvider } from "@WAL-GO/ui/components/auth/auth-provider";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { themePlugin, usernamePlugin } from "@better-auth-ui/core/plugins";
+import { useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTheme } from "tanstack-theme-kit";
 
@@ -12,12 +13,10 @@ export function Providers({ children }: { children: ReactNode }) {
 
 	return (
 		<AuthProvider
-			appearance={{ setTheme, theme }}
 			authClient={authClient}
 			emailAndPassword={{
-				requireEmailVerification: false,
+				requireEmailVerification: true,
 			}}
-			Link={Link}
 			localization={{
 				auth: {
 					account: "Paskyra",
@@ -101,7 +100,7 @@ export function Providers({ children }: { children: ReactNode }) {
 						"Tvarkykite savo prieigos raktus saugiam prisijungimui.",
 					passkeysInstructions:
 						"Saugiai pasiekite savo paskyrą be slaptažodžio.",
-					profile: "Profilis",
+					userProfile: "Profilis",
 					profileUpdatedSuccess: "Profilis sėkmingai atnaujintas",
 					revoke: "Atšaukti",
 					revokeSession: "Nutraukti sesiją",
@@ -120,8 +119,22 @@ export function Providers({ children }: { children: ReactNode }) {
 				},
 			}}
 			navigate={navigate}
+			plugins={[
+				themePlugin({ setTheme, theme }),
+				usernamePlugin({
+					localization: {
+						username: "Šaukinys",
+						usernamePlaceholder: "Įveskite šaukinį",
+						usernameOrEmailPlaceholder: "Įveskite šaukinį arba el. paštą",
+						usernameAvailable: "Šaukinys laisvas",
+						usernameTaken: "Šis šaukinys jau užimtas. Bandykite kitą.",
+						displayUsername: "Rodomas šaukinys",
+						displayUsernamePlaceholder: "Įveskite rodomą šaukinį",
+					},
+				}),
+			]}
 			queryClient={queryClient}
-			redirectTo="/"
+			redirectTo="/map"
 		>
 			{children}
 		</AuthProvider>

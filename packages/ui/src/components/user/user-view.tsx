@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@WAL-GO/ui/components/skeleton";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import { useSession } from "@better-auth-ui/react";
+import { useAuth, useSession } from "@better-auth-ui/react";
 import type { User } from "better-auth";
 import { UserAvatar } from "./user-avatar";
 
@@ -22,11 +22,10 @@ export interface UserViewProps {
  * @returns A React element showing the user's avatar with their identifying information
  */
 export function UserView({ className, isPending, user }: UserViewProps) {
-	const { data: session, isPending: sessionPending } = useSession({
-		enabled: !(user || isPending),
-	});
+	const { authClient } = useAuth();
+	const { data: session, isPending: sessionPending } = useSession(authClient);
 
-	const resolvedUser = user ?? session?.user;
+	const resolvedUser = user ?? (session?.user as typeof user);
 
 	if ((isPending || sessionPending) && !user) {
 		return (

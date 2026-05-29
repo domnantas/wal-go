@@ -11,9 +11,11 @@ export interface PasskeyButtonProps {
 }
 
 export function PasskeyButton({ isPending }: PasskeyButtonProps) {
-	const { localization, redirectTo, navigate } = useAuth();
+	const { authClient, localization, redirectTo, navigate } = useAuth();
 
+	// biome-ignore lint/suspicious/noExplicitAny: passkey plugin not in base authClient type
 	const { mutate: signInPasskey, isPending: passkeyPending } = useSignInPasskey(
+		authClient as any,
 		{
 			onSuccess: () => navigate({ to: redirectTo }),
 		}
@@ -25,14 +27,16 @@ export function PasskeyButton({ isPending }: PasskeyButtonProps) {
 		<Button
 			className={cn("w-full", isDisabled && "pointer-events-none opacity-50")}
 			disabled={isDisabled}
-			onClick={() => signInPasskey()}
+			onClick={() => signInPasskey({})}
 			type="button"
 			variant="outline"
 		>
 			{passkeyPending ? <Spinner /> : <Fingerprint />}
-			{localization.auth.continueWith.replace(
+			{(
+				(localization.auth as Record<string, string>).continueWith ?? ""
+			).replace(
 				"{{provider}}",
-				localization.auth.passkey
+				(localization.auth as Record<string, string>).passkey ?? ""
 			)}
 		</Button>
 	);

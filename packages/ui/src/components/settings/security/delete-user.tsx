@@ -19,7 +19,13 @@ import { Input } from "@WAL-GO/ui/components/input";
 import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import { useAuth, useDeleteUser, useListAccounts } from "@better-auth-ui/react";
+import { deleteUserPlugin } from "@better-auth-ui/core/plugins";
+import {
+	useAuth,
+	useAuthPlugin,
+	useDeleteUser,
+	useListAccounts,
+} from "@better-auth-ui/react";
 import { TriangleAlert } from "lucide-react";
 import { type SyntheticEvent, useState } from "react";
 import { toast } from "sonner";
@@ -32,15 +38,11 @@ export interface DeleteUserProps {
  * Danger-zone card to delete the authenticated account, with a confirmation dialog and toasts.
  */
 export function DeleteUser({ className }: DeleteUserProps) {
-	const {
-		basePaths,
-		deleteUser: deleteUserConfig,
-		localization,
-		viewPaths,
-		navigate,
-	} = useAuth();
+	const { authClient, basePaths, localization, viewPaths, navigate } =
+		useAuth();
+	const deleteUserConfig = useAuthPlugin(deleteUserPlugin);
 
-	const { data: accounts } = useListAccounts();
+	const { data: accounts } = useListAccounts(authClient);
 
 	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [password, setPassword] = useState("");
@@ -51,7 +53,7 @@ export function DeleteUser({ className }: DeleteUserProps) {
 	const needsPassword =
 		!deleteUserConfig?.sendDeleteAccountVerification && hasCredentialAccount;
 
-	const { mutate: deleteUser, isPending } = useDeleteUser();
+	const { mutate: deleteUser, isPending } = useDeleteUser(authClient);
 
 	const handleDialogOpenChange = (open: boolean) => {
 		setConfirmOpen(open);
@@ -71,9 +73,14 @@ export function DeleteUser({ className }: DeleteUserProps) {
 				setPassword("");
 
 				if (deleteUserConfig?.sendDeleteAccountVerification) {
-					toast.success(localization.settings.deleteUserVerificationSent);
+					toast.success(
+						(localization.settings as Record<string, string>)
+							.deleteUserVerificationSent
+					);
 				} else {
-					toast.success(localization.settings.deleteUserSuccess);
+					toast.success(
+						(localization.settings as Record<string, string>).deleteUserSuccess
+					);
 					navigate({
 						to: `${basePaths.auth}/${viewPaths.auth.signIn}`,
 						replace: true,
@@ -88,11 +95,14 @@ export function DeleteUser({ className }: DeleteUserProps) {
 			<CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<p className="font-medium text-sm leading-tight">
-						{localization.settings.deleteUser}
+						{(localization.settings as Record<string, string>).deleteUser}
 					</p>
 
 					<p className="mt-0.5 text-muted-foreground text-xs">
-						{localization.settings.deleteUserDescription}
+						{
+							(localization.settings as Record<string, string>)
+								.deleteUserDescription
+						}
 					</p>
 				</div>
 
@@ -102,7 +112,7 @@ export function DeleteUser({ className }: DeleteUserProps) {
 							<Button disabled={!accounts} size="sm" variant="destructive" />
 						}
 					>
-						{localization.settings.deleteUser}
+						{(localization.settings as Record<string, string>).deleteUser}
 					</AlertDialogTrigger>
 
 					<AlertDialogContent>
@@ -113,11 +123,14 @@ export function DeleteUser({ className }: DeleteUserProps) {
 								</AlertDialogMedia>
 
 								<AlertDialogTitle>
-									{localization.settings.deleteUser}
+									{(localization.settings as Record<string, string>).deleteUser}
 								</AlertDialogTitle>
 
 								<AlertDialogDescription>
-									{localization.settings.deleteUserDescription}
+									{
+										(localization.settings as Record<string, string>)
+											.deleteUserDescription
+									}
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 
@@ -151,7 +164,7 @@ export function DeleteUser({ className }: DeleteUserProps) {
 								<AlertDialogAction variant="destructive">
 									{isPending && <Spinner />}
 
-									{localization.settings.deleteUser}
+									{(localization.settings as Record<string, string>).deleteUser}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</form>

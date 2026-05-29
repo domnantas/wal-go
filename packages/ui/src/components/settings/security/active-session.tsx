@@ -44,12 +44,17 @@ export interface ActiveSessionProps {
  * @returns A JSX element containing the active session row
  */
 export function ActiveSession({ activeSession }: ActiveSessionProps) {
-	const { basePaths, localization, viewPaths, navigate } = useAuth();
-	const { data: session } = useSession({ refetchOnMount: false });
+	const { authClient, basePaths, localization, viewPaths, navigate } =
+		useAuth();
+	const { data: session } = useSession(authClient, { refetchOnMount: false });
 
-	const { mutate: revokeSession, isPending: isRevoking } = useRevokeSession({
-		onSuccess: () => toast.success(localization.settings.revokeSessionSuccess),
-	});
+	const { mutate: revokeSession, isPending: isRevoking } = useRevokeSession(
+		authClient,
+		{
+			onSuccess: () =>
+				toast.success(localization.settings.revokeSessionSuccess),
+		}
+	);
 
 	const isCurrentSession = activeSession.token === session?.session.token;
 	const ua = Bowser.parse(activeSession.userAgent || "");

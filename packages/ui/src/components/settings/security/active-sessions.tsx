@@ -20,10 +20,10 @@ export interface ActiveSessionsProps {
  * @returns A JSX element containing the sessions card
  */
 export function ActiveSessions({ className }: ActiveSessionsProps) {
-	const { localization } = useAuth();
-	const { data: session } = useSession();
+	const { authClient, localization } = useAuth();
+	const { data: session } = useSession(authClient);
 
-	const { data: sessions, isPending } = useListSessions();
+	const { data: sessions, isPending } = useListSessions(authClient);
 
 	const activeSessions = [...(sessions ?? [])].sort((activeSession) =>
 		activeSession.id === session?.session.id ? -1 : 1

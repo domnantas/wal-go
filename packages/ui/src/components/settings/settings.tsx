@@ -8,31 +8,22 @@ import {
 } from "@WAL-GO/ui/components/tabs";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useAuth, useAuthenticate } from "@better-auth-ui/react";
-import type { SettingsView } from "@better-auth-ui/react/core";
 import { useMemo } from "react";
 import { AccountSettings } from "./account/account-settings";
 import { SecuritySettings } from "./security/security-settings";
+
+type SettingsView = "account" | "security";
 
 export interface SettingsProps {
 	className?: string;
 	hideNav?: boolean;
 	path?: string;
-	/** @remarks `SettingsView` */
 	view?: SettingsView;
 }
 
-/**
- * Renders the settings UI and activates the appropriate settings view based on `view` or `path`.
- *
- * @param className - Additional CSS class names applied to the root container
- * @param path - Route path used to resolve which settings view to activate when `view` is not provided
- * @param view - Explicit settings view to activate (for example, `"account"` or `"security"`)
- * @param hideNav - When `true`, hides the settings navigation tabs
- * @returns A JSX element rendering the settings layout and the selected settings panel
- */
 export function Settings({ className, view, path, hideNav }: SettingsProps) {
-	const { basePaths, localization, viewPaths, Link } = useAuth();
-	useAuthenticate();
+	const { authClient, basePaths, localization, viewPaths } = useAuth();
+	useAuthenticate(authClient);
 
 	if (!(view || path)) {
 		throw new Error(
@@ -59,9 +50,7 @@ export function Settings({ className, view, path, hideNav }: SettingsProps) {
 				<TabsList aria-label={localization.settings.settings}>
 					<TabsTrigger
 						render={
-							<Link
-								href={`${basePaths.settings}/${viewPaths.settings.account}`}
-							/>
+							<a href={`${basePaths.settings}/${viewPaths.settings.account}`} />
 						}
 						value="account"
 					>
@@ -70,7 +59,7 @@ export function Settings({ className, view, path, hideNav }: SettingsProps) {
 
 					<TabsTrigger
 						render={
-							<Link
+							<a
 								href={`${basePaths.settings}/${viewPaths.settings.security}`}
 							/>
 						}

@@ -50,9 +50,10 @@ const changePasswordSchema = z.object({
  * @returns A JSX element containing the change-password or set-password card
  */
 export function ChangePassword({ className }: ChangePasswordProps) {
-	const { emailAndPassword, localization } = useAuth();
-	const { data: session } = useSession();
-	const { data: accounts, isPending: isAccountsPending } = useListAccounts();
+	const { authClient, emailAndPassword, localization } = useAuth();
+	const { data: session } = useSession(authClient);
+	const { data: accounts, isPending: isAccountsPending } =
+		useListAccounts(authClient);
 
 	const hasCredentialAccount = accounts?.some(
 		(account) => account.providerId === "credential"
@@ -73,12 +74,15 @@ export function ChangePassword({ className }: ChangePasswordProps) {
 }
 
 function SetPassword({ className }: { className?: string }) {
-	const { localization } = useAuth();
-	const { data: session } = useSession();
+	const { authClient, localization } = useAuth();
+	const { data: session } = useSession(authClient);
 
-	const { mutate: requestPasswordReset, isPending } = useRequestPasswordReset({
-		onSuccess: () => toast.success(localization.auth.passwordResetEmailSent),
-	});
+	const { mutate: requestPasswordReset, isPending } = useRequestPasswordReset(
+		authClient,
+		{
+			onSuccess: () => toast.success(localization.auth.passwordResetEmailSent),
+		}
+	);
 
 	const handleSetPassword = () => {
 		if (!session) {
@@ -130,9 +134,13 @@ function ChangePasswordForm({
 	className?: string;
 	emailAndPassword: ReturnType<typeof useAuth>["emailAndPassword"];
 	localization: ReturnType<typeof useAuth>["localization"];
-	session: ReturnType<typeof useSession>["data"];
+	session:
+		| { user?: { email?: string | null }; session?: unknown }
+		| null
+		| undefined;
 }) {
-	const { mutate: changePassword, isPending } = useChangePassword({
+	const { authClient } = useAuth();
+	const { mutate: changePassword, isPending } = useChangePassword(authClient, {
 		onError: (error) => {
 			form.reset();
 			toast.error(error.error?.message || error.message);

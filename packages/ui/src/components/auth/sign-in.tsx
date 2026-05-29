@@ -20,8 +20,10 @@ import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { usernamePlugin } from "@better-auth-ui/core/plugins";
 import {
 	useAuth,
+	useAuthPlugin,
 	useSendVerificationEmail,
 	useSignInEmail,
 	useSignInUsername,
@@ -58,25 +60,32 @@ export function SignIn({
 	socialPosition = "bottom",
 }: SignInProps) {
 	const {
+		authClient,
 		basePaths,
 		baseURL,
 		emailAndPassword,
 		localization,
-		magicLink,
-		passkey,
+		plugins,
 		redirectTo,
 		socialProviders,
-		username: usernameConfig,
 		viewPaths,
 		navigate,
-		Link,
 	} = useAuth();
 
-	const { mutate: sendVerificationEmail } = useSendVerificationEmail({
-		onSuccess: () => toast.success(localization.auth.verificationEmailSent),
-	});
+	const usernameConfig = useAuthPlugin(usernamePlugin);
+
+	const hasMagicLink = plugins?.some((p) => p.id === "magicLink") ?? false;
+	const hasPasskey = plugins?.some((p) => p.id === "passkey") ?? false;
+
+	const { mutate: sendVerificationEmail } = useSendVerificationEmail(
+		authClient,
+		{
+			onSuccess: () => toast.success(localization.auth.verificationEmailSent),
+		}
+	);
 
 	const { mutate: signInEmail, isPending: signInEmailPending } = useSignInEmail(
+		authClient,
 		{
 			onError: (error, { email }) => {
 				form.setFieldValue("password", "");
@@ -101,7 +110,7 @@ export function SignIn({
 	);
 
 	const { mutate: signInUsername, isPending: signInUsernamePending } =
-		useSignInUsername({
+		useSignInUsername(authClient, {
 			onError: (error) => {
 				form.setFieldValue("password", "");
 				toast.error(error.error?.message || error.message);
@@ -124,7 +133,7 @@ export function SignIn({
 				document.querySelector<HTMLInputElement>("#rememberMe")?.checked ??
 				false;
 
-			if (usernameConfig?.enabled && !EMAIL_REGEX.test(value.email)) {
+			if (usernameConfig && !EMAIL_REGEX.test(value.email)) {
 				signInUsername({
 					username: value.email,
 					password: value.password,
@@ -187,15 +196,15 @@ export function SignIn({
 										return (
 											<Field data-invalid={isInvalid}>
 												<Label htmlFor="email">
-													{usernameConfig?.enabled
-														? localization.auth.username
+													{usernameConfig
+														? usernameConfig.localization.username
 														: localization.auth.email}
 												</Label>
 
 												<Input
 													aria-invalid={isInvalid}
 													autoComplete={
-														usernameConfig?.enabled ? "username email" : "email"
+														usernameConfig ? "username email" : "email"
 													}
 													disabled={isPending}
 													id="email"
@@ -205,8 +214,9 @@ export function SignIn({
 														handleFieldChange(field, e.target.value)
 													}
 													placeholder={
-														usernameConfig?.enabled
-															? localization.auth.usernameOrEmailPlaceholder
+														usernameConfig
+															? usernameConfig.localization
+																	.usernameOrEmailPlaceholder
 															: localization.auth.emailPlaceholder
 													}
 													type="text"
@@ -283,11 +293,11 @@ export function SignIn({
 										{localization.auth.signIn}
 									</Button>
 
-									{magicLink && (
+									{hasMagicLink && (
 										<MagicLinkButton isPending={isPending} view="signIn" />
 									)}
 
-									{passkey && <PasskeyButton isPending={isPending} />}
+									{hasPasskey && <PasskeyButton isPending={isPending} />}
 								</div>
 							</FieldGroup>
 						</form>
@@ -313,23 +323,23 @@ export function SignIn({
 
 				<div className="mt-4 flex w-full flex-col items-center gap-3">
 					{emailAndPassword?.forgotPassword && (
-						<Link
+						<a
 							className="self-center text-sm underline-offset-4 hover:underline"
 							href={`${basePaths.auth}/${viewPaths.auth.forgotPassword}`}
 						>
 							{localization.auth.forgotPasswordLink}
-						</Link>
+						</a>
 					)}
 
 					{emailAndPassword?.enabled && (
 						<FieldDescription className="text-center">
 							{localization.auth.needToCreateAnAccount}{" "}
-							<Link
+							<a
 								className="underline underline-offset-4"
 								href={`${basePaths.auth}/${viewPaths.auth.signUp}`}
 							>
 								{localization.auth.signUp}
-							</Link>
+							</a>
 						</FieldDescription>
 					)}
 				</div>

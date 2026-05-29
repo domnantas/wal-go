@@ -45,15 +45,15 @@ export interface ResetPasswordProps {
 
 export function ResetPassword({ className }: ResetPasswordProps) {
 	const {
+		authClient,
 		basePaths,
 		emailAndPassword,
 		localization,
 		viewPaths,
 		navigate,
-		Link,
 	} = useAuth();
 
-	const { mutate: resetPassword, isPending } = useResetPassword({
+	const { mutate: resetPassword, isPending } = useResetPassword(authClient, {
 		onSuccess: () => {
 			toast.success(localization.auth.passwordResetSuccess);
 			navigate({ to: `${basePaths.auth}/${viewPaths.auth.signIn}` });
@@ -271,12 +271,12 @@ export function ResetPassword({ className }: ResetPasswordProps) {
 				<div className="mt-4 flex w-full flex-col items-center gap-3">
 					<FieldDescription className="text-center">
 						{localization.auth.rememberYourPassword}{" "}
-						<Link
+						<a
 							className="underline underline-offset-4"
 							href={`${basePaths.auth}/${viewPaths.auth.signIn}`}
 						>
 							{localization.auth.signIn}
-						</Link>
+						</a>
 					</FieldDescription>
 				</div>
 			</CardContent>

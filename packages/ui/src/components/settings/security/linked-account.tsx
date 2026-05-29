@@ -3,6 +3,7 @@ import { Card, CardContent } from "@WAL-GO/ui/components/card";
 import { Skeleton } from "@WAL-GO/ui/components/skeleton";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { getProviderName } from "@better-auth-ui/core";
 import {
 	providerIcons,
 	useAccountInfo,
@@ -10,7 +11,6 @@ import {
 	useLinkSocial,
 	useUnlinkAccount,
 } from "@better-auth-ui/react";
-import { getProviderName } from "@better-auth-ui/react/core";
 import type { Account, SocialProvider } from "better-auth";
 import { Link2, Link2Off, Plug } from "lucide-react";
 import { toast } from "sonner";
@@ -31,17 +31,24 @@ export interface LinkedAccountProps {
  * @returns A JSX element containing the linked account row
  */
 export function LinkedAccount({ account, provider }: LinkedAccountProps) {
-	const { baseURL, localization } = useAuth();
+	const { authClient, baseURL, localization } = useAuth();
 
-	const { data: accountInfo, isPending: isLoadingInfo } = useAccountInfo({
-		query: { accountId: account?.accountId },
-	});
+	const { data: accountInfo, isPending: isLoadingInfo } = useAccountInfo(
+		authClient,
+		{
+			query: { accountId: account?.accountId },
+		}
+	);
 
-	const { mutate: linkSocial, isPending: isLinking } = useLinkSocial();
+	const { mutate: linkSocial, isPending: isLinking } =
+		useLinkSocial(authClient);
 
-	const { mutate: unlinkAccount, isPending: isUnlinking } = useUnlinkAccount({
-		onSuccess: () => toast.success(localization.settings.accountUnlinked),
-	});
+	const { mutate: unlinkAccount, isPending: isUnlinking } = useUnlinkAccount(
+		authClient,
+		{
+			onSuccess: () => toast.success(localization.settings.accountUnlinked),
+		}
+	);
 
 	const ProviderIcon = providerIcons[provider];
 	const providerName = getProviderName(provider);

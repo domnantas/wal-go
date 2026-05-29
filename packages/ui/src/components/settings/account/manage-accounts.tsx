@@ -21,10 +21,10 @@ export interface ManageAccountsProps {
  * @returns A JSX element containing the accounts management card
  */
 export function ManageAccounts({ className }: ManageAccountsProps) {
-	const { localization } = useAuth();
-	const { data: session } = useSession();
+	const { authClient, localization } = useAuth();
+	const { data: session } = useSession(authClient);
 
-	const { data: deviceSessions, isPending } = useListDeviceSessions();
+	const { data: deviceSessions, isPending } = useListDeviceSessions(authClient);
 
 	const otherSessions = deviceSessions?.filter(
 		(deviceSession) => deviceSession.session.id !== session?.session.id
@@ -46,7 +46,7 @@ export function ManageAccounts({ className }: ManageAccountsProps) {
 	return (
 		<div>
 			<h2 className="mb-3 font-semibold text-sm">
-				{localization.settings.manageAccounts}
+				{(localization.settings as Record<string, string>).manageAccounts}
 			</h2>
 
 			<Card className={cn("p-0", className)}>

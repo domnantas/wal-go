@@ -44,14 +44,14 @@ export function ManageAccount({
 	deviceSession,
 	isPending,
 }: ManageAccountProps) {
-	const { localization } = useAuth();
-	const { data: session } = useSession();
+	const { authClient, localization } = useAuth();
+	const { data: session } = useSession(authClient);
 
 	const { mutate: setActiveSession, isPending: isSwitching } =
-		useSetActiveSession();
+		useSetActiveSession(authClient);
 
 	const { mutate: revokeSession, isPending: isRevoking } =
-		useRevokeMultiSession({
+		useRevokeMultiSession(authClient, {
 			onSuccess: () =>
 				toast.success(localization.settings.revokeSessionSuccess),
 		});
@@ -103,7 +103,7 @@ export function ManageAccount({
 								}
 							>
 								<ArrowLeftRight className="text-muted-foreground" />
-								{localization.auth.switchAccount}
+								{(localization.auth as Record<string, string>).switchAccount}
 							</DropdownMenuItem>
 
 							<DropdownMenuItem

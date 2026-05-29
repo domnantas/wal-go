@@ -6,11 +6,7 @@ import { Separator } from "@WAL-GO/ui/components/separator";
 import { Skeleton } from "@WAL-GO/ui/components/skeleton";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import {
-	useAddPasskey,
-	useAuth,
-	useListUserPasskeys,
-} from "@better-auth-ui/react";
+import { useAddPasskey, useAuth, useListPasskeys } from "@better-auth-ui/react";
 import { Passkey } from "./passkey";
 
 export interface PasskeysProps {
@@ -18,16 +14,26 @@ export interface PasskeysProps {
 }
 
 export function Passkeys({ className }: PasskeysProps) {
-	const { localization } = useAuth();
+	const { authClient, localization } = useAuth();
 
-	const { data: passkeys, isPending } = useListUserPasskeys();
+	// biome-ignore lint/suspicious/noExplicitAny: passkey plugin not in base authClient type
+	const { data: passkeys, isPending } = useListPasskeys(authClient as any) as {
+		data:
+			| { id: string; name?: string | null; createdAt: Date }[]
+			| null
+			| undefined;
+		isPending: boolean;
+	};
 
-	const { mutate: addPasskey, isPending: isAdding } = useAddPasskey();
+	// biome-ignore lint/suspicious/noExplicitAny: passkey plugin not in base authClient type
+	const { mutate: addPasskey, isPending: isAdding } = useAddPasskey(
+		authClient as any
+	);
 
 	return (
 		<div>
 			<h2 className="mb-3 font-semibold text-sm">
-				{localization.settings.passkeys}
+				{(localization.settings as Record<string, string>).passkeys}
 			</h2>
 
 			<Card className={cn("p-0", className)}>
@@ -36,22 +42,28 @@ export function Passkeys({ className }: PasskeysProps) {
 						<CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 							<div>
 								<p className="font-medium text-sm leading-tight">
-									{localization.settings.passkeysDescription}
+									{
+										(localization.settings as Record<string, string>)
+											.passkeysDescription
+									}
 								</p>
 
 								<p className="mt-0.5 text-muted-foreground text-xs">
-									{localization.settings.passkeysInstructions}
+									{
+										(localization.settings as Record<string, string>)
+											.passkeysInstructions
+									}
 								</p>
 							</div>
 
 							<Button
 								className="shrink-0"
 								disabled={isPending || isAdding}
-								onClick={() => addPasskey()}
+								onClick={() => addPasskey({})}
 								size="sm"
 							>
 								{isAdding && <Spinner />}
-								{localization.settings.addPasskey}
+								{(localization.settings as Record<string, string>).addPasskey}
 							</Button>
 						</CardContent>
 					</Card>

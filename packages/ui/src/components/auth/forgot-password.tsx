@@ -36,11 +36,14 @@ export interface ForgotPasswordProps {
 }
 
 export function ForgotPassword({ className }: ForgotPasswordProps) {
-	const { basePaths, localization, viewPaths, Link } = useAuth();
+	const { authClient, basePaths, localization, viewPaths } = useAuth();
 
-	const { mutate: requestPasswordReset, isPending } = useRequestPasswordReset({
-		onSuccess: () => toast.success(localization.auth.passwordResetEmailSent),
-	});
+	const { mutate: requestPasswordReset, isPending } = useRequestPasswordReset(
+		authClient,
+		{
+			onSuccess: () => toast.success(localization.auth.passwordResetEmailSent),
+		}
+	);
 
 	const form = useForm({
 		defaultValues: {
@@ -112,12 +115,12 @@ export function ForgotPassword({ className }: ForgotPasswordProps) {
 				<div className="mt-4 flex w-full flex-col items-center gap-3">
 					<FieldDescription className="text-center">
 						{localization.auth.rememberYourPassword}{" "}
-						<Link
+						<a
 							className="underline underline-offset-4"
 							href={`${basePaths.auth}/${viewPaths.auth.signIn}`}
 						>
 							{localization.auth.signIn}
-						</Link>
+						</a>
 					</FieldDescription>
 				</div>
 			</CardContent>

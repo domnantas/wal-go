@@ -22,9 +22,9 @@ import { UserView } from "./user-view";
  * @returns The switch account submenu content as a JSX element
  */
 export function SwitchAccountMenu() {
-	const { basePaths, viewPaths, localization, Link } = useAuth();
-	const { data: session } = useSession();
-	const { data: deviceSessions, isPending } = useListDeviceSessions();
+	const { authClient, basePaths, viewPaths, localization } = useAuth();
+	const { data: session } = useSession(authClient);
+	const { data: deviceSessions, isPending } = useListDeviceSessions(authClient);
 
 	return (
 		<DropdownMenuSubContent className="min-w-48 max-w-[48svw] md:min-w-56">
@@ -48,10 +48,10 @@ export function SwitchAccountMenu() {
 			<DropdownMenuSeparator />
 
 			<DropdownMenuItem
-				render={<Link href={`${basePaths.auth}/${viewPaths.auth.signIn}`} />}
+				render={<a href={`${basePaths.auth}/${viewPaths.auth.signIn}`} />}
 			>
 				<CirclePlus className="text-muted-foreground" />
-				{localization.auth.addAccount}
+				{(localization.auth as Record<string, string>).addAccount}
 			</DropdownMenuItem>
 		</DropdownMenuSubContent>
 	);

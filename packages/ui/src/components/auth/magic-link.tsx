@@ -43,21 +43,25 @@ export function MagicLink({
 	socialPosition = "bottom",
 }: MagicLinkProps) {
 	const {
+		authClient,
 		basePaths,
 		baseURL,
 		localization,
-		passkey,
+		plugins,
 		redirectTo,
 		socialProviders,
 		viewPaths,
-		Link,
 	} = useAuth();
 
+	const hasPasskey = plugins?.some((p) => p.id === "passkey") ?? false;
+
 	const { mutate: signInMagicLink, isPending: magicLinkPending } =
-		useSignInMagicLink({
+		useSignInMagicLink(authClient, {
 			onSuccess: () => {
 				form.reset();
-				toast.success(localization.auth.magicLinkSent);
+				toast.success(
+					(localization.auth as Record<string, string>).magicLinkSent
+				);
 			},
 		});
 
@@ -148,12 +152,12 @@ export function MagicLink({
 								<Button disabled={isPending} type="submit">
 									{isPending && <Spinner />}
 
-									{localization.auth.sendMagicLink}
+									{(localization.auth as Record<string, string>).sendMagicLink}
 								</Button>
 
 								<MagicLinkButton isPending={isPending} view="magicLink" />
 
-								{passkey && <PasskeyButton isPending={isPending} />}
+								{hasPasskey && <PasskeyButton isPending={isPending} />}
 							</div>
 						</FieldGroup>
 					</form>
@@ -179,12 +183,12 @@ export function MagicLink({
 				<div className="mt-4 flex w-full flex-col items-center gap-3">
 					<FieldDescription className="text-center">
 						{localization.auth.needToCreateAnAccount}{" "}
-						<Link
+						<a
 							className="underline underline-offset-4"
 							href={`${basePaths.auth}/${viewPaths.auth.signUp}`}
 						>
 							{localization.auth.signUp}
-						</Link>
+						</a>
 					</FieldDescription>
 				</div>
 			</CardContent>

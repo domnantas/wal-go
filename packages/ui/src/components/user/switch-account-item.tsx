@@ -3,14 +3,13 @@
 import { DropdownMenuItem } from "@WAL-GO/ui/components/dropdown-menu";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
-	type useListDeviceSessions,
+	type ListDeviceSession,
+	useAuth,
 	useSetActiveSession,
 } from "@better-auth-ui/react";
 import { UserView } from "./user-view";
 
-export type DeviceSession = NonNullable<
-	ReturnType<typeof useListDeviceSessions>["data"]
->[number];
+export type DeviceSession = ListDeviceSession;
 
 export interface SwitchAccountItemProps {
 	deviceSession: DeviceSession;
@@ -23,7 +22,9 @@ export interface SwitchAccountItemProps {
  * @returns The switch account dropdown menu item as a JSX element
  */
 export function SwitchAccountItem({ deviceSession }: SwitchAccountItemProps) {
-	const { mutate: setActiveSession, isPending } = useSetActiveSession();
+	const { authClient } = useAuth();
+	const { mutate: setActiveSession, isPending } =
+		useSetActiveSession(authClient);
 
 	return (
 		<DropdownMenuItem

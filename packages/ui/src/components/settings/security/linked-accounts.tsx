@@ -21,9 +21,9 @@ export interface LinkedAccountsProps {
  * @returns A JSX element containing the linked accounts card
  */
 export function LinkedAccounts({ className }: LinkedAccountsProps) {
-	const { localization, socialProviders } = useAuth();
+	const { authClient, localization, socialProviders } = useAuth();
 
-	const { data: accounts, isPending } = useListAccounts();
+	const { data: accounts, isPending } = useListAccounts(authClient);
 
 	const linkedAccounts = accounts?.filter(
 		(account) => account.providerId !== "credential"
