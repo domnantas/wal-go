@@ -6,9 +6,10 @@ import { ErrorPage } from "./components/error-page";
 import Loader from "./components/loader";
 import { NotFound } from "./components/not-found";
 import { routeTree } from "./routeTree.gen";
-import { orpc, queryClient } from "./utils/orpc";
+import { makeQueryClient, orpc } from "./utils/orpc";
 
 export const getRouter = () => {
+	const queryClient = makeQueryClient();
 	const router = createTanStackRouter({
 		routeTree,
 		scrollRestoration: true,

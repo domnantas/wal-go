@@ -10,18 +10,22 @@ import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { toast } from "sonner";
 
-export const queryClient = new QueryClient({
-	queryCache: new QueryCache({
-		onError: (error, query) => {
-			toast.error(`Error: ${error.message}`, {
-				action: {
-					label: "retry",
-					onClick: query.invalidate,
-				},
-			});
-		},
-	}),
-});
+// One QueryClient per request. A module-level singleton would be shared across
+// requests on the server (Cloudflare reuses isolate globals), letting one user's
+// SSR-seeded session leak into another user's dehydrated HTML.
+export const makeQueryClient = () =>
+	new QueryClient({
+		queryCache: new QueryCache({
+			onError: (error, query) => {
+				toast.error(`Error: ${error.message}`, {
+					action: {
+						label: "retry",
+						onClick: query.invalidate,
+					},
+				});
+			},
+		}),
+	});
 
 const getORPCClient = createIsomorphicFn()
 	.server(() =>

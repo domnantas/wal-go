@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { useTheme } from "tanstack-theme-kit";
 
 import { authClient } from "@/lib/auth-client";
-import { queryClient } from "@/utils/orpc";
 
 export function Providers({ children }: { children: ReactNode }) {
 	const navigate = useNavigate();
@@ -114,7 +113,6 @@ export function Providers({ children }: { children: ReactNode }) {
 					},
 				}),
 			]}
-			queryClient={queryClient}
 			redirectTo="/map"
 		>
 			{children}

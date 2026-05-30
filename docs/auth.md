@@ -14,9 +14,9 @@ WAL GO uses Better Auth. The session is stored in cookies, and the server reads 
 
 ## Router context
 
-The root route does not perform a server-side session lookup. The homepage route disables SSR and public pages render with `session: null` during the shell render, then the header refreshes auth state on the client through Better Auth hooks. Protected routes call the `getUser()` server function in their own `beforeLoad` handlers and store the session in route context. This allows:
+Both the root route and every protected route call the `getUser()` server function in `beforeLoad` and store the session in route context. This allows:
 
-- Correct header navigation during SSR.
+- Correct header navigation during SSR (no logged-out flash — see below).
 - Protected pages to redirect before the component renders.
 - Protected queries/mutations to be avoided when the user is not signed in.
 
@@ -24,13 +24,21 @@ Router context must not be treated as the only authorization source, because the
 
 ## SSR session hydration
 
-Protected route `beforeLoad` handlers call `getUser()` (a direct `auth.api.getSession` call — no HTTP round-trip) and then write the result into the TanStack Query cache:
+The root route and protected route `beforeLoad` handlers call `getUser()` (a direct `auth.api.getSession` call — no HTTP round-trip) and then write the result into the TanStack Query cache:
 
 ```ts
 queryClient.setQueryData(sessionOptions(authClient).queryKey, session)
 ```
 
-This populates the `["auth", "getSession"]` cache key before the component tree renders. `@better-auth-ui/react` components (`Settings`, `Auth` forms, `UserButton`) share the same key via `sessionOptions`, so they hydrate from cache on first render instead of making an extra network request. The root `loader` reads back the cached session via `queryClient.getQueryData(sessionOptions(authClient).queryKey)` so the `Header` also has the session value during SSR.
+This populates the `["auth", "getSession"]` cache key before the component tree renders. `@better-auth-ui/react` components and hooks (`Settings`, `Auth` forms, and `useSession(authClient)`) share the same key via `sessionOptions`, so they hydrate from cache on first render instead of making an extra network request.
+
+### No log-in flash in the header
+
+`Header` and `UserButton` read the session with `useSession(authClient)` from `@better-auth-ui/react` (the shared TanStack Query hook), **not** Better Auth's own `authClient.useSession()` (a separate nanostore-backed hook that does not read the query cache). Because the root `beforeLoad` seeds `["auth", "getSession"]` during SSR, `useSession` has the real session on the first server and hydrated client render, so the header never briefly paints the "Prisijungti" (log in) button for an authenticated user.
+
+### Per-request QueryClient (security)
+
+The `QueryClient` is created **per request** via `makeQueryClient()` inside `getRouter()` (`apps/web/src/router.tsx`) — never as a module-level singleton. On the server (Cloudflare Workers reuse isolate globals across requests) a shared client would let one user's SSR-seeded session dehydrate into another user's HTML — a cross-user session leak. `AuthProvider` does not receive an explicit `queryClient` prop; it inherits the same per-request instance from the `QueryClientProvider` that the router's SSR-query integration installs, so the seeded cache and the components reading it always share one client.
 
 ## Practical rule
 

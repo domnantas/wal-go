@@ -6,6 +6,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@WAL-GO/ui/components/dropdown-menu";
+import { useSession } from "@better-auth-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
@@ -21,17 +22,11 @@ import walGoLogo from "@/assets/wal-go-logo-transparent.png";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@/components/user-button";
 import { authClient } from "@/lib/auth-client";
-import type { SessionContext } from "@/routes/__root";
 import { orpc } from "@/utils/orpc";
 
-interface HeaderProps {
-	session: SessionContext;
-}
-
-export default function Header({ session: initialSession }: HeaderProps) {
-	const { data: clientSession, isPending } = authClient.useSession();
-	const isAuthenticated = isPending ? !!initialSession : !!clientSession;
-	const session = isPending ? initialSession : clientSession;
+export default function Header() {
+	const { data: session } = useSession(authClient);
+	const isAuthenticated = !!session?.user;
 	const isAdmin = session?.user?.role === "admin";
 	const currentSeason = useQuery({
 		...orpc.seasons.current.queryOptions(),
@@ -146,7 +141,7 @@ export default function Header({ session: initialSession }: HeaderProps) {
 
 				<div className="flex items-center gap-2">
 					{isAuthenticated ? (
-						<UserButton session={initialSession} />
+						<UserButton />
 					) : (
 						<>
 							<div className="hidden md:block">

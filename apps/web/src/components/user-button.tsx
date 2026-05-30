@@ -6,6 +6,7 @@ import {
 	DropdownMenuTrigger,
 } from "@WAL-GO/ui/components/dropdown-menu";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { useSession } from "@better-auth-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { LogOut, Paintbrush, Settings } from "lucide-react";
@@ -13,7 +14,6 @@ import { DiscordIcon } from "@/components/discord-icon";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
 import { DISCORD_INVITE_URL } from "@/lib/constants";
-import type { SessionContext } from "@/routes/__root";
 import { orpc } from "@/utils/orpc";
 
 type Team = "yellow" | "green" | "red";
@@ -24,13 +24,8 @@ const TEAM_PILL_CLASSES: Record<Team, string> = {
 	red: "border-rust",
 };
 
-interface UserButtonProps {
-	session: SessionContext;
-}
-
-export function UserButton({ session: initialSession }: UserButtonProps) {
-	const { data: clientSession, isPending } = authClient.useSession();
-	const session = isPending ? initialSession : clientSession;
+export function UserButton() {
+	const { data: session } = useSession(authClient);
 	const { data: membership } = useQuery({
 		...orpc.seasons.myMembership.queryOptions(),
 		enabled: !!session,

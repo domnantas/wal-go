@@ -1,4 +1,5 @@
 import { Toaster } from "@WAL-GO/ui/components/sonner";
+import { sessionOptions } from "@better-auth-ui/react";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
@@ -6,7 +7,8 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "tanstack-theme-kit";
-import type { getUser } from "@/functions/get-user";
+import { getUser } from "@/functions/get-user";
+import { authClient } from "@/lib/auth-client";
 import type { orpc } from "@/utils/orpc";
 import Header from "../components/header";
 import { Providers } from "../components/providers";
@@ -21,7 +23,13 @@ export interface RouterAppContext {
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
-	beforeLoad: () => ({ session: null }),
+	beforeLoad: async ({ context: { queryClient } }) => {
+		const session = await getUser();
+		// Seed the shared session query so the library `useSession` reads it on the
+		// first (SSR + hydrated) render — no logged-out flash in the header.
+		queryClient.setQueryData(sessionOptions(authClient).queryKey, session);
+		return { session };
+	},
 	loader: ({ context }) => ({ session: context.session }),
 	head: () => ({
 		meta: [
@@ -76,7 +84,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-	const { session } = Route.useLoaderData();
 	return (
 		<html lang="lt" suppressHydrationWarning>
 			<head>
@@ -86,7 +93,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
 					<Providers>
 						<div className="grid grid-rows-[auto_1fr] md:h-svh">
-							<Header session={session} />
+							<Header />
 							<div className="md:min-h-0 md:overflow-y-auto">{children}</div>
 						</div>
 						<Toaster richColors />
