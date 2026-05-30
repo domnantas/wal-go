@@ -4,3 +4,4 @@ export * from "./qsos.ts";
 export * from "./relations.ts";
 export * from "./scoring.ts";
 export * from "./seasons.ts";
+export * from "./uploads.ts";

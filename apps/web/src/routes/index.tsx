@@ -146,7 +146,13 @@ function HomeComponent() {
 				<div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background/70 via-background/65 to-background" />
 
 				{/* Content */}
-				<div className="relative z-10 mx-auto w-full max-w-6xl px-8 py-24 text-center">
+				<div className="relative z-10 mx-auto w-full max-w-6xl px-8 pt-14 pb-24 text-center">
+					<img
+						alt="WAL GO"
+						className="mx-auto mb-4 h-40 w-auto drop-shadow-md"
+						src="/logo.png"
+					/>
+
 					{season && (
 						<div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-1.5 font-medium text-muted-foreground text-xs backdrop-blur-sm">
 							<span className="size-1.5 animate-pulse rounded-full bg-olive" />

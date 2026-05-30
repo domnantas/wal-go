@@ -1,10 +1,17 @@
 import { user } from "@WAL-GO/db/schema/auth";
-import { season } from "@WAL-GO/db/schema/seasons";
+import { qso } from "@WAL-GO/db/schema/qsos";
+import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
+import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
+import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
 import { ORPCError } from "@orpc/server";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
+import { applyScoreDeltas } from "../scoring/apply-deltas";
+import { getScoringRuleSet } from "../scoring/index";
+
+const TEAMS = ["yellow", "green", "red"] as const;
 
 function deriveSeasonStatus(
 	startsAt: Date,
@@ -136,7 +143,244 @@ const deleteSeason = adminProcedure
 		await context.db.delete(season).where(eq(season.id, input.id));
 	});
 
+const listMemberships = adminProcedure
+	.input(z.object({ seasonId: z.number().int().positive() }))
+	.handler(async ({ context, input }) => {
+		const rows = await context.db
+			.select({
+				id: seasonMembership.id,
+				team: seasonMembership.team,
+				joinedAt: seasonMembership.joinedAt,
+				userId: seasonMembership.userId,
+				userName: user.name,
+				userEmail: user.email,
+			})
+			.from(seasonMembership)
+			.innerJoin(user, eq(seasonMembership.userId, user.id))
+			.where(eq(seasonMembership.seasonId, input.seasonId))
+			.orderBy(asc(user.name));
+		return rows;
+	});
+
+const addMembership = adminProcedure
+	.input(
+		z.object({
+			seasonId: z.number().int().positive(),
+			userId: z.string(),
+			team: z.enum(TEAMS),
+		})
+	)
+	.handler(async ({ context, input }) => {
+		const existing = await context.db
+			.select()
+			.from(seasonMembership)
+			.where(eq(seasonMembership.userId, input.userId))
+			.limit(1);
+
+		const alreadyInSeason = existing.find((m) => m.seasonId === input.seasonId);
+		if (alreadyInSeason) {
+			throw new ORPCError("CONFLICT", {
+				message: "Naudotojas jau yra šio sezono narys",
+			});
+		}
+
+		const rows = await context.db
+			.insert(seasonMembership)
+			.values({
+				seasonId: input.seasonId,
+				userId: input.userId,
+				team: input.team,
+			})
+			.returning();
+		const row = rows[0];
+		if (!row) {
+			throw new ORPCError("INTERNAL_SERVER_ERROR");
+		}
+		return row;
+	});
+
+const removeMembership = adminProcedure
+	.input(z.object({ membershipId: z.number().int().positive() }))
+	.handler(async ({ context, input }) => {
+		await context.db
+			.delete(seasonMembership)
+			.where(eq(seasonMembership.id, input.membershipId));
+	});
+
+const setMembershipTeam = adminProcedure
+	.input(
+		z.object({
+			membershipId: z.number().int().positive(),
+			team: z.enum(TEAMS),
+		})
+	)
+	.handler(async ({ context, input }) => {
+		const rows = await context.db
+			.update(seasonMembership)
+			.set({ team: input.team })
+			.where(eq(seasonMembership.id, input.membershipId))
+			.returning();
+		if (!rows[0]) {
+			throw new ORPCError("NOT_FOUND", { message: "Narystė nerasta" });
+		}
+	});
+
+const listQsos = adminProcedure
+	.input(z.object({ seasonId: z.number().int().positive() }))
+	.handler(async ({ context, input }) => {
+		const rows = await context.db
+			.select({
+				id: qso.id,
+				qsoAt: qso.qsoAt,
+				operatorCallsign: user.name,
+				contactCallsign: qso.contactCallsign,
+				band: qso.band,
+				mode: qso.mode,
+				operatorSquare: qso.operatorSquare,
+				contactSquare: qso.contactSquare,
+				team: qso.team,
+			})
+			.from(qso)
+			.innerJoin(user, eq(qso.userId, user.id))
+			.where(eq(qso.seasonId, input.seasonId))
+			.orderBy(desc(qso.qsoAt), desc(qso.id));
+		return rows;
+	});
+
+const deleteQso = adminProcedure
+	.input(z.object({ id: z.number().int().positive() }))
+	.handler(async ({ context, input }) => {
+		await context.db.transaction(async (tx) => {
+			const existing = await tx
+				.select()
+				.from(qso)
+				.where(eq(qso.id, input.id))
+				.for("update")
+				.limit(1);
+
+			const qsoRow = existing[0];
+			if (!qsoRow) {
+				throw new ORPCError("NOT_FOUND", { message: "QSO nerastas" });
+			}
+
+			const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+			const deltas = await ruleSet.scoreDelete(tx, {
+				contactSquare: qsoRow.contactSquare,
+				operatorSquare: qsoRow.operatorSquare,
+				team: qsoRow.team,
+				userId: qsoRow.userId,
+			});
+			await applyScoreDeltas(tx, qsoRow.seasonId, deltas);
+			await tx.delete(qso).where(eq(qso.id, input.id));
+		});
+	});
+
+const getDashboard = adminProcedure.handler(async ({ context }) => {
+	const [totalUsersResult, seasons, qsoCounts, memberCounts, teamScores] =
+		await Promise.all([
+			context.db.select({ count: count() }).from(user),
+			context.db.select().from(season).orderBy(desc(season.startsAt)),
+			context.db
+				.select({ seasonId: qso.seasonId, count: count() })
+				.from(qso)
+				.groupBy(qso.seasonId),
+			context.db
+				.select({
+					seasonId: seasonMembership.seasonId,
+					team: seasonMembership.team,
+					count: count(),
+				})
+				.from(seasonMembership)
+				.groupBy(seasonMembership.seasonId, seasonMembership.team),
+			context.db
+				.select({
+					seasonId: seasonMembership.seasonId,
+					team: seasonMembership.team,
+					points: sum(userSeasonScore.points),
+				})
+				.from(userSeasonScore)
+				.innerJoin(
+					seasonMembership,
+					and(
+						eq(userSeasonScore.userId, seasonMembership.userId),
+						eq(userSeasonScore.seasonId, seasonMembership.seasonId)
+					)
+				)
+				.groupBy(seasonMembership.seasonId, seasonMembership.team),
+		]);
+
+	const totalUsers = totalUsersResult[0]?.count ?? 0;
+	const totalQsos = qsoCounts.reduce((acc, r) => acc + r.count, 0);
+	const now = new Date();
+
+	const seasonStats = seasons.map((s) => {
+		const qsoCount = qsoCounts.find((q) => q.seasonId === s.id)?.count ?? 0;
+		const memberCount = (team: "yellow" | "green" | "red") =>
+			memberCounts.find((m) => m.seasonId === s.id && m.team === team)?.count ??
+			0;
+		const teamScore = (team: "yellow" | "green" | "red") =>
+			Number(
+				teamScores.find((t) => t.seasonId === s.id && t.team === team)
+					?.points ?? 0
+			);
+
+		return {
+			id: s.id,
+			name: s.name,
+			startsAt: s.startsAt,
+			endsAt: s.endsAt,
+			status: deriveSeasonStatus(s.startsAt, s.endsAt, now),
+			qsoCount,
+			memberCounts: {
+				yellow: memberCount("yellow"),
+				green: memberCount("green"),
+				red: memberCount("red"),
+			},
+			teamScores: {
+				yellow: teamScore("yellow"),
+				green: teamScore("green"),
+				red: teamScore("red"),
+			},
+		};
+	});
+
+	return { totalUsers, totalQsos, seasons: seasonStats };
+});
+
+const getUpload = adminProcedure
+	.input(z.object({ id: z.number().int().positive() }))
+	.handler(async ({ context, input }) => {
+		const rows = await context.db
+			.select()
+			.from(cabrilloUpload)
+			.where(eq(cabrilloUpload.id, input.id))
+			.limit(1);
+		const row = rows[0];
+		if (!row) {
+			throw new ORPCError("NOT_FOUND", { message: "Įkėlimas nerastas" });
+		}
+		return row;
+	});
+
+const listUploads = adminProcedure.handler(async ({ context }) => {
+	const rows = await context.db
+		.select({
+			id: cabrilloUpload.id,
+			uploadedAt: cabrilloUpload.uploadedAt,
+			callsign: cabrilloUpload.callsign,
+			accepted: cabrilloUpload.accepted,
+			skipped: cabrilloUpload.skipped,
+			seasonId: cabrilloUpload.seasonId,
+			seasonName: season.name,
+		})
+		.from(cabrilloUpload)
+		.innerJoin(season, eq(cabrilloUpload.seasonId, season.id))
+		.orderBy(desc(cabrilloUpload.uploadedAt));
+	return rows;
+});
+
 export const adminRouter = {
+	dashboard: getDashboard,
 	users: {
 		list: listUsers,
 		setRole: setUserRole,
@@ -148,5 +392,19 @@ export const adminRouter = {
 		create: createSeason,
 		update: updateSeason,
 		delete: deleteSeason,
+	},
+	memberships: {
+		list: listMemberships,
+		add: addMembership,
+		remove: removeMembership,
+		setTeam: setMembershipTeam,
+	},
+	qsos: {
+		list: listQsos,
+		delete: deleteQso,
+	},
+	uploads: {
+		list: listUploads,
+		get: getUpload,
 	},
 };

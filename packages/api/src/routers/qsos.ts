@@ -1,6 +1,7 @@
 import { QSO_BANDS, QSO_MODES, qso } from "@WAL-GO/db/schema/qsos";
 import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
+import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
 import { isValidWalSquare, normalizeWalSquare } from "@WAL-GO/grid";
 import { ORPCError } from "@orpc/server";
 import { formatISO, isAfter, isBefore, isValid, parseISO } from "date-fns";
@@ -796,6 +797,24 @@ const importCabrillo = protectedProcedure
 				...exactDupErrors,
 				...gameDupErrors,
 			];
+
+			await tx.insert(cabrilloUpload).values({
+				userId,
+				seasonId: currentSeason.id,
+				callsign,
+				accepted: toInsert.length,
+				skipped: errors.length,
+				cabrilloContent: input.content,
+				importedLines: imported.map((s) => ({
+					line: s.line,
+					content: s.content,
+				})),
+				skippedLines: errors.map((e) => ({
+					line: e.line,
+					content: e.content,
+					reason: e.reason,
+				})),
+			});
 
 			return {
 				accepted: toInsert.length,

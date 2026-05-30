@@ -12,16 +12,16 @@
 - [x] Forgot email
 - [x] Change email
 - [x] Change password
-- [] Error pages with discord link
+- [x] Error pages with discord link
 - [x] Set up better auth with SSR
 - [x] Rules page
 - [x] Set up Discord
 - [x] Feature voting
 - [x] Bug reporting
 - [x] Presentation about WAL GO
-- [] Admin page
-- [] Audit trail of uploads in admin
+- [x] Admin page
+- [x] Audit trail of uploads in admin
 - [] Score reconciliation
 - [] Leaderboard – open question - is it ok to see who is is on what team
 - [] Spotting/self-spotting feature
-- [] Re-draw the logo
+- [x] Re-draw the logo

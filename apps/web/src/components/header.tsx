@@ -6,6 +6,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@WAL-GO/ui/components/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	BookOpen,
@@ -13,12 +14,15 @@ import {
 	Menu,
 	NotebookPen,
 	Paintbrush,
+	Shield,
+	UserPlus,
 } from "lucide-react";
 import walGoLogo from "@/assets/wal-go-logo-transparent.png";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@/components/user-button";
 import { authClient } from "@/lib/auth-client";
 import type { SessionContext } from "@/routes/__root";
+import { orpc } from "@/utils/orpc";
 
 interface HeaderProps {
 	session: SessionContext;
@@ -27,6 +31,18 @@ interface HeaderProps {
 export default function Header({ session: initialSession }: HeaderProps) {
 	const { data: clientSession, isPending } = authClient.useSession();
 	const isAuthenticated = isPending ? !!initialSession : !!clientSession;
+	const session = isPending ? initialSession : clientSession;
+	const isAdmin = session?.user?.role === "admin";
+	const currentSeason = useQuery({
+		...orpc.seasons.current.queryOptions(),
+		enabled: isAuthenticated,
+	});
+	const membership = useQuery({
+		...orpc.seasons.myMembership.queryOptions(),
+		enabled: isAuthenticated,
+	});
+	const showJoinSeason =
+		isAuthenticated && !!currentSeason.data && !membership.data;
 	const authLinks = [
 		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },
@@ -62,6 +78,26 @@ export default function Header({ session: initialSession }: HeaderProps) {
 								{label}
 							</Link>
 						))}
+						{isAdmin && (
+							<Link
+								activeOptions={{ exact: false }}
+								className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground [&.active]:bg-muted [&.active]:text-foreground"
+								to="/admin"
+							>
+								<Shield className="size-4" />
+								Admin
+							</Link>
+						)}
+						{showJoinSeason && (
+							<Button
+								render={<Link to="/join-season" />}
+								size="sm"
+								variant="outline"
+							>
+								<UserPlus className="size-4" />
+								Prisijungti prie sezono
+							</Button>
+						)}
 					</nav>
 
 					<DropdownMenu>
@@ -78,6 +114,20 @@ export default function Header({ session: initialSession }: HeaderProps) {
 									{label}
 								</DropdownMenuItem>
 							))}
+							{isAdmin && (
+								<DropdownMenuItem
+									render={<Link activeOptions={{ exact: false }} to="/admin" />}
+								>
+									<Shield className="size-4" />
+									Admin
+								</DropdownMenuItem>
+							)}
+							{showJoinSeason && (
+								<DropdownMenuItem render={<Link to="/join-season" />}>
+									<UserPlus className="size-4" />
+									Prisijungti prie sezono
+								</DropdownMenuItem>
+							)}
 							{!isAuthenticated && (
 								<>
 									<DropdownMenuSeparator />
