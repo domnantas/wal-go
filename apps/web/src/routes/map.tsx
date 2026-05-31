@@ -82,7 +82,10 @@ function RouteComponent() {
 	}, [queryClient]);
 
 	return (
-		<main className="relative flex flex-col md:h-full md:min-h-0 md:flex-row md:overflow-hidden">
+		<main
+			className="relative flex flex-col md:flex-row md:overflow-hidden"
+			style={{ height: "calc(100dvh - var(--header-height))" }}
+		>
 			<div className="flex h-[70dvh] shrink-0 flex-col md:h-auto md:flex-1 md:shrink">
 				<MapView
 					onSquareSelect={setSelectedSquareCode}

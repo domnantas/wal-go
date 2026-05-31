@@ -17,6 +17,7 @@ Default tab. Shows at-a-glance stats:
 
 - **Global stat cards**: total registered users, total QSOs across all seasons, season count.
 - **Per-season cards** (newest first): season name, status badge (`active` / `upcoming` / `ended`), date range, QSO count, total member count, and a score bar per team (yellow / green / red) showing points and member count.
+- **Drift badge** (per season card): a green "Taškai sutampa" badge when the stored scores match the source-of-truth QSOs, or a red "Aptiktas taškų neatitikimas" warning showing how many square rows, user rows, and total points differ. Computed by `computeScoreDrift` (`packages/api/src/scoring/drift.ts`); see `docs/scoring.md` for the detector logic. The red badge carries a **"Perskaičiuoti"** button (procedure `orpc.admin.scores.recompute`) that wipes and rebuilds the season's score tables from the source-of-truth QSOs, fixing the drift; see `docs/scoring.md` § Repair: recompute scores.
 
 Team scores are summed from `user_season_score` joined with `season_membership` to attribute each user's score to their team.
 
@@ -26,7 +27,7 @@ Implemented via `orpc.admin.dashboard` in `packages/api/src/routers/admin.ts`.
 
 - List all registered users (callsign, email, role, banned status)
 - Toggle role between `user` and `admin`
-- Ban / unban a user (ban requires confirmation dialog)
+- Ban / unban a user (ban requires confirmation dialog). Banning keeps the user's QSO rows but removes their points from the score tables (and unbanning restores them) so banned operators do not count on the map or leaderboard — see `docs/scoring.md` § Banned users.
 
 Implemented via `orpc.admin.users.*` procedures in `packages/api/src/routers/admin.ts`.
 

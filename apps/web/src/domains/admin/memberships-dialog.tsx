@@ -126,11 +126,11 @@ export function MembershipsDialog({
 
 	return (
 		<Dialog onOpenChange={(o) => !o && onClose()} open>
-			<DialogContent className="max-w-2xl">
+			<DialogContent className="sm:max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>Nariai — {seasonName}</DialogTitle>
 				</DialogHeader>
-				<div className="flex flex-col gap-4">
+				<div className="flex flex-col gap-4 overflow-x-auto">
 					{memberships.isPending ? (
 						<div className="flex justify-center py-6">
 							<Spinner className="size-6" />

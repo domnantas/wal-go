@@ -1,7 +1,9 @@
+import { Button } from "@WAL-GO/ui/components/button";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Radio, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Radio, Users } from "lucide-react";
+import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
 
@@ -95,6 +97,8 @@ export function DashboardTab() {
 								</span>
 							</div>
 
+							<DriftBadge drift={season.drift} seasonId={season.id} />
+
 							<div className="mb-4 flex gap-6 text-sm">
 								<div>
 									<span className="text-muted-foreground">QSO: </span>
@@ -154,6 +158,74 @@ export function DashboardTab() {
 					</p>
 				)}
 			</div>
+		</div>
+	);
+}
+
+interface SeasonDrift {
+	hasDrift: boolean;
+	pointDifference: number;
+	squareMismatches: number;
+	userMismatches: number;
+}
+
+function DriftBadge({
+	drift,
+	seasonId,
+}: {
+	drift: SeasonDrift;
+	seasonId: number;
+}) {
+	const queryClient = useQueryClient();
+	const recompute = useMutation(
+		orpc.admin.scores.recompute.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.admin.dashboard.queryOptions().queryKey,
+				});
+				toast.success("Taškai perskaičiuoti");
+			},
+			onError: (e) => toast.error(e.message),
+		})
+	);
+
+	if (!drift.hasDrift) {
+		return (
+			<div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 font-medium text-green-800 text-xs dark:bg-green-900/30 dark:text-green-400">
+				<CheckCircle2 className="size-3.5" />
+				Taškai sutampa
+			</div>
+		);
+	}
+
+	const formattedDifference =
+		drift.pointDifference > 0
+			? `+${drift.pointDifference}`
+			: `${drift.pointDifference}`;
+
+	return (
+		<div className="mb-4 flex items-start gap-3 rounded-2xl bg-red-100 px-3 py-2 text-red-800 text-xs dark:bg-red-900/30 dark:text-red-400">
+			<AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+			<div className="flex flex-col gap-0.5">
+				<span className="font-semibold">Aptiktas taškų neatitikimas</span>
+				<span className="tabular-nums">
+					{drift.squareMismatches} kvadr., {drift.userMismatches} naud.,
+					skirtumas {formattedDifference} t.
+				</span>
+			</div>
+			<Button
+				className="ml-auto"
+				disabled={recompute.isPending}
+				onClick={() => recompute.mutate({ seasonId })}
+				size="sm"
+				variant="outline"
+			>
+				{recompute.isPending ? (
+					<Spinner className="size-3.5" />
+				) : (
+					"Perskaičiuoti"
+				)}
+			</Button>
 		</div>
 	);
 }

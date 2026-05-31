@@ -92,9 +92,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
 					<Providers>
-						<div className="grid grid-rows-[auto_1fr] md:h-svh">
+						<div className="grid grid-rows-[auto_1fr]">
 							<Header />
-							<div className="md:min-h-0 md:overflow-y-auto">{children}</div>
+							<div>{children}</div>
 						</div>
 						<Toaster richColors />
 						{/* <TanStackRouterDevtools />

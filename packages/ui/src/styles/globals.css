@@ -49,6 +49,7 @@
 	--sidebar-accent-foreground: oklch(0.3 0.05 50);
 	--sidebar-border: oklch(0.88 0.02 80);
 	--sidebar-ring: var(--ring);
+	--header-height: 3.5rem;
 }
 
 .dark {

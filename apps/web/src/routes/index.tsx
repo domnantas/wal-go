@@ -177,11 +177,6 @@ function HomeComponent() {
 						</em>
 					</h1>
 
-					<p className="mx-auto mt-8 max-w-2xl text-foreground text-lg leading-relaxed md:text-xl">
-						<b>WAL GO</b> yra žaidimas, kuriame <b>radijo mėgėjai</b> varžosi
-						dėl teritorijos užmegzdami radijo ryšius visoje <b>Lietuvoje</b>.
-					</p>
-
 					<div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
 						{session ? (
 							<Button className="px-6" render={<Link to="/map" />} size="lg">

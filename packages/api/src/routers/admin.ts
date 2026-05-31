@@ -1,4 +1,4 @@
-import { user } from "@WAL-GO/db/schema/auth";
+import { session, user } from "@WAL-GO/db/schema/auth";
 import { qso } from "@WAL-GO/db/schema/qsos";
 import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
@@ -8,7 +8,12 @@ import { and, asc, count, desc, eq, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
-import { applyScoreDeltas } from "../scoring/apply-deltas";
+import {
+	applyScoreDeltas,
+	applyUserBanScoreChange,
+	recomputeSeasonScores,
+} from "../scoring/apply-deltas";
+import { computeScoreDrift, EMPTY_SEASON_DRIFT } from "../scoring/drift";
 import { getScoringRuleSet } from "../scoring/index";
 
 const TEAMS = ["yellow", "green", "red"] as const;
@@ -60,19 +65,54 @@ const banUser = adminProcedure
 				message: "Negalima užblokuoti savęs",
 			});
 		}
-		await context.db
-			.update(user)
-			.set({ banned: true, banReason: input.banReason ?? null })
-			.where(eq(user.id, input.userId));
+		await context.db.transaction(async (tx) => {
+			const rows = await tx
+				.select({ banned: user.banned })
+				.from(user)
+				.where(eq(user.id, input.userId))
+				.for("update")
+				.limit(1);
+			const existing = rows[0];
+			if (!existing) {
+				throw new ORPCError("NOT_FOUND", { message: "Naudotojas nerastas" });
+			}
+			await tx
+				.update(user)
+				.set({ banned: true, banReason: input.banReason ?? null })
+				.where(eq(user.id, input.userId));
+			// Revoke active sessions: we ban via a raw update (not better-auth's
+			// banUser endpoint), so the admin plugin only blocks re-login — it does
+			// not invalidate an existing session. Without this, a banned user could
+			// keep logging QSOs and re-add the points we just removed.
+			await tx.delete(session).where(eq(session.userId, input.userId));
+			if (!existing.banned) {
+				await applyUserBanScoreChange(tx, input.userId, true);
+			}
+		});
 	});
 
 const unbanUser = adminProcedure
 	.input(z.object({ userId: z.string() }))
 	.handler(async ({ context, input }) => {
-		await context.db
-			.update(user)
-			.set({ banned: false, banReason: null })
-			.where(eq(user.id, input.userId));
+		await context.db.transaction(async (tx) => {
+			const rows = await tx
+				.select({ banned: user.banned })
+				.from(user)
+				.where(eq(user.id, input.userId))
+				.for("update")
+				.limit(1);
+			const existing = rows[0];
+			if (!existing) {
+				throw new ORPCError("NOT_FOUND", { message: "Naudotojas nerastas" });
+			}
+			await tx
+				.update(user)
+				.set({ banned: false, banReason: null })
+				.where(eq(user.id, input.userId));
+			if (existing.banned) {
+				await applyUserBanScoreChange(tx, input.userId, false);
+			}
+		});
 	});
 
 const listSeasons = adminProcedure.handler(async ({ context }) => {
@@ -275,39 +315,54 @@ const deleteQso = adminProcedure
 		});
 	});
 
+const recomputeScores = adminProcedure
+	.input(z.object({ seasonId: z.number().int().positive() }))
+	.handler(async ({ context, input }) => {
+		await context.db.transaction((tx) =>
+			recomputeSeasonScores(tx, input.seasonId)
+		);
+	});
+
 const getDashboard = adminProcedure.handler(async ({ context }) => {
-	const [totalUsersResult, seasons, qsoCounts, memberCounts, teamScores] =
-		await Promise.all([
-			context.db.select({ count: count() }).from(user),
-			context.db.select().from(season).orderBy(desc(season.startsAt)),
-			context.db
-				.select({ seasonId: qso.seasonId, count: count() })
-				.from(qso)
-				.groupBy(qso.seasonId),
-			context.db
-				.select({
-					seasonId: seasonMembership.seasonId,
-					team: seasonMembership.team,
-					count: count(),
-				})
-				.from(seasonMembership)
-				.groupBy(seasonMembership.seasonId, seasonMembership.team),
-			context.db
-				.select({
-					seasonId: seasonMembership.seasonId,
-					team: seasonMembership.team,
-					points: sum(userSeasonScore.points),
-				})
-				.from(userSeasonScore)
-				.innerJoin(
-					seasonMembership,
-					and(
-						eq(userSeasonScore.userId, seasonMembership.userId),
-						eq(userSeasonScore.seasonId, seasonMembership.seasonId)
-					)
+	const [
+		totalUsersResult,
+		seasons,
+		qsoCounts,
+		memberCounts,
+		teamScores,
+		driftBySeason,
+	] = await Promise.all([
+		context.db.select({ count: count() }).from(user),
+		context.db.select().from(season).orderBy(desc(season.startsAt)),
+		context.db
+			.select({ seasonId: qso.seasonId, count: count() })
+			.from(qso)
+			.groupBy(qso.seasonId),
+		context.db
+			.select({
+				seasonId: seasonMembership.seasonId,
+				team: seasonMembership.team,
+				count: count(),
+			})
+			.from(seasonMembership)
+			.groupBy(seasonMembership.seasonId, seasonMembership.team),
+		context.db
+			.select({
+				seasonId: seasonMembership.seasonId,
+				team: seasonMembership.team,
+				points: sum(userSeasonScore.points),
+			})
+			.from(userSeasonScore)
+			.innerJoin(
+				seasonMembership,
+				and(
+					eq(userSeasonScore.userId, seasonMembership.userId),
+					eq(userSeasonScore.seasonId, seasonMembership.seasonId)
 				)
-				.groupBy(seasonMembership.seasonId, seasonMembership.team),
-		]);
+			)
+			.groupBy(seasonMembership.seasonId, seasonMembership.team),
+		computeScoreDrift(context.db),
+	]);
 
 	const totalUsers = totalUsersResult[0]?.count ?? 0;
 	const totalQsos = qsoCounts.reduce((acc, r) => acc + r.count, 0);
@@ -341,6 +396,7 @@ const getDashboard = adminProcedure.handler(async ({ context }) => {
 				green: teamScore("green"),
 				red: teamScore("red"),
 			},
+			drift: driftBySeason.get(s.id) ?? EMPTY_SEASON_DRIFT,
 		};
 	});
 
@@ -392,6 +448,9 @@ export const adminRouter = {
 		create: createSeason,
 		update: updateSeason,
 		delete: deleteSeason,
+	},
+	scores: {
+		recompute: recomputeScores,
 	},
 	memberships: {
 		list: listMemberships,

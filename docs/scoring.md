@@ -83,6 +83,64 @@ The map fetches a single endpoint returning all squares with full per-team score
 
 The client polls this endpoint at a fixed interval (e.g., 30s) while the map is open, so live activity by other operators is reflected without a manual refresh. Polling chosen over WebSocket/SSE: payload is bounded (~hundreds of squares × 3 ints), no socket infra required.
 
+### Banned users
+
+A banned user's QSO rows **stay in the database**, but their points must **not**
+count toward the live map or leaderboard. Ban/unban is therefore not just a flag
+flip — `admin.users.ban` / `unban` run in a transaction that:
+
+1. Locks the user row (`FOR UPDATE`) and reads the current `banned` state.
+2. Updates the `banned` flag.
+3. On ban, deletes the user's `session` rows. We ban with a raw DB update rather
+   than better-auth's `banUser` endpoint, and the admin plugin only blocks banned
+   users at **session creation** (re-login) — it does not invalidate an existing
+   session. Without this revocation a banned user could keep calling
+   `qsos.create` and re-add the points we just removed.
+4. Only if the state actually changed, calls `applyUserBanScoreChange`
+   (`packages/api/src/scoring/apply-deltas.ts`), which aggregates the user's
+   stored QSOs per `(season, square, team)` and feeds them through
+   `applyScoreDeltas` as negative deltas (ban) or positive deltas (unban).
+
+The change-guard prevents double-counting if a ban is issued twice.
+
+### Drift detector
+
+The score tables are a denormalized cache; the `qso` table is the source of
+truth. They can drift if a mutation that should affect scores bypasses the delta
+path (a forgotten ban recompute, a bug in the delta math, a direct DB edit).
+
+`computeScoreDrift` (`packages/api/src/scoring/drift.ts`) detects this. It
+recomputes the **expected** aggregates from `qso` joined with `user`, excluding
+banned users, and compares them against the stored `square_score` /
+`user_season_score` rows. Per season it reports the number of mismatched square
+and user rows and the net stored-minus-expected point difference.
+
+> **Baseline assumption:** the detector treats "expected points = count of stored
+> QSO rows" because the alpha rule set awards exactly one point per accepted QSO
+> (game duplicates are filtered at insert time). A future season with a
+> non-trivial rule set must update this baseline alongside the rule set, or the
+> detector will report false drift.
+
+The result is surfaced per season in the admin dashboard (see `docs/admin.md`).
+Because ban/unban already recompute scores, a healthy system stays drift-free; a
+red badge means a real inconsistency that needs investigation.
+
+#### Repair: recompute scores
+
+When the badge is red, an admin can fix it from the dashboard with the
+**"Perskaičiuoti"** button (procedure `admin.scores.recompute`). It runs
+`recomputeSeasonScores` (`packages/api/src/scoring/apply-deltas.ts`) in a
+transaction, which **wipes** the season's `square_score` / `user_season_score`
+rows and **rebuilds** them directly from `qso` joined with `user`, excluding
+banned users — the exact aggregation the detector treats as expected. After it
+runs the season is guaranteed drift-free.
+
+This is the general repair for any drift cause: a forgotten ban recompute, a
+delta-math bug, a direct DB edit, or a user banned before ban-time enforcement
+shipped. It is idempotent — recomputing a healthy season changes nothing. It
+shares the same one-point-per-QSO baseline assumption as the detector, so a
+future non-trivial rule set must update both together.
+
 ### Recompute on QSO delete
 
 Deleting a QSO decrements points symmetrically. The transaction:
