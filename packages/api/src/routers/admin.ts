@@ -115,6 +115,32 @@ const unbanUser = adminProcedure
 		});
 	});
 
+const deleteUser = adminProcedure
+	.input(z.object({ userId: z.string() }))
+	.handler(async ({ context, input }) => {
+		if (input.userId === context.session.user.id) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Negalima ištrinti savęs",
+			});
+		}
+		await context.db.transaction(async (tx) => {
+			const rows = await tx
+				.select({ banned: user.banned })
+				.from(user)
+				.where(eq(user.id, input.userId))
+				.for("update")
+				.limit(1);
+			const existing = rows[0];
+			if (!existing) {
+				throw new ORPCError("NOT_FOUND", { message: "Naudotojas nerastas" });
+			}
+			if (!existing.banned) {
+				await applyUserBanScoreChange(tx, input.userId, true);
+			}
+			await tx.delete(user).where(eq(user.id, input.userId));
+		});
+	});
+
 const listSeasons = adminProcedure.handler(async ({ context }) => {
 	const rows = await context.db
 		.select()
@@ -442,6 +468,7 @@ export const adminRouter = {
 		setRole: setUserRole,
 		ban: banUser,
 		unban: unbanUser,
+		delete: deleteUser,
 	},
 	seasons: {
 		list: listSeasons,

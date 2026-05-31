@@ -20,7 +20,7 @@ import {
 	TableRow,
 } from "@WAL-GO/ui/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Shield, ShieldOff, UserCheck, UserX } from "lucide-react";
+import { Shield, ShieldOff, Trash2, UserCheck, UserX } from "lucide-react";
 import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
@@ -74,6 +74,19 @@ export function UsersTab() {
 		})
 	);
 
+	const deleteUser = useMutation(
+		orpc.admin.users.delete.mutationOptions({
+			onSuccess: () => {
+				invalidate();
+				queryClient.invalidateQueries({
+					queryKey: orpc.admin.dashboard.queryOptions().queryKey,
+				});
+				toast.success("Naudotojas ištrintas");
+			},
+			onError: (e) => toast.error(e.message),
+		})
+	);
+
 	if (users.isPending) {
 		return (
 			<div className="flex justify-center py-10">
@@ -101,6 +114,7 @@ export function UsersTab() {
 						<UserTableRow
 							key={u.id}
 							onBan={(userId) => ban.mutate({ userId })}
+							onDelete={(userId) => deleteUser.mutate({ userId })}
 							onSetRole={(userId, role) => setRole.mutate({ userId, role })}
 							onUnban={(userId) => unban.mutate({ userId })}
 							user={u}
@@ -117,11 +131,13 @@ function UserTableRow({
 	onSetRole,
 	onBan,
 	onUnban,
+	onDelete,
 }: {
 	user: UserData;
 	onSetRole: (userId: string, role: "admin" | "user") => void;
 	onBan: (userId: string) => void;
 	onUnban: (userId: string) => void;
+	onDelete: (userId: string) => void;
 }) {
 	return (
 		<TableRow>
@@ -202,6 +218,34 @@ function UserTableRow({
 							</AlertDialogContent>
 						</AlertDialog>
 					)}
+					<AlertDialog>
+						<AlertDialogTrigger
+							render={
+								<Button size="sm" variant="ghost">
+									<Trash2 className="size-4" />
+									Ištrinti
+								</Button>
+							}
+						/>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Ištrinti {user.name}?</AlertDialogTitle>
+								<AlertDialogDescription>
+									Naudotojo paskyra, sesijos, QSO, įkėlimai ir narystės bus
+									ištrinti negrįžtamai.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Atšaukti</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => onDelete(user.id)}
+									variant="destructive"
+								>
+									Ištrinti
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				</div>
 			</TableCell>
 		</TableRow>
