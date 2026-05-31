@@ -187,6 +187,16 @@ function RulesComponent() {
 					</table>
 				</div>
 				<Rule n="6.2">
+					Šaukinių prefiksai ir sufiksai (pvz.,{" "}
+					<code className="rounded bg-muted px-1 font-mono text-xs">/P</code>,{" "}
+					<code className="rounded bg-muted px-1 font-mono text-xs">/M</code>,{" "}
+					<code className="rounded bg-muted px-1 font-mono text-xs">
+						9A/LY1..
+					</code>
+					) pašalinami ir saugomas tik bazinis šaukinys. Taikoma tiek
+					operatoriaus, tiek korespondento šaukiniui.
+				</Rule>
+				<Rule n="6.3">
 					QSO įskaitomas tik tuo atveju, kai operatorius ryšio metu yra{" "}
 					<strong>Lietuvos teritorijoje</strong>. Kai kurie WAL kvadratai
 					driekiasi per valstybių sieną — tokių kvadratų ryšiai įskaitomi tik
@@ -198,13 +208,13 @@ function RulesComponent() {
 					kvadratas apima ir Lietuvos, ir Latvijos teritoriją. Jei stotis veikia
 					Latvijos pusėje — QSO neįskaitomas. Jei Lietuvos pusėje — įskaitomas.
 				</Note>
-				<Rule n="6.3">
+				<Rule n="6.4">
 					Korespondento WAL kvadratas yra neprivalomas. Ryšiai su užsienio
 					stotimis (DX) yra leidžiami — tokiu atveju korespondento kvadrato
 					lauką palikite tuščią arba įveskite{" "}
 					<code className="rounded bg-muted px-1 font-mono text-xs">DX</code>.
 				</Rule>
-				<Rule n="6.4">
+				<Rule n="6.5">
 					Registruoti ryšius galima tik aktyvaus sezono metu. Pasibaigus
 					sezonui, QSO įrašyti nebegalima.
 				</Rule>

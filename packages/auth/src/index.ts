@@ -37,8 +37,8 @@ export async function createAuth() {
 						appName: "WAL GO (https://walgo.lt)",
 						poweredBy: false,
 						logoURL: {
-							light: "https://walgo.lt/logo.png",
-							dark: "https://walgo.lt/logo.png",
+							light: "https://walgo.lt/logo_512.png",
+							dark: "https://walgo.lt/logo_512.png",
 						},
 						expirationMinutes: 60,
 						localization: {
@@ -90,8 +90,8 @@ export async function createAuth() {
 						appName: "WAL GO (https://walgo.lt)",
 						poweredBy: false,
 						logoUrl: {
-							light: "https://walgo.lt/logo.png",
-							dark: "https://walgo.lt/logo.png",
+							light: "https://walgo.lt/logo_512.png",
+							dark: "https://walgo.lt/logo_512.png",
 						},
 						expirationMinutes: 60,
 						localization: {

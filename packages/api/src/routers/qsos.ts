@@ -43,8 +43,14 @@ function normalizeValue(value: string) {
 	return value.trim().toUpperCase();
 }
 
+// Reduces a callsign to its base call by stripping operating
+// suffixes/prefixes (`/P`, `/M`, country prefixes like `9A/`). Keeps the
+// longest `/`-delimited part, which is the base call in practice. Applied to
+// both operator (for matching) and contact (for dedup/uniqueness) calls so a
+// station's `/P` `/M` variants collapse to one — location is already carried
+// by the WAL square field.
 function normalizeCallsign(callsign: string): string {
-	const parts = callsign.split("/");
+	const parts = normalizeValue(callsign).split("/");
 	return parts.reduce((a, b) => (a.length >= b.length ? a : b), "");
 }
 
@@ -312,7 +318,7 @@ const create = protectedProcedure
 
 			const team = membershipRows[0].team;
 			const userId = context.session.user.id;
-			const contactCallsign = normalizeValue(input.contactCallsign);
+			const contactCallsign = normalizeCallsign(input.contactCallsign);
 			const ruleSet = getScoringRuleSet(currentSeason.id);
 
 			const insertParams: InsertParams = {
@@ -424,7 +430,7 @@ const bulkCreate = protectedProcedure
 				}
 				return [
 					{
-						contactCallsign: normalizeValue(q.contactCallsign),
+						contactCallsign: normalizeCallsign(q.contactCallsign),
 						band: q.band,
 						mode: q.mode,
 						qsoAt,
@@ -619,7 +625,7 @@ function mapParsedQsos(
 
 		const p: InsertParams = {
 			band: q.band,
-			contactCallsign: q.contactCallsign,
+			contactCallsign: normalizeCallsign(q.contactCallsign),
 			contactSquare,
 			mode: q.mode,
 			operatorSquare: q.operatorSquare,

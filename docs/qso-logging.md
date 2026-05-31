@@ -10,7 +10,7 @@ Manual entry captures:
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| Contact callsign | Yes | Stored uppercase. |
+| Contact callsign | Yes | Normalized to base call before storage (see Callsign Normalization). |
 | QSO date/time | Yes | Stored as a timezone-aware timestamp. |
 | Band | Yes | Selected from the UI's supported band list. |
 | Mode | Yes | Selected from the UI's supported mode list. |
@@ -123,6 +123,27 @@ The summary cards on `/log` are backed by server-side aggregates, not calculatio
 | Delete    | Yes       | Removes the user's QSO from the active season      |
 
 Deleting a QSO that was the sole point giving a team control of its operator square immediately releases that square to the next-highest team (or to neutral if tied/empty).
+
+## Callsign Normalization
+
+Both operator and contact callsigns are reduced to their **base call** before
+comparison and storage via `normalizeCallsign` (`packages/api/src/routers/qsos.ts`).
+The callsign is uppercased, trimmed, split on `/`, and the longest part is kept —
+this strips operating suffixes (`/P`, `/M`, `/MM`, `/QRP`) and country prefixes
+(`9A/LY2EN`). The longest `/`-delimited part is the base call in practice.
+
+Consequences:
+
+- The operator's `mycall` is normalized only to **match** it against the logged-in
+  user's callsign.
+- The contact's `dxcall` is normalized and **stored** as the base call, so a
+  station's suffix variants collapse to one identity. Location is not lost: the
+  WAL **square** field carries it. Working `LY2EN` from `A05` and `LY2EN/P` from
+  `A06` remains two distinct, scoring QSOs because the contact squares differ;
+  `LY2EN` and `LY2EN/P` from the **same** square on the same day collapse to one.
+
+> Historical QSO rows inserted before this change keep their raw suffix and are
+> not back-filled.
 
 ## User Callsign Requirement
 

@@ -11,7 +11,10 @@ Points are per-season. A user who deletes a QSO loses those points immediately.
 
 ## Duplicate Rules
 
-Duplicate handling has two layers:
+Duplicate handling has two layers. In both, the contact callsign is the
+**base call** — suffixes/prefixes are stripped at insert (see Callsign
+Normalization in `qso-logging.md`), so `LY2EN` and `LY2EN/P` from the same
+square collapse to one identity.
 
 - **Exact QSO duplicates** prevent accidental double submission. A QSO is considered exact duplicate when the same user already has the same season, callsign, band, mode, timestamp, operator square, and contact square.
 - **Game duplicates** are season scoring rules. In the alpha season, only one QSO with the same callsign, band, mode, operator square, and contact square can score per Lithuanian calendar day (`Europe/Vilnius`). If either operator changes square or the contact's square changes, another QSO with the same callsign, band, and mode can score that day.

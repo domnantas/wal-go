@@ -33,7 +33,8 @@ Section `id` attributes enable deep-linking (e.g. `/rules#taskų-sistema`).
 - Lithuania is divided into **394 WAL squares** (10′ × 10′).
 - Three teams per season: **yellow, green, red**. Assignment is random and immutable within a season.
 - Each accepted QSO awards **1 point** to the operator's square.
-- Per-day duplicate rule: only one QSO with the same call/band/mode/operator-square/contact-square counts per Lithuanian calendar day (midnight Europe/Vilnius). A different square, band, or mode makes a new QSO valid.
+- Callsign normalization: both operator and contact callsigns are reduced to their base call before storage — prefixes and suffixes (`/P`, `/M`, country prefixes like `9A/`) are stripped. `LY2EN` and `LY2EN/P` from the same square on the same day count as one QSO; different squares make them distinct.
+- Per-day duplicate rule: only one QSO with the same (normalized) call/band/mode/operator-square/contact-square counts per Lithuanian calendar day (midnight Europe/Vilnius). A different square, band, or mode makes a new QSO valid.
 - A team **controls** a square when it has strictly more points than either rival. Tied leaders → neutral.
 - Season winner: most squares controlled at end. Tiebreak: total points.
 - Next season starts from zero — no carry-over.
