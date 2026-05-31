@@ -25,7 +25,7 @@ Implemented via `orpc.admin.dashboard` in `packages/api/src/routers/admin.ts`.
 
 ### Users tab
 
-- List all registered users (callsign, email, role, banned status)
+- List all registered users (callsign, email, email confirmation status, role, banned status)
 - Toggle role between `user` and `admin`
 - Ban / unban a user (ban requires confirmation dialog). Banning keeps the user's QSO rows but removes their points from the score tables (and unbanning restores them) so banned operators do not count on the map or leaderboard — see `docs/scoring.md` § Banned users.
 - Delete a user with confirmation. Deleting an active user first removes their points from materialized score tables, then deletes the account; related sessions, accounts, QSOs, uploads, season memberships, and user season score rows are removed through database cascades. Admins cannot delete their own account.

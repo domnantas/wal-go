@@ -38,6 +38,7 @@ const listUsers = adminProcedure.handler(async ({ context }) => {
 			id: user.id,
 			name: user.name,
 			email: user.email,
+			emailVerified: user.emailVerified,
 			role: user.role,
 			banned: user.banned,
 			banReason: user.banReason,

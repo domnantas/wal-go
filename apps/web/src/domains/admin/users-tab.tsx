@@ -30,6 +30,7 @@ interface UserData {
 	banReason: null | string;
 	createdAt: Date;
 	email: string;
+	emailVerified: boolean;
 	id: string;
 	name: string;
 	role: string;
@@ -104,6 +105,7 @@ export function UsersTab() {
 					<TableRow className="bg-muted/40 hover:bg-muted/40">
 						<TableHead className="px-4">Šaukinys</TableHead>
 						<TableHead className="px-4">El. paštas</TableHead>
+						<TableHead className="px-4">El. p. patvirtintas</TableHead>
 						<TableHead className="px-4">Rolė</TableHead>
 						<TableHead className="px-4">Būsena</TableHead>
 						<TableHead className="px-4 text-right">Veiksmai</TableHead>
@@ -143,6 +145,17 @@ function UserTableRow({
 		<TableRow>
 			<TableCell className="px-4 font-bold">{user.name}</TableCell>
 			<TableCell className="px-4 text-muted-foreground">{user.email}</TableCell>
+			<TableCell className="px-4">
+				{user.emailVerified ? (
+					<span className="inline-flex items-center rounded-full bg-accent/15 px-2.5 py-0.5 font-medium text-accent text-xs">
+						Patvirtintas
+					</span>
+				) : (
+					<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
+						Nepatvirtintas
+					</span>
+				)}
+			</TableCell>
 			<TableCell className="px-4">
 				<span
 					className={
