@@ -33,6 +33,13 @@ The main screen renders a MapLibre GL map of Lithuania overlaid with the WAL gri
 
 The homepage introduces WAL GO, shows live season/team context when available, explains the gameplay loop, demonstrates Cabrillo log processing, answers common questions, and ends with a Discord invite that links to the community server.
 
+## Social Previews
+
+The root route (`apps/web/src/routes/__root.tsx`) defines the global document metadata. It includes the Lithuanian page title and description, plus Open Graph tags for `https://walgo.lt`:
+
+- `og:type`, `og:url`, `og:title`, `og:description`, `og:site_name`, and `og:locale`
+- `og:image` points at `/web-app-manifest-512x512.png`, with width, height, and alt text metadata
+
 ## Teams
 
 Three fixed teams per season: **yellow**, **green**, **red**. Team assignment is random (server-side spin) and cannot be changed within a season. A player who has already joined sees their assigned team immediately instead of the spin UI.

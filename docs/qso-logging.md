@@ -145,6 +145,19 @@ Consequences:
 > Historical QSO rows inserted before this change keep their raw suffix and are
 > not back-filled.
 
+## Rate Limits
+
+All write endpoints are rate-limited per authenticated user using the shared `rate_limit` table.
+
+| Endpoint | Max | Window |
+| --- | --- | --- |
+| `qsos.create` | 120 | 60s |
+| `qsos.delete` | 120 | 60s |
+| `qsos.bulkCreate` | 20 | 1 hour |
+| `qsos.importCabrillo` | 10 | 1 hour |
+
+Exceeding a limit returns a `TOO_MANY_REQUESTS` error with the message "Per daug užklausų. Bandykite vėliau."
+
 ## User Callsign Requirement
 
 A callsign is required on the user profile before logging QSOs. The callsign is used to validate that the `STATION_CALLSIGN` field in the ADIF matches the logged-in operator (exact validation rules TBD during implementation).

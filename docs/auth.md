@@ -83,6 +83,21 @@ Forgot/reset password flow is fully wired up:
 
 The reset link lands on `/auth/reset-password?token=<token>`. The UI reads the token from the URL and calls Better Auth's `/reset-password` endpoint.
 
+## Rate limiting
+
+Better Auth's built-in rate limiting is enabled with `storage: "database"` so state persists across Cloudflare Workers isolates (in-memory storage is per-isolate and does not survive request distribution).
+
+The rate limit state is stored in the `rate_limit` table (`packages/db/src/schema/auth.ts`).
+
+Built-in special rules (applied per IP):
+
+| Path pattern | Window | Max |
+| --- | --- | --- |
+| `/sign-in/*`, `/sign-up/*`, `/change-password/*`, `/change-email/*` | 10s | 3 |
+| Everything else | 10s | 100 |
+
+These defaults are set by Better Auth and cover the highest-risk vectors (credential stuffing, email bombing). Custom rules can be added via `rateLimit.customRules` in `packages/auth/src/index.ts`.
+
 ## @better-auth-ui/react compatibility
 
 The UI components (`packages/ui`) target `@better-auth-ui/react` v1.6.14, which introduced breaking changes:

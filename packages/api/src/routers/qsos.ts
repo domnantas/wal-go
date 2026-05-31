@@ -11,6 +11,7 @@ import { z } from "zod";
 import { parseCabrillo, parseCabrilloDateTime } from "../cabrillo/parser";
 
 import { protectedProcedure } from "../index";
+import { checkRateLimit } from "../rate-limit";
 import { applyScoreDeltas } from "../scoring/apply-deltas";
 import { getScoringRuleSet } from "../scoring/index";
 import type { InsertParams, Tx } from "../scoring/types";
@@ -258,6 +259,12 @@ const stats = protectedProcedure
 const create = protectedProcedure
 	.input(qsoInput)
 	.handler(async ({ context, input }) => {
+		await checkRateLimit(
+			context.db,
+			`qso:create:${context.session.user.id}`,
+			120,
+			60
+		);
 		const operatorSquare = normalizeWalSquare(input.operatorSquare);
 		const rawContactSquare = input.contactSquare
 			? normalizeWalSquare(input.contactSquare)
@@ -368,6 +375,12 @@ const create = protectedProcedure
 const bulkCreate = protectedProcedure
 	.input(bulkCreateInput)
 	.handler(async ({ context, input }) => {
+		await checkRateLimit(
+			context.db,
+			`qso:bulkCreate:${context.session.user.id}`,
+			20,
+			3600
+		);
 		const now = new Date();
 
 		return await context.db.transaction(async (tx) => {
@@ -488,9 +501,16 @@ const bulkCreate = protectedProcedure
 		});
 	});
 
-const deleteQso = protectedProcedure.input(deleteQsoInput).handler(
-	async ({ context, input }) =>
-		await context.db.transaction(async (tx) => {
+const deleteQso = protectedProcedure
+	.input(deleteQsoInput)
+	.handler(async ({ context, input }) => {
+		await checkRateLimit(
+			context.db,
+			`qso:delete:${context.session.user.id}`,
+			120,
+			60
+		);
+		return await context.db.transaction(async (tx) => {
 			const existing = await tx
 				.select()
 				.from(qso)
@@ -532,8 +552,8 @@ const deleteQso = protectedProcedure.input(deleteQsoInput).handler(
 			await tx.delete(qso).where(eq(qso.id, input.id));
 
 			return serializeQso(qsoRow);
-		})
-);
+		});
+	});
 
 export type SkipReason =
 	| "callsignMismatch"
@@ -662,6 +682,12 @@ function collectFilteredErrors(
 const importCabrillo = protectedProcedure
 	.input(z.object({ content: z.string().max(2_000_000) }))
 	.handler(async ({ context, input }) => {
+		await checkRateLimit(
+			context.db,
+			`qso:importCabrillo:${context.session.user.id}`,
+			10,
+			3600
+		);
 		const {
 			callsign,
 			contest,
