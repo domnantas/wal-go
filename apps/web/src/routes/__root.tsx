@@ -11,6 +11,7 @@ import { ThemeProvider } from "tanstack-theme-kit";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
 import type { orpc } from "@/utils/orpc";
+import { CookieBanner } from "../components/cookie-banner";
 import Header from "../components/header";
 import { Providers } from "../components/providers";
 import appCss from "../index.css?url";
@@ -149,6 +150,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 						defaults: "2025-05-24",
 						capture_exceptions: true,
 						debug: import.meta.env.DEV,
+						cookieless_mode: "on_reject",
 					}}
 				>
 					<ThemeProvider
@@ -162,6 +164,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								<div>{children}</div>
 							</div>
 							<Toaster richColors />
+							<CookieBanner />
 							{/* <TanStackRouterDevtools />
 							<ReactQueryDevtools />
 							<TanStackDevtools plugins={[formDevtoolsPlugin()]} /> */}
