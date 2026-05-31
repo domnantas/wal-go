@@ -247,6 +247,17 @@ export function MapView({
 				new maplibregl.NavigationControl({ visualizePitch: true }),
 				"top-right"
 			);
+			map.addControl(
+				new maplibregl.GeolocateControl({
+					positionOptions: {
+						enableHighAccuracy: true,
+					},
+					showAccuracyCircle: true,
+					showUserLocation: true,
+					trackUserLocation: true,
+				}),
+				"top-right"
+			);
 			map.addControl(new maplibregl.ScaleControl({ unit: "metric" }));
 
 			map.on("style.load", () => {
