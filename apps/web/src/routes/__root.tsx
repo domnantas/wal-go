@@ -147,7 +147,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					options={{
 						api_host: "/ingest",
 						ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-						defaults: "2025-05-24",
+						defaults: "2026-01-30",
 						capture_exceptions: true,
 						debug: import.meta.env.DEV,
 						cookieless_mode: "on_reject",
