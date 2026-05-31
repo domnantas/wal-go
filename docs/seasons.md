@@ -27,6 +27,14 @@ There are three fixed teams: `yellow`, `green`, and `red`. Teams exist as the `t
 
 The `(user_id, season_id)` unique index guarantees idempotency even under concurrent requests.
 
+### Wheel UI
+
+The wheel is a 320×320px (h-80 w-80) conic-gradient circle divided into three equal segments (golden/olive/rust). Each segment displays its team name label. A center hub overlays the rotation pivot.
+
+The pointer sits at 3 o'clock (90° clockwise from top). Landing offsets are computed as `R ≡ (90° − C) mod 360°` where C is each segment's center angle: yellow=60° → R=30°, green=180° → R=270°, red=300° → R=150°. A ±50° random jitter is applied.
+
+When the wheel lands, `canvas-confetti` fires a burst from both sides of the screen in the winning team's colors.
+
 ## Season creation
 
 During the beta phase, seasons are added directly to the database through `pnpm db:studio`. An admin UI will be added later.

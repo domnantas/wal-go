@@ -31,4 +31,5 @@
 - [] QSO editing
 - [] Rate limiting
 - [] Analysing uploaded qsos
+- [x] Map geolocation
  

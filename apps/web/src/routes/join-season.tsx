@@ -10,6 +10,7 @@ import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { sessionOptions } from "@better-auth-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import confetti from "canvas-confetti";
 import { Info } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { type RefObject, useEffect, useRef, useState } from "react";
@@ -43,10 +44,16 @@ const TEAM_CLASSES: Record<Team, string> = {
 	red: "bg-rust text-rust-foreground",
 };
 
+const TEAM_CONFETTI_COLORS: Record<Team, string[]> = {
+	yellow: ["#D4A017", "#F0C040", "#FFE08A", "#FFFACD"],
+	green: ["#3A5A2E", "#5A8A48", "#8AB87C", "#C5E8B0"],
+	red: ["#9B3A2A", "#C45A40", "#E88060", "#FFB4A0"],
+};
+
 // Conic gradient starts at top (0°) clockwise. Pointer sits at 3 o'clock (90°).
 // Center of each segment, in clockwise degrees from top:
 //   yellow: 60°, green: 180°, red: 300°.
-// To land segment under pointer we need rotation R such that center + R ≡ 90°.
+// To land segment under pointer: R ≡ (90° − C) mod 360°.
 const TEAM_TARGET_OFFSET: Record<Team, number> = {
 	yellow: 30,
 	green: 270,
@@ -90,6 +97,26 @@ function applyRotation(
 	}
 	node.style.transition = transition;
 	node.style.transform = `rotate(${deg}deg)`;
+}
+
+function fireConfetti(team: Team) {
+	const colors = TEAM_CONFETTI_COLORS[team];
+	confetti({
+		particleCount: 100,
+		spread: 70,
+		origin: { x: 0.3, y: 0.65 },
+		colors,
+		angle: 60,
+		scalar: 1.2,
+	});
+	confetti({
+		particleCount: 100,
+		spread: 70,
+		origin: { x: 0.7, y: 0.65 },
+		colors,
+		angle: 120,
+		scalar: 1.2,
+	});
 }
 
 function RouteComponent() {
@@ -154,11 +181,13 @@ function RouteComponent() {
 		const t = setTimeout(() => {
 			setPhase("landed");
 			if (join.data) {
-				posthog.capture("season_joined", { team: join.data.team });
+				const team = join.data.team as Team;
+				posthog.capture("season_joined", { team });
 				queryClient.setQueryData(
 					orpc.seasons.myMembership.queryOptions().queryKey,
 					join.data
 				);
+				fireConfetti(team);
 			}
 		}, LANDING_DURATION_MS + 100);
 		return () => clearTimeout(t);
@@ -241,39 +270,62 @@ function RouteComponent() {
 					<div className="flex gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm">
 						<Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 						<p className="text-muted-foreground">
-							Sukite ratą ir prisijunkite prie atsitiktinės komandos
+							Sukite ratą ir prisijunkite prie atsitiktinės komandos šiam
+							sezonui
 						</p>
 					</div>
 				</CardContent>
-				<CardContent className="flex flex-col items-center gap-6">
-					<div className="relative h-48 w-48">
+				<CardContent className="flex flex-col items-center gap-8 pb-8">
+					<div className="relative flex items-center justify-center">
+						{/* Spinning wheel */}
 						<div
-							className="h-full w-full rounded-full ring-2 ring-foreground/10"
+							className="relative h-80 w-80 rounded-full shadow-2xl ring-4 ring-foreground/10"
 							ref={wheelRef}
 							style={{
 								background:
 									"conic-gradient(var(--color-golden) 0 33.33%, var(--color-olive) 33.33% 66.66%, var(--color-rust) 66.66% 100%)",
 								willChange: "transform",
 							}}
-						/>
-						<div className="absolute top-1/2 right-0 h-0 w-0 -translate-y-1/2 border-y-8 border-y-transparent border-r-12 border-r-foreground" />
+						>
+							{/* Center hub */}
+							<div className="absolute top-1/2 left-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background shadow-lg ring-2 ring-foreground/20" />
+						</div>
+						{/* Pointer at 3 o'clock */}
+						<div
+							className="absolute top-1/2 right-0 translate-x-3 -translate-y-1/2"
+							style={{ filter: "drop-shadow(-2px 0 3px rgba(0,0,0,0.4))" }}
+						>
+							<div
+								style={{
+									width: 0,
+									height: 0,
+									borderTop: "14px solid transparent",
+									borderBottom: "14px solid transparent",
+									borderRight: "24px solid var(--foreground)",
+								}}
+							/>
+						</div>
 					</div>
+
 					{settledTeam ? (
-						<div className="flex flex-col items-center gap-2">
+						<div className="flex flex-col items-center gap-3">
 							<p className="text-muted-foreground text-sm">Tavo komanda</p>
 							<div
-								className={`rounded-full px-6 py-2 font-bold font-serif text-xl ${TEAM_CLASSES[settledTeam]}`}
+								className={`rounded-full px-8 py-3 font-bold font-serif text-2xl shadow-lg ${TEAM_CLASSES[settledTeam]}`}
 							>
 								{TEAM_LABELS[settledTeam]}
 							</div>
 						</div>
 					) : (
 						<Button
+							className="min-w-40"
 							disabled={phase !== "idle" || join.isPending}
 							onClick={handleSpin}
 							size="lg"
 						>
-							{phase === "spinning" ? "Sukama..." : "Sukti ratą"}
+							{phase === "spinning" || phase === "landing"
+								? "Sukama..."
+								: "Sukti ratą"}
 						</Button>
 					)}
 				</CardContent>

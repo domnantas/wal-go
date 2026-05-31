@@ -12,6 +12,8 @@ https://tiles.openfreemap.org/styles/fiord
 
 The route imports MapLibre CSS and initializes the map on the client in a React effect. This keeps browser-only MapLibre APIs out of server rendering.
 
+The map uses MapLibre's native controls for map navigation, scale, and geolocation. The geolocation button asks for browser location permission, then shows the user's current location with high accuracy, the accuracy circle, and user-location tracking enabled.
+
 ## Local map styles
 
 The web app keeps local OpenFreeMap-compatible style JSON files in `apps/web/src/assets/`:
