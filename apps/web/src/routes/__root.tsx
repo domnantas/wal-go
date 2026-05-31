@@ -18,7 +18,7 @@ import appCss from "../index.css?url";
 const SITE_URL = "https://walgo.lt";
 const SITE_TITLE = "WAL GO | Atrask Lietuvą per radijo bangas";
 const SITE_DESCRIPTION =
-	"Radijo mėgėjų teritorijų žaidimas: keliauk, užmegzk ryšius ir kovok dėl WAL kvadratų!";
+	"Radijo mėgėjų žaidimas: keliauk, užmegzk ryšius ir kovok dėl WAL kvadratų!";
 const SITE_IMAGE_URL = `${SITE_URL}/web-app-manifest-512x512.png`;
 
 export type SessionContext = Awaited<ReturnType<typeof getUser>>;
