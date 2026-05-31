@@ -99,6 +99,7 @@ function RouteComponent() {
 		!(currentSeason.isPending || membership.isPending) &&
 		!!activeSeason &&
 		!!membership.data;
+	const showLog = membership.isPending || !!membership.data || data.length > 0;
 	const upcomingSeason =
 		seasons.data?.find((season) => season.status === "upcoming") ?? null;
 
@@ -136,36 +137,40 @@ function RouteComponent() {
 				</div>
 			) : null}
 
-			<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-				<StatCard
-					icon={<Radio className="size-5" />}
-					label="Iš viso QSO"
-					value={statValues.totalQsos}
-				/>
-				<StatCard
-					icon={<MapPinned className="size-5" />}
-					label="Unikalūs kvadratai"
-					value={statValues.uniqueSquares}
-				/>
-				<StatCard
-					icon={<Star className="size-5" />}
-					label="Surinkti taškai"
-					value={statValues.points}
-				/>
-				<StatCard
-					icon={<Users className="size-5" />}
-					label="Unikalūs korespondentai"
-					value={statValues.uniqueContactCallsigns}
-				/>
-			</div>
+			{showLog ? (
+				<>
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+						<StatCard
+							icon={<Radio className="size-5" />}
+							label="Iš viso QSO"
+							value={statValues.totalQsos}
+						/>
+						<StatCard
+							icon={<MapPinned className="size-5" />}
+							label="Unikalūs kvadratai"
+							value={statValues.uniqueSquares}
+						/>
+						<StatCard
+							icon={<Star className="size-5" />}
+							label="Surinkti taškai"
+							value={statValues.points}
+						/>
+						<StatCard
+							icon={<Users className="size-5" />}
+							label="Unikalūs korespondentai"
+							value={statValues.uniqueContactCallsigns}
+						/>
+					</div>
 
-			{qsos.isPending ? (
-				<div className="flex justify-center py-10">
-					<Spinner className="size-8" />
-				</div>
-			) : (
-				<QsoLog canAddQso={canAddQso} qsos={data} />
-			)}
+					{qsos.isPending ? (
+						<div className="flex justify-center py-10">
+							<Spinner className="size-8" />
+						</div>
+					) : (
+						<QsoLog canAddQso={canAddQso} qsos={data} />
+					)}
+				</>
+			) : null}
 		</main>
 	);
 }
