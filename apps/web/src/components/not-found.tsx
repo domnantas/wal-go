@@ -12,10 +12,11 @@ export function NotFound() {
 				Toks puslapis neegzistuoja arba buvo perkeltas.
 			</p>
 			<div className="flex flex-wrap items-center justify-center gap-3">
-				<Button render={<Link to="/" />} variant="outline">
+				<Button nativeButton={false} render={<Link to="/" />} variant="outline">
 					Grįžti į pradžią
 				</Button>
 				<Button
+					nativeButton={false}
 					render={
 						// biome-ignore lint/a11y/useAnchorContent: children rendered by Button primitive
 						<a

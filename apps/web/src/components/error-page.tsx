@@ -26,6 +26,7 @@ export function ErrorPage({ error, reset }: ErrorPageProps) {
 					Bandyti dar kartą
 				</Button>
 				<Button
+					nativeButton={false}
 					render={
 						// biome-ignore lint/a11y/useAnchorContent: children rendered by Button primitive
 						<a

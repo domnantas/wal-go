@@ -85,6 +85,7 @@ export default function Header() {
 						)}
 						{showJoinSeason && (
 							<Button
+								nativeButton={false}
 								render={<Link to="/join-season" />}
 								size="sm"
 								variant="outline"
@@ -148,6 +149,7 @@ export default function Header() {
 								<ThemeToggle />
 							</div>
 							<Button
+								nativeButton={false}
 								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
 								size="sm"
 							>

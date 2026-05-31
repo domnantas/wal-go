@@ -108,6 +108,7 @@ export function SeasonProgressBox({
 			{showJoinCta ? (
 				<Button
 					className="mt-3 w-full"
+					nativeButton={false}
 					render={<Link to="/join-season" />}
 					size="sm"
 				>

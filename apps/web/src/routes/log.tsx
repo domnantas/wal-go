@@ -131,7 +131,11 @@ function RouteComponent() {
 					<p className="text-muted-foreground text-sm">
 						Prisijunkite prie sezono, kad galėtumėte pridėti QSO.
 					</p>
-					<Button render={<Link to="/join-season" />} size="sm">
+					<Button
+						nativeButton={false}
+						render={<Link to="/join-season" />}
+						size="sm"
+					>
 						Prisijungti
 					</Button>
 				</div>

@@ -31,3 +31,7 @@ When a dropdown item uses a rendered link element with custom visible content, p
 ## Header Actions
 
 Desktop public header actions show the theme toggle beside the sign-in button. On mobile, the public theme toggle lives inside the navigation dropdown as a `Tema` row so the header keeps a compact action area. Authenticated users manage the theme from the account dropdown on all breakpoints.
+
+## Button Rendering
+
+The shared `Button` component wraps Base UI's button primitive. When a `Button` uses `render` with a non-native button element, such as TanStack Router `Link` or an anchor tag, set `nativeButton={false}`. Keep the default native behavior for real button elements and for primitives that render an actual `Button`.
