@@ -63,7 +63,7 @@ export default Stack(
 
 		const hyperdrive = yield* Hyperdrive("hyperdrive", {
 			origin: role.origin,
-			originConnectionLimit: 20,
+			originConnectionLimit: 15,
 			dev: {
 				scheme: "postgres",
 				host: "localhost",
