@@ -45,7 +45,7 @@ const HOW_STEPS: ReadonlyArray<{
 	{
 		n: 3,
 		title: "Keliauk ir daryk QSO Lietuvoje",
-		body: "QSO iš miško, nuo jūros ar miesto stogo – nesvarbu kur. Įkelk logą ir uždirbk taškus komandai.",
+		body: "QSO iš miško, nuo jūros ar miesto stogo – nesvarbu kur. Įkelk ataskaitą ir uždirbk taškus komandai.",
 	},
 	{
 		n: 4,
