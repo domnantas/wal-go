@@ -19,7 +19,7 @@ const SITE_URL = "https://walgo.lt";
 const SITE_TITLE = "WAL GO | Atrask Lietuvą per radijo bangas";
 const SITE_DESCRIPTION =
 	"Radijo mėgėjų žaidimas: keliauk, užmegzk ryšius ir kovok dėl WAL kvadratų!";
-const SITE_IMAGE_URL = `${SITE_URL}/web-app-manifest-512x512.png`;
+const SITE_IMAGE_URL = `${SITE_URL}/og.png`;
 
 export type SessionContext = Awaited<ReturnType<typeof getUser>>;
 
