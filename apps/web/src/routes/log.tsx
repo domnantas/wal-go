@@ -38,9 +38,10 @@ import {
 	Users,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
+import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
@@ -76,10 +77,12 @@ const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
 });
 
 function RouteComponent() {
+	const queryClient = useQueryClient();
 	const qsos = useQuery(orpc.qsos.list.queryOptions());
 	const stats = useQuery(orpc.qsos.stats.queryOptions());
 	const currentSeason = useQuery(orpc.seasons.current.queryOptions());
 	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
+	const seasons = useQuery(orpc.seasons.list.queryOptions());
 	const data = qsos.data ?? [];
 	const statValues = stats.data ?? {
 		totalQsos: 0,
@@ -88,16 +91,41 @@ function RouteComponent() {
 		uniqueContactCallsigns: 0,
 	};
 
+	const activeSeason =
+		currentSeason.data ??
+		seasons.data?.find((season) => season.status === "active") ??
+		null;
 	const canAddQso =
 		!(currentSeason.isPending || membership.isPending) &&
-		!!currentSeason.data &&
+		!!activeSeason &&
 		!!membership.data;
+	const upcomingSeason =
+		seasons.data?.find((season) => season.status === "upcoming") ?? null;
+
+	const handleSeasonTimingComplete = useCallback(() => {
+		queryClient.invalidateQueries({
+			queryKey: orpc.seasons.current.queryOptions().queryKey,
+		});
+		queryClient.invalidateQueries({
+			queryKey: orpc.seasons.list.queryOptions().queryKey,
+		});
+		queryClient.invalidateQueries({
+			queryKey: orpc.seasons.myMembership.queryOptions().queryKey,
+		});
+	}, [queryClient]);
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
 			{canAddQso ? <CabrilloDropzone /> : null}
 
-			{currentSeason.data && !membership.isPending && !membership.data ? (
+			{!activeSeason && upcomingSeason ? (
+				<SeasonCountdownCard
+					onComplete={handleSeasonTimingComplete}
+					season={upcomingSeason}
+				/>
+			) : null}
+
+			{activeSeason && !membership.isPending && !membership.data ? (
 				<div className="flex items-center justify-between gap-4 rounded-4xl border border-border bg-card px-5 py-4">
 					<p className="text-muted-foreground text-sm">
 						Prisijunkite prie sezono, kad galėtumėte pridėti QSO.

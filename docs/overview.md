@@ -12,7 +12,7 @@ Lithuania is divided into a grid of WAL squares (10′ × 10′ lat/lon cells). 
 2. **Add callsign** — required before joining a season; stored on user profile
 3. **Join a season** — available while a season is active (see [seasons.md](seasons.md))
 4. **Spin the wheel** — server assigns player to yellow, green, or red team at random; assignment is permanent for that season
-5. **Log QSOs** — drop a Cabrillo `.log`/`.cbr`/`.cabrillo` file or add QSOs manually on `/log`; each valid QSO awards points to WAL squares (see [qso-logging.md](qso-logging.md))
+5. **Log QSOs** — when the season is active and the player has joined it, drop a Cabrillo `.log`/`.cbr`/`.cabrillo` file or add QSOs manually on `/log`; each valid QSO awards points to WAL squares (see [qso-logging.md](qso-logging.md))
 6. **Watch the map** — main screen at `/map` shows Lithuania with squares colored by controlling team (see [map.md](map.md))
 
 ## Season Lifecycle
@@ -31,7 +31,7 @@ The main screen renders a MapLibre GL map of Lithuania overlaid with the WAL gri
 
 ## Homepage
 
-The homepage introduces WAL GO, shows live season/team context when available, explains the gameplay loop, demonstrates Cabrillo log processing, answers common questions, and ends with a Discord invite that links to the community server.
+The homepage introduces WAL GO, shows live season/team context when available, shows a hero countdown when the next season is scheduled but not active yet, explains the gameplay loop, demonstrates Cabrillo log processing, answers common questions, and ends with a Discord invite that links to the community server.
 
 ## Social Previews
 

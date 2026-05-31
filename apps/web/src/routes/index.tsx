@@ -1,11 +1,13 @@
 import { Button, buttonVariants } from "@WAL-GO/ui/components/button";
 import { cn } from "@WAL-GO/ui/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Plus } from "lucide-react";
+import { useCallback } from "react";
 import walGoLogo from "@/assets/logo_512.png";
 import { DiscordIcon } from "@/components/discord-icon";
 import { MapView } from "@/domains/map/map-view";
+import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { authClient } from "@/lib/auth-client";
 import { DISCORD_INVITE_URL } from "@/lib/constants";
 import { orpc } from "@/utils/orpc";
@@ -119,14 +121,47 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 }
 
 function HomeComponent() {
+	const queryClient = useQueryClient();
 	const { data: session } = authClient.useSession();
 	const currentSeason = useQuery(orpc.seasons.current.queryOptions());
+	const seasons = useQuery(orpc.seasons.list.queryOptions());
 	const teamStandings = useQuery(
 		orpc.scoring.teamStandings.queryOptions({ input: {} })
 	);
 
-	const season = currentSeason.data;
+	const season =
+		currentSeason.data ??
+		seasons.data?.find((seasonRow) => seasonRow.status === "active") ??
+		null;
+	const upcomingSeason =
+		seasons.data?.find((seasonRow) => seasonRow.status === "upcoming") ?? null;
 	const standings = teamStandings.data ?? [];
+	const handleSeasonTimingComplete = useCallback(() => {
+		queryClient.invalidateQueries({
+			queryKey: orpc.seasons.current.queryOptions().queryKey,
+		});
+		queryClient.invalidateQueries({
+			queryKey: orpc.seasons.list.queryOptions().queryKey,
+		});
+		queryClient.invalidateQueries({
+			queryKey: orpc.seasons.myMembership.queryOptions().queryKey,
+		});
+	}, [queryClient]);
+	const heroSeasonStatus = season ? (
+		<div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-1.5 font-medium text-muted-foreground text-xs backdrop-blur-sm">
+			<span className="size-1.5 animate-pulse rounded-full bg-olive" />
+			Sezonas {season.name}
+		</div>
+	) : null;
+	const heroSeasonCountdown =
+		!season && upcomingSeason ? (
+			<SeasonCountdownCard
+				className="mb-8"
+				onComplete={handleSeasonTimingComplete}
+				season={upcomingSeason}
+				variant="badge"
+			/>
+		) : null;
 
 	return (
 		<main>
@@ -154,12 +189,7 @@ function HomeComponent() {
 						src={walGoLogo}
 					/>
 
-					{season && (
-						<div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-1.5 font-medium text-muted-foreground text-xs backdrop-blur-sm">
-							<span className="size-1.5 animate-pulse rounded-full bg-olive" />
-							Sezonas {season.name}
-						</div>
-					)}
+					{heroSeasonStatus ?? heroSeasonCountdown}
 
 					<h1
 						className="font-bold font-serif leading-[1.02] tracking-tight"

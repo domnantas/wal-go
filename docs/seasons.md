@@ -57,7 +57,11 @@ Currently, `docs/seasons.md` covers **only** seasons and team membership.
 | `seasons.myMembership` | `protectedProcedure` query | Returns the current user's membership in the active season, or `null`. |
 | `seasons.join` | `protectedProcedure` mutation | Idempotent join operation; the server selects the team. |
 
-## Sidebar countdown
+## Countdown surfaces
+
+Season countdowns are based on `seasons.list` rows with `status: "upcoming"`.
+They tick on the client and invalidate season membership/current-season queries
+when the countdown reaches zero.
 
 The map sidebar shows season timing through `SeasonSidebarBox`:
 
@@ -68,4 +72,9 @@ The map sidebar shows season timing through `SeasonSidebarBox`:
   - Both → countdown above, results below.
   - Neither → nothing rendered.
 
-Transitions happen automatically: each timing box fires `onComplete` when its threshold is crossed, which invalidates the `seasons.list` and `seasons.myMembership` queries and triggers a refetch.
+The homepage hero and `/log` page use `SeasonCountdownCard` for the same
+upcoming-season state. The homepage shows the countdown in the hero when there is
+no active season. The log page shows it where upload controls would otherwise
+appear, so users can see when QSO logging will open.
+
+Transitions happen automatically: each timing box fires `onComplete` when its threshold is crossed, which invalidates season queries and triggers a refetch.
