@@ -15,6 +15,12 @@ import Header from "../components/header";
 import { Providers } from "../components/providers";
 import appCss from "../index.css?url";
 
+const SITE_URL = "https://walgo.lt";
+const SITE_TITLE = "WAL GO | Atrask Lietuvą per radijo bangas";
+const SITE_DESCRIPTION =
+	"Radijo mėgėjų teritorijų žaidimas: keliauk, užmegzk ryšius ir kovok dėl WAL kvadratų!";
+const SITE_IMAGE_URL = `${SITE_URL}/web-app-manifest-512x512.png`;
+
 export type SessionContext = Awaited<ReturnType<typeof getUser>>;
 
 export interface RouterAppContext {
@@ -42,11 +48,55 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "WAL GO — Lietuvos mėgėjų radijo varžybos",
+				title: SITE_TITLE,
+			},
+			{
+				name: "description",
+				content: SITE_DESCRIPTION,
 			},
 			{
 				name: "apple-mobile-web-app-title",
 				content: "WAL GO",
+			},
+			{
+				property: "og:type",
+				content: "website",
+			},
+			{
+				property: "og:url",
+				content: SITE_URL,
+			},
+			{
+				property: "og:title",
+				content: SITE_TITLE,
+			},
+			{
+				property: "og:description",
+				content: SITE_DESCRIPTION,
+			},
+			{
+				property: "og:site_name",
+				content: "WAL GO",
+			},
+			{
+				property: "og:locale",
+				content: "lt_LT",
+			},
+			{
+				property: "og:image",
+				content: SITE_IMAGE_URL,
+			},
+			{
+				property: "og:image:width",
+				content: "512",
+			},
+			{
+				property: "og:image:height",
+				content: "512",
+			},
+			{
+				property: "og:image:alt",
+				content: "WAL GO logotipas",
 			},
 		],
 		links: [

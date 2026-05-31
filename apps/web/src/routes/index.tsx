@@ -180,13 +180,19 @@ function HomeComponent() {
 
 					<div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
 						{session ? (
-							<Button className="px-6" render={<Link to="/map" />} size="lg">
+							<Button
+								className="px-6"
+								nativeButton={false}
+								render={<Link to="/map" />}
+								size="lg"
+							>
 								Žiūrėti žemėlapį
 								<ArrowRight className="size-4" />
 							</Button>
 						) : (
 							<Button
 								className="px-6"
+								nativeButton={false}
 								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
 								size="lg"
 							>
@@ -377,7 +383,7 @@ function HomeComponent() {
 					<div className="mb-12 text-center">
 						<SectionEyebrow>D.U.K.</SectionEyebrow>
 						<h2 className="mt-3 font-bold font-serif text-5xl tracking-tight">
-							Dažnai užduodami <em className="text-olive italic">klausimai</em>
+							Dažnai užduodami <em className="text-golden italic">klausimai</em>
 						</h2>
 					</div>
 					<div className="space-y-3">
