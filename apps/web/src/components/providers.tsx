@@ -1,10 +1,29 @@
 import { AuthProvider } from "@WAL-GO/ui/components/auth/auth-provider";
 import { themePlugin, usernamePlugin } from "@better-auth-ui/core/plugins";
 import { useNavigate } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { usePostHog } from "posthog-js/react";
+import { type ReactNode, useEffect } from "react";
 import { useTheme } from "tanstack-theme-kit";
 
 import { authClient } from "@/lib/auth-client";
+
+function PostHogIdentify() {
+	const { data: session } = authClient.useSession();
+	const posthog = usePostHog();
+
+	useEffect(() => {
+		if (session?.user) {
+			posthog.identify(session.user.id, {
+				email: session.user.email,
+				name: session.user.name,
+			});
+		} else {
+			posthog.reset();
+		}
+	}, [session, posthog]);
+
+	return null;
+}
 
 export function Providers({ children }: { children: ReactNode }) {
 	const navigate = useNavigate();
@@ -115,6 +134,7 @@ export function Providers({ children }: { children: ReactNode }) {
 			]}
 			redirectTo="/map"
 		>
+			<PostHogIdentify />
 			{children}
 		</AuthProvider>
 	);

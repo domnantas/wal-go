@@ -40,6 +40,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, getHours, getMinutes, isValid, parse, set } from "date-fns";
 import { lt } from "date-fns/locale";
 import { CalendarIcon, Plus, Save } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -167,16 +168,22 @@ function withTimePart(value: string, time: string) {
 
 export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 	const queryClient = useQueryClient();
+	const posthog = usePostHog();
 	const [open, setOpen] = useState(false);
 	const [formError, setFormError] = useState<string | null>(null);
 	const createQso = useMutation(
 		orpc.qsos.create.mutationOptions({
-			onSuccess: () => {
+			onSuccess: (_, variables) => {
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.list.queryOptions().queryKey,
 				});
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.stats.queryOptions().queryKey,
+				});
+				posthog.capture("qso_created", {
+					band: variables.band,
+					mode: variables.mode,
+					has_contact_square: variables.contactSquare !== null,
 				});
 				setFormError(null);
 				form.reset();

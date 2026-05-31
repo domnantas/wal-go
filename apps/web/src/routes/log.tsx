@@ -37,6 +37,7 @@ import {
 	Upload,
 	Users,
 } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { type ReactNode, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
@@ -197,6 +198,7 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 
 function CabrilloDropzone() {
 	const queryClient = useQueryClient();
+	const posthog = usePostHog();
 	const [state, setState] = useState<DropzoneState>({ status: "idle" });
 	const [isDragging, setIsDragging] = useState(false);
 	const [errorsExpanded, setErrorsExpanded] = useState(false);
@@ -207,6 +209,11 @@ function CabrilloDropzone() {
 			onSuccess: (result) => {
 				setState({ status: "done", result });
 				setImportedExpanded(true);
+				posthog.capture("cabrillo_imported", {
+					accepted: result.accepted,
+					skipped: result.skipped,
+					errors: result.errors.length,
+				});
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.list.queryOptions().queryKey,
 				});
@@ -591,6 +598,7 @@ function SquareBadge({
 
 function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 	const queryClient = useQueryClient();
+	const posthog = usePostHog();
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingQsoId, setDeletingQsoId] = useState<null | number>(null);
 	const deleteQso = useMutation(
@@ -605,6 +613,7 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.stats.queryOptions().queryKey,
 				});
+				posthog.capture("qso_deleted");
 				toast.success("QSO ištrintas");
 			},
 			onError: (error) => {

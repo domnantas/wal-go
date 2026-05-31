@@ -11,6 +11,7 @@ import { sessionOptions } from "@better-auth-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Info } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
@@ -93,6 +94,7 @@ function applyRotation(
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
+	const posthog = usePostHog();
 	const current = useQuery(orpc.seasons.current.queryOptions());
 	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
 	const join = useMutation(orpc.seasons.join.mutationOptions());
@@ -152,6 +154,7 @@ function RouteComponent() {
 		const t = setTimeout(() => {
 			setPhase("landed");
 			if (join.data) {
+				posthog.capture("season_joined", { team: join.data.team });
 				queryClient.setQueryData(
 					orpc.seasons.myMembership.queryOptions().queryKey,
 					join.data
@@ -159,7 +162,7 @@ function RouteComponent() {
 			}
 		}, LANDING_DURATION_MS + 100);
 		return () => clearTimeout(t);
-	}, [phase, join.data, queryClient]);
+	}, [phase, join.data, queryClient, posthog]);
 
 	useEffect(() => {
 		if (phase === "spinning" && join.isError) {

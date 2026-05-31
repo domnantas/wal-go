@@ -6,6 +6,7 @@ import {
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
+import { PostHogProvider } from "posthog-js/react";
 import { ThemeProvider } from "tanstack-theme-kit";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
@@ -90,19 +91,34 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
-					<Providers>
-						<div className="grid grid-rows-[auto_1fr]">
-							<Header />
-							<div>{children}</div>
-						</div>
-						<Toaster richColors />
-						{/* <TanStackRouterDevtools />
-						<ReactQueryDevtools />
-						<TanStackDevtools plugins={[formDevtoolsPlugin()]} /> */}
-						<Scripts />
-					</Providers>
-				</ThemeProvider>
+				<PostHogProvider
+					apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN}
+					options={{
+						api_host: "/ingest",
+						ui_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+						defaults: "2025-05-24",
+						capture_exceptions: true,
+						debug: import.meta.env.DEV,
+					}}
+				>
+					<ThemeProvider
+						attribute="class"
+						disableTransitionOnChange
+						enableSystem
+					>
+						<Providers>
+							<div className="grid grid-rows-[auto_1fr]">
+								<Header />
+								<div>{children}</div>
+							</div>
+							<Toaster richColors />
+							{/* <TanStackRouterDevtools />
+							<ReactQueryDevtools />
+							<TanStackDevtools plugins={[formDevtoolsPlugin()]} /> */}
+							<Scripts />
+						</Providers>
+					</ThemeProvider>
+				</PostHogProvider>
 			</body>
 		</html>
 	);
