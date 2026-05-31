@@ -3,6 +3,7 @@ import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Plus } from "lucide-react";
+import walGoLogo from "@/assets/logo_512.png";
 import { DiscordIcon } from "@/components/discord-icon";
 import { MapView } from "@/domains/map/map-view";
 import { authClient } from "@/lib/auth-client";
@@ -148,9 +149,9 @@ function HomeComponent() {
 				{/* Content */}
 				<div className="relative z-10 mx-auto w-full max-w-6xl px-8 pt-14 pb-24 text-center">
 					<img
-						alt="WAL GO"
+						alt="WAL GO logo"
 						className="mx-auto mb-4 h-40 w-auto drop-shadow-md"
-						src="/logo.png"
+						src={walGoLogo}
 					/>
 
 					{season && (

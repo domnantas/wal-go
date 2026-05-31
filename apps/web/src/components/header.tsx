@@ -18,7 +18,7 @@ import {
 	Shield,
 	UserPlus,
 } from "lucide-react";
-import walGoLogo from "@/assets/wal-go-logo-transparent.png";
+import walGoLogo from "@/assets/logo_512.png";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserButton } from "@/components/user-button";
 import { authClient } from "@/lib/auth-client";

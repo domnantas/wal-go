@@ -29,4 +29,6 @@
 - [] Past season views
 - [] Profile with your impact on the map
 - [] QSO editing
+- [] Rate limiting
+- [] Analysing uploaded qsos
  
