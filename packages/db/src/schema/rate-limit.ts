@@ -1,6 +1,6 @@
 import { bigint, integer, pgTable, text } from "drizzle-orm/pg-core";
 
-import { generateNanoId } from "../lib/ids";
+import { generateNanoId } from "../lib/ids.ts";
 
 export const rateLimit = pgTable("rate_limit", {
 	id: text("id")
