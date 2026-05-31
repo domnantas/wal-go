@@ -95,7 +95,7 @@ function RouteComponent() {
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
-			<CabrilloDropzone />
+			{canAddQso ? <CabrilloDropzone /> : null}
 
 			{currentSeason.data && !membership.isPending && !membership.data ? (
 				<div className="flex items-center justify-between gap-4 rounded-4xl border border-border bg-card px-5 py-4">

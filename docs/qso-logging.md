@@ -2,6 +2,12 @@
 
 The `/log` page has two responsibilities: Cabrillo file import and QSO log review/management.
 
+Both write entry points on `/log` are gated by season state. The Cabrillo dropzone
+and manual QSO button are shown only when there is an active season and the
+signed-in user has joined it. If a season is active but the user has not joined,
+the page shows a join-season prompt instead of upload controls. If no season is
+active yet, upload controls remain hidden.
+
 ## Manual Entry
 
 Signed-in users can add QSOs manually from `/log` after joining the active season.
