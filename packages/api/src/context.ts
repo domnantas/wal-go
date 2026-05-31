@@ -1,8 +1,9 @@
-import { getAuth } from "@WAL-GO/auth";
+import { createAuth } from "@WAL-GO/auth";
 import { getDb } from "@WAL-GO/db";
 
 export async function createContext({ req }: { req: Request }) {
-	const auth = await getAuth();
+	const { db, dispose } = await getDb();
+	const auth = createAuth(db);
 	let session: Awaited<ReturnType<typeof auth.api.getSession>> = null;
 	try {
 		session = await auth.api.getSession({ headers: req.headers });
@@ -18,7 +19,10 @@ export async function createContext({ req }: { req: Request }) {
 	return {
 		auth: null,
 		session,
-		db: await getDb(),
+		db,
+		// Callers must invoke dispose() when the request ends to release the
+		// per-request client on Workers (noop on Node's shared pool).
+		dispose,
 	};
 }
 

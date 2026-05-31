@@ -55,7 +55,26 @@ Uses the `postgres` (postgres.js) package with the `drizzle-orm/postgres-js` ada
 - In deployed Cloudflare Workers: `DATABASE_URL` (CF secret) is preferred for a direct PlanetScale connection; `HYPERDRIVE.connectionString` remains the fallback
 - Without a connection string: falls back to `process.env.DATABASE_URL`
 
-The API context, auth route, and auth middleware resolve this automatically so auth and application queries use the same connection source.
+### Pooling and request lifecycle
+
+`createDb()` builds a fresh `postgres` client (and pool) on every call. **Request-path code must use `getDb()`, never `createDb()` directly.** `createDb()` stays for one-off scripts (e.g. seeds). The original "too many clients already" bug was every request calling `createDb()` and never closing — abandoned pools linger `idle_timeout: 20`s and accumulate.
+
+`getDb()` returns `{ db, dispose }` and behaves differently per runtime:
+
+- **Cloudflare Workers (prod, and `alchemy dev`):** a **fresh client per request**, capped at `max: 1`. Reusing one socket across requests on Workers throws `Cannot perform I/O on behalf of a different request`, so the client is never cached. Hyperdrive (the `HYPERDRIVE` binding) pools the real DB connections server-side, so opening a node-local client per request is cheap. The caller **must** `await dispose()` (which calls `client.end()`) when the request ends, or the per-request client leaks within the isolate.
+- **Node / local `vite dev`:** a **single shared pool** (`max: 10`) cached on `globalThis` per process — this is the connection pooling that prevents exhaustion. `dispose` is a **noop** here; closing the shared pool per request would re-create the original leak. Cached on `globalThis` (not a module variable) so Vite HMR module re-evaluation does not spawn duplicate pools.
+
+The runtime is detected via `getCloudflareEnv()` truthiness (the `cloudflare:workers` module only imports inside a Worker), not the connection-string source — `DATABASE_URL` is set in both runtimes.
+
+#### Disposing at request boundaries
+
+Every site that creates a request-scoped db **must** dispose it in a `finally`. Current boundaries:
+
+- `apps/web/src/routes/api/rpc/$.ts` — `handle()` disposes the oRPC `createContext` result.
+- `apps/web/src/utils/orpc.ts` — the SSR `createRouterClient` disposes per call via an `interceptor` (each SSR procedure call builds its own context).
+- `apps/web/src/routes/api/auth/$.ts` and `apps/web/src/middleware/auth.ts` — use `createAuthScope()` and dispose in `finally`.
+
+To keep auth and application queries on **one** client per request, `createAuth(db)` takes the db as a parameter (it no longer opens its own). `createContext` creates one db, shares it with `createAuth`, and surfaces `dispose`. `createAuthScope()` (in `@WAL-GO/auth`) bundles `getDb()` + `createAuth()` + `dispose` so request boundaries that only need auth don't depend on `@WAL-GO/db` directly.
 
 ## Migrations
 

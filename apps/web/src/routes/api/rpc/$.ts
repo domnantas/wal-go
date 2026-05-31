@@ -31,23 +31,27 @@ const apiHandler = new OpenAPIHandler(appRouter, {
 async function handle({ request }: { request: Request }) {
 	const context = await createContext({ req: request });
 
-	const rpcResult = await rpcHandler.handle(request, {
-		prefix: "/api/rpc",
-		context,
-	});
-	if (rpcResult.response) {
-		return rpcResult.response;
-	}
+	try {
+		const rpcResult = await rpcHandler.handle(request, {
+			prefix: "/api/rpc",
+			context,
+		});
+		if (rpcResult.response) {
+			return rpcResult.response;
+		}
 
-	const apiResult = await apiHandler.handle(request, {
-		prefix: "/api/rpc/api-reference",
-		context,
-	});
-	if (apiResult.response) {
-		return apiResult.response;
-	}
+		const apiResult = await apiHandler.handle(request, {
+			prefix: "/api/rpc/api-reference",
+			context,
+		});
+		if (apiResult.response) {
+			return apiResult.response;
+		}
 
-	return new Response("Not found", { status: 404 });
+		return new Response("Not found", { status: 404 });
+	} finally {
+		await context.dispose();
+	}
 }
 
 export const Route = createFileRoute("/api/rpc/$")({

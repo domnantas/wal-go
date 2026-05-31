@@ -1,4 +1,4 @@
-import { createDb } from "@WAL-GO/db";
+import { type createDb, getDb } from "@WAL-GO/db";
 // biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
 import * as schema from "@WAL-GO/db/schema/auth";
 import { env } from "@WAL-GO/env/server";
@@ -17,8 +17,12 @@ import { Resend } from "resend";
 
 const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
 
-export async function createAuth() {
-	const db = await createDb();
+type Db = Awaited<ReturnType<typeof createDb>>;
+
+// The caller owns the db lifecycle (creates it via getDb and disposes it when
+// the request ends), so auth shares one pool/client per request instead of
+// opening its own.
+export function createAuth(db: Db) {
 	const resend = new Resend(env.RESEND_API_KEY);
 
 	return betterAuth({
@@ -201,6 +205,17 @@ export async function createAuth() {
 	});
 }
 
-export function getAuth(): ReturnType<typeof createAuth> {
-	return createAuth();
+/**
+ * Build an auth instance bound to a fresh request-scoped db handle.
+ *
+ * The returned `dispose` must be called when the request ends to release the
+ * per-request client on Workers (noop on Node's shared pool). Lets request
+ * boundaries depend only on @WAL-GO/auth instead of reaching into the db.
+ */
+export async function createAuthScope(): Promise<{
+	auth: ReturnType<typeof createAuth>;
+	dispose: () => Promise<void>;
+}> {
+	const { db, dispose } = await getDb();
+	return { auth: createAuth(db), dispose };
 }
