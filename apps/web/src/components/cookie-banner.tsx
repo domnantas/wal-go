@@ -2,6 +2,19 @@ import { Button } from "@WAL-GO/ui/components/button";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
 
+const CONSENT_KEY = "wal-go-consent";
+
+function getStoredConsent(): "granted" | "denied" | "pending" {
+	const stored = localStorage.getItem(CONSENT_KEY);
+	if (stored === "granted") {
+		return "granted";
+	}
+	if (stored === "denied") {
+		return "denied";
+	}
+	return "pending";
+}
+
 export function CookieBanner() {
 	const posthog = usePostHog();
 	const [consentStatus, setConsentStatus] = useState<
@@ -9,21 +22,21 @@ export function CookieBanner() {
 	>(null);
 
 	useEffect(() => {
-		setConsentStatus(posthog.get_explicit_consent_status());
+		setConsentStatus(getStoredConsent());
 	}, []);
-
-	console.log(consentStatus);
 
 	if (consentStatus !== "pending") {
 		return null;
 	}
 
 	const handleAccept = () => {
+		localStorage.setItem(CONSENT_KEY, "granted");
 		posthog.opt_in_capturing();
 		setConsentStatus("granted");
 	};
 
 	const handleDecline = () => {
+		localStorage.setItem(CONSENT_KEY, "denied");
 		posthog.opt_out_capturing();
 		setConsentStatus("denied");
 	};
