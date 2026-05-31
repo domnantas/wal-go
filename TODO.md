@@ -21,7 +21,9 @@
 - [x] Presentation about WAL GO
 - [x] Admin page
 - [x] Audit trail of uploads in admin
-- [] Score reconciliation
+- [x] Score reconciliation
 - [] Leaderboard – open question - is it ok to see who is is on what team
 - [] Spotting/self-spotting feature
 - [x] Re-draw the logo
+- [] Add posthog tracking
+- [] Past season views
