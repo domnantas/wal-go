@@ -126,7 +126,7 @@ export function MembershipsDialog({
 
 	return (
 		<Dialog onOpenChange={(o) => !o && onClose()} open>
-			<DialogContent className="sm:max-w-2xl">
+			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Nariai — {seasonName}</DialogTitle>
 				</DialogHeader>
