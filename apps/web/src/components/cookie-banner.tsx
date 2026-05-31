@@ -12,6 +12,8 @@ export function CookieBanner() {
 		setConsentStatus(posthog.get_explicit_consent_status());
 	}, [posthog]);
 
+	console.log(consentStatus);
+
 	if (consentStatus !== "pending") {
 		return null;
 	}
