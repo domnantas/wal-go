@@ -65,7 +65,7 @@ To add a migration: modify the schema in `packages/db/src/schema/`, then deploy.
 ## Database connection
 
 `createDb()` in `packages/db/src/index.ts` accepts an optional `connectionString`:
-- In deployed Workers: the Worker receives both `HYPERDRIVE` and `DATABASE_URL`. `HYPERDRIVE` is preferred because CF Workers cannot make direct TCP connections to external Postgres; `DATABASE_URL` is a fallback for environments without Hyperdrive.
+- In deployed Workers: the Worker receives both `HYPERDRIVE` and `DATABASE_URL`. `HYPERDRIVE` is preferred so connections are pooled server-side; `DATABASE_URL` is a direct-connection fallback for environments without Hyperdrive. Because `DATABASE_URL` is also bound on the Worker (`alchemy.run.ts`), a missing/empty `HYPERDRIVE` binding makes the Worker silently connect directly — visible in PlanetScale as `application_name = postgres.js` (vs `Cloudflare Hyperdrive`).
 - In `alchemy dev`: Hyperdrive's `dev` override connects to local Postgres at `localhost:5432` unless a `DATABASE_URL` is present in the local environment.
 - In Node.js (`vite dev`): no Hyperdrive binding exists, so database clients fall back to `process.env.DATABASE_URL`
 

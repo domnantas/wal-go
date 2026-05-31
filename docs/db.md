@@ -51,9 +51,14 @@ Declare relations in a separate `xRelations = relations(...)` export, mirroring 
 
 Uses the `postgres` (postgres.js) package with the `drizzle-orm/postgres-js` adapter. Compatible with Cloudflare Workers without Node.js polyfills for networking.
 
-`createDb(connectionString?: string)` accepts an optional connection string:
-- In deployed Cloudflare Workers: `DATABASE_URL` (CF secret) is preferred for a direct PlanetScale connection; `HYPERDRIVE.connectionString` remains the fallback
-- Without a connection string: falls back to `process.env.DATABASE_URL`
+`createDb(connectionString?: string)` accepts an optional connection string.
+Resolution order (see `resolveConnectionString` in `packages/db/src/index.ts`):
+1. explicit `connectionString` argument (used by scripts/seeds)
+2. `HYPERDRIVE.connectionString` — **preferred** in deployed Cloudflare Workers, so request traffic is pooled through Hyperdrive
+3. `cloudflareEnv.DATABASE_URL` — direct PlanetScale connection, fallback when no Hyperdrive binding
+4. `process.env.DATABASE_URL` — Node / local `vite dev`
+
+If a deployed Worker connects directly (PlanetScale shows `application_name = postgres.js` instead of `Cloudflare Hyperdrive`), the `HYPERDRIVE` binding is missing or empty and the code is falling through to step 3.
 
 ### Pooling and request lifecycle
 

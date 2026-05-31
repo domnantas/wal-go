@@ -31,6 +31,16 @@ async function resolveConnectionString(
 	}
 
 	const cloudflareEnv = await getCloudflareEnv();
+	// Temporary diagnostic: confirm whether deployed Workers route through
+	// Hyperdrive. `worker` = running inside a Worker; `hd` = HYPERDRIVE binding
+	// present; `hdConn` = binding has a usable connection string. If a Worker
+	// shows hd=false or hdConn=false it falls through to a direct DATABASE_URL
+	// connection (visible in PlanetScale as application_name=postgres.js). Never
+	// log the connection string — it contains the DB password. Remove once the
+	// Hyperdrive binding is verified.
+	console.error(
+		`[db] worker=${cloudflareEnv !== undefined} hd=${cloudflareEnv?.HYPERDRIVE !== undefined} hdConn=${isConfigured(cloudflareEnv?.HYPERDRIVE?.connectionString)}`
+	);
 	if (isConfigured(cloudflareEnv?.HYPERDRIVE?.connectionString)) {
 		return {
 			connectionString: cloudflareEnv.HYPERDRIVE.connectionString,
