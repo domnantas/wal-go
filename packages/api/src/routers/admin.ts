@@ -4,7 +4,7 @@ import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
 import { ORPCError } from "@orpc/server";
-import { and, asc, count, desc, eq, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, lte, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
@@ -33,20 +33,48 @@ function deriveSeasonStatus(
 }
 
 const listUsers = adminProcedure.handler(async ({ context }) => {
-	const rows = await context.db
+	const now = new Date();
+	const [rows, currentSeason] = await Promise.all([
+		context.db
+			.select({
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				emailVerified: user.emailVerified,
+				role: user.role,
+				banned: user.banned,
+				banReason: user.banReason,
+				createdAt: user.createdAt,
+			})
+			.from(user)
+			.orderBy(asc(user.createdAt)),
+		context.db
+			.select({ id: season.id })
+			.from(season)
+			.where(and(lte(season.startsAt, now), gte(season.endsAt, now)))
+			.limit(1),
+	]);
+
+	const activeSeason = currentSeason[0];
+	if (!activeSeason) {
+		return rows.map((row) => ({ ...row, currentTeam: null }));
+	}
+
+	const memberships = await context.db
 		.select({
-			id: user.id,
-			name: user.name,
-			email: user.email,
-			emailVerified: user.emailVerified,
-			role: user.role,
-			banned: user.banned,
-			banReason: user.banReason,
-			createdAt: user.createdAt,
+			userId: seasonMembership.userId,
+			team: seasonMembership.team,
 		})
-		.from(user)
-		.orderBy(asc(user.createdAt));
-	return rows;
+		.from(seasonMembership)
+		.where(eq(seasonMembership.seasonId, activeSeason.id));
+	const teamByUserId = new Map(
+		memberships.map((membership) => [membership.userId, membership.team])
+	);
+
+	return rows.map((row) => ({
+		...row,
+		currentTeam: teamByUserId.get(row.id) ?? null,
+	}));
 });
 
 const setUserRole = adminProcedure

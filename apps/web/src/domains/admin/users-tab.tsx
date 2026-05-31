@@ -25,10 +25,25 @@ import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
 
+type Team = "green" | "red" | "yellow";
+
+const TEAM_LABELS: Record<Team, string> = {
+	yellow: "Geltona",
+	green: "Žalia",
+	red: "Raudona",
+};
+
+const CALLSIGN_TEAM_CLASSES: Record<Team, string> = {
+	yellow: "text-golden",
+	green: "text-olive",
+	red: "text-rust",
+};
+
 interface UserData {
 	banned: boolean;
 	banReason: null | string;
 	createdAt: Date;
+	currentTeam: null | Team;
 	email: string;
 	emailVerified: boolean;
 	id: string;
@@ -141,9 +156,18 @@ function UserTableRow({
 	onUnban: (userId: string) => void;
 	onDelete: (userId: string) => void;
 }) {
+	const callsignClassName = user.currentTeam
+		? `px-4 font-bold ${CALLSIGN_TEAM_CLASSES[user.currentTeam]}`
+		: "px-4 font-bold";
+	const callsignLabel = user.currentTeam
+		? `${user.name}, ${TEAM_LABELS[user.currentTeam]} komanda`
+		: user.name;
+
 	return (
 		<TableRow>
-			<TableCell className="px-4 font-bold">{user.name}</TableCell>
+			<TableCell aria-label={callsignLabel} className={callsignClassName}>
+				{user.name}
+			</TableCell>
 			<TableCell className="px-4 text-muted-foreground">{user.email}</TableCell>
 			<TableCell className="px-4">
 				{user.emailVerified ? (
