@@ -16,6 +16,7 @@ import { Route as JoinSeasonRouteImport } from './routes/join-season'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsPathRouteImport } from './routes/settings/$path'
+import { Route as IngestSplatRouteImport } from './routes/ingest/$'
 import { Route as AuthPathRouteImport } from './routes/auth/$path'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -55,6 +56,11 @@ const SettingsPathRoute = SettingsPathRouteImport.update({
   path: '/settings/$path',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IngestSplatRoute = IngestSplatRouteImport.update({
+  id: '/ingest/$',
+  path: '/ingest/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthPathRoute = AuthPathRouteImport.update({
   id: '/auth/$path',
   path: '/auth/$path',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/auth/$path': typeof AuthPathRoute
+  '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/auth/$path': typeof AuthPathRoute
+  '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/auth/$path': typeof AuthPathRoute
+  '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/rules'
     | '/auth/$path'
+    | '/ingest/$'
     | '/settings/$path'
     | '/api/auth/$'
     | '/api/rpc/$'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/rules'
     | '/auth/$path'
+    | '/ingest/$'
     | '/settings/$path'
     | '/api/auth/$'
     | '/api/rpc/$'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/rules'
     | '/auth/$path'
+    | '/ingest/$'
     | '/settings/$path'
     | '/api/auth/$'
     | '/api/rpc/$'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   MapRoute: typeof MapRoute
   RulesRoute: typeof RulesRoute
   AuthPathRoute: typeof AuthPathRoute
+  IngestSplatRoute: typeof IngestSplatRoute
   SettingsPathRoute: typeof SettingsPathRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsPathRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ingest/$': {
+      id: '/ingest/$'
+      path: '/ingest/$'
+      fullPath: '/ingest/$'
+      preLoaderRoute: typeof IngestSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/$path': {
       id: '/auth/$path'
       path: '/auth/$path'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   MapRoute: MapRoute,
   RulesRoute: RulesRoute,
   AuthPathRoute: AuthPathRoute,
+  IngestSplatRoute: IngestSplatRoute,
   SettingsPathRoute: SettingsPathRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
