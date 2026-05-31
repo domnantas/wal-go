@@ -116,7 +116,7 @@ Each accepted QSO is stored in the database linked to:
 
 ## Log View
 
-The `/log` page lists all QSOs the user has submitted in the current season, paginated. Columns include callsign, band, mode, date/time, the credited operator WAL square, and the optional contact WAL square.
+The `/log` page lists all QSOs the user has submitted in the current season, paginated. Columns include callsign, band, mode, date/time, the credited operator WAL square, and the optional contact WAL square. Manual creation opens `AddQsoDialog`; each row opens a separate `EditQsoDialog` for edits or can delete the QSO while the season is still active. Both dialogs share the lower-level `QsoForm` field component so validation and date/square handling stay consistent without merging the add and edit workflows.
 
 The summary cards on `/log` are backed by server-side aggregates, not calculations over the currently loaded table rows. They show total QSOs, unique credited operator WAL squares, points from `user_season_score`, and unique contact callsigns for the active season.
 
@@ -126,8 +126,10 @@ The summary cards on `/log` are backed by server-side aggregates, not calculatio
 |-----------|-----------|----------------------------------------------------|
 | Create    | Yes       | Via manual entry now; ADIF upload later           |
 | Read      | Yes       | Paginated table on `/log`                          |
-| Update    | No        | Delete and resubmit to correct a record            |
+| Update    | Yes       | Edits the user's QSO while the season is active    |
 | Delete    | Yes       | Removes the user's QSO from the active season      |
+
+Editing runs the same WAL square, exact duplicate, game duplicate, and season-window validation as creating a QSO. The row remains linked to its original season and team. If the credited operator square changes, scoring is adjusted atomically by removing the old square point and adding the new square point. Other edits keep the point total unchanged.
 
 Deleting a QSO that was the sole point giving a team control of its operator square immediately releases that square to the next-highest team (or to neutral if tied/empty).
 
@@ -159,6 +161,7 @@ All write endpoints are rate-limited per authenticated user using the shared `ra
 | Endpoint | Max | Window |
 | --- | --- | --- |
 | `qsos.create` | 120 | 60s |
+| `qsos.update` | 120 | 60s |
 | `qsos.delete` | 120 | 60s |
 | `qsos.bulkCreate` | 20 | 1 hour |
 | `qsos.importCabrillo` | 10 | 1 hour |

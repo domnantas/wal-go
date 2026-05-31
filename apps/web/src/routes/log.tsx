@@ -41,6 +41,7 @@ import { usePostHog } from "posthog-js/react";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
+import { EditQsoDialog } from "@/domains/log/edit-qso-dialog";
 import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
@@ -534,9 +535,11 @@ function CabrilloDropzone() {
 }
 
 function getQsoColumns({
+	canEdit,
 	deletingQsoId,
 	onDelete,
 }: {
+	canEdit: boolean;
 	deletingQsoId: null | number;
 	onDelete: (id: number) => void;
 }): ColumnDef<Qso>[] {
@@ -595,7 +598,11 @@ function getQsoColumns({
 			cell: ({ row }) => {
 				const isDeleting = deletingQsoId === row.original.id;
 				return (
-					<div className="text-right">
+					<div className="flex justify-end gap-1">
+						<EditQsoDialog
+							disabled={!canEdit || deletingQsoId !== null}
+							qso={row.original}
+						/>
 						<Button
 							aria-label="Ištrinti QSO"
 							disabled={deletingQsoId !== null}
@@ -672,10 +679,11 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 	const columns = useMemo(
 		() =>
 			getQsoColumns({
+				canEdit: canAddQso,
 				deletingQsoId,
 				onDelete: (id) => deleteQso.mutate({ id }),
 			}),
-		[deleteQso, deletingQsoId]
+		[canAddQso, deleteQso, deletingQsoId]
 	);
 
 	const table = useReactTable({

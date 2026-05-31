@@ -2,7 +2,7 @@ import { qso } from "@WAL-GO/db/schema/qsos";
 import { TZDate } from "@date-fns/tz";
 import { ORPCError } from "@orpc/server";
 import { format, formatISO } from "date-fns";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, or, sql } from "drizzle-orm";
 
 import type {
 	DeleteParams,
@@ -33,12 +33,20 @@ function getSameQsoDaySql(qsoAt: Date) {
 	return sql`DATE(${qso.qsoAt} AT TIME ZONE ${ALPHA_GAME_DUPLICATE_TIME_ZONE}) = DATE(${formatISO(qsoAt)}::timestamptz AT TIME ZONE ${ALPHA_GAME_DUPLICATE_TIME_ZONE})`;
 }
 
-async function validateInsert(tx: Tx, params: InsertParams): Promise<void> {
+async function validateInsert(
+	tx: Tx,
+	params: InsertParams,
+	options?: { excludeQsoId?: number }
+): Promise<void> {
+	const excludeOwnQso = options?.excludeQsoId
+		? ne(qso.id, options.excludeQsoId)
+		: undefined;
 	const existing = await tx
 		.select({ id: qso.id })
 		.from(qso)
 		.where(
 			and(
+				excludeOwnQso,
 				eq(qso.userId, params.userId),
 				eq(qso.seasonId, params.seasonId),
 				eq(qso.contactCallsign, params.contactCallsign),

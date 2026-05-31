@@ -5,7 +5,7 @@ import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
 import { isValidWalSquare, normalizeWalSquare } from "@WAL-GO/grid";
 import { ORPCError } from "@orpc/server";
 import { formatISO, isAfter, isBefore, isValid, parseISO } from "date-fns";
-import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { parseCabrillo, parseCabrilloDateTime } from "../cabrillo/parser";
@@ -37,6 +37,10 @@ const bulkCreateInput = z.object({
 });
 
 const deleteQsoInput = z.object({
+	id: z.number().int().positive(),
+});
+
+const updateQsoInput = qsoInput.extend({
 	id: z.number().int().positive(),
 });
 
@@ -96,12 +100,18 @@ function getExactDuplicateKey(params: InsertParams): string {
 	].join(":");
 }
 
-async function rejectExactQsoDuplicate(tx: Tx, params: InsertParams) {
+async function rejectExactQsoDuplicate(
+	tx: Tx,
+	params: InsertParams,
+	excludeQsoId?: number
+) {
+	const excludeOwnQso = excludeQsoId ? ne(qso.id, excludeQsoId) : undefined;
 	const existing = await tx
 		.select({ id: qso.id })
 		.from(qso)
 		.where(
 			and(
+				excludeOwnQso,
 				eq(qso.userId, params.userId),
 				eq(qso.seasonId, params.seasonId),
 				eq(qso.contactCallsign, params.contactCallsign),
@@ -119,6 +129,30 @@ async function rejectExactQsoDuplicate(tx: Tx, params: InsertParams) {
 			message: "Toks QSO jau yra užregistruotas",
 		});
 	}
+}
+
+function normalizeQsoInput(input: z.infer<typeof qsoInput>) {
+	const operatorSquare = normalizeWalSquare(input.operatorSquare);
+	const rawContactSquare = input.contactSquare
+		? normalizeWalSquare(input.contactSquare)
+		: null;
+	const contactSquare = rawContactSquare === "DX" ? null : rawContactSquare;
+
+	validateSquares(operatorSquare, contactSquare);
+
+	const qsoAt = parseISO(input.qsoAt);
+	if (!isValid(qsoAt)) {
+		throw new ORPCError("BAD_REQUEST", {
+			message: "Neteisinga QSO data arba laikas",
+		});
+	}
+
+	return {
+		contactCallsign: normalizeCallsign(input.contactCallsign),
+		contactSquare,
+		operatorSquare,
+		qsoAt,
+	};
 }
 
 async function filterExactQsoDuplicates(
@@ -265,20 +299,8 @@ const create = protectedProcedure
 			120,
 			60
 		);
-		const operatorSquare = normalizeWalSquare(input.operatorSquare);
-		const rawContactSquare = input.contactSquare
-			? normalizeWalSquare(input.contactSquare)
-			: null;
-		const contactSquare = rawContactSquare === "DX" ? null : rawContactSquare;
-
-		validateSquares(operatorSquare, contactSquare);
-
-		const qsoAt = parseISO(input.qsoAt);
-		if (!isValid(qsoAt)) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "Neteisinga QSO data arba laikas",
-			});
-		}
+		const { contactCallsign, contactSquare, operatorSquare, qsoAt } =
+			normalizeQsoInput(input);
 
 		const now = new Date();
 
@@ -325,7 +347,6 @@ const create = protectedProcedure
 
 			const team = membershipRows[0].team;
 			const userId = context.session.user.id;
-			const contactCallsign = normalizeCallsign(input.contactCallsign);
 			const ruleSet = getScoringRuleSet(currentSeason.id);
 
 			const insertParams: InsertParams = {
@@ -369,6 +390,124 @@ const create = protectedProcedure
 			await applyScoreDeltas(tx, currentSeason.id, deltas);
 
 			return serializeQso(created);
+		});
+	});
+
+const update = protectedProcedure
+	.input(updateQsoInput)
+	.handler(async ({ context, input }) => {
+		await checkRateLimit(
+			context.db,
+			`qso:update:${context.session.user.id}`,
+			120,
+			60
+		);
+		const { contactCallsign, contactSquare, operatorSquare, qsoAt } =
+			normalizeQsoInput(input);
+
+		return await context.db.transaction(async (tx) => {
+			const existing = await tx
+				.select()
+				.from(qso)
+				.where(
+					and(eq(qso.id, input.id), eq(qso.userId, context.session.user.id))
+				)
+				.for("update")
+				.limit(1);
+
+			const qsoRow = existing[0];
+			if (!qsoRow) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "QSO nerastas",
+				});
+			}
+
+			const seasonRows = await tx
+				.select({ endsAt: season.endsAt, startsAt: season.startsAt })
+				.from(season)
+				.where(eq(season.id, qsoRow.seasonId))
+				.limit(1);
+
+			const qsoSeason = seasonRows[0];
+			if (!qsoSeason) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "Sezonas nerastas",
+				});
+			}
+
+			const now = new Date();
+			if (isAfter(now, qsoSeason.endsAt)) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Negalima redaguoti QSO pasibaigus sezonui",
+				});
+			}
+
+			if (
+				isBefore(qsoAt, qsoSeason.startsAt) ||
+				isAfter(qsoAt, qsoSeason.endsAt)
+			) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "QSO data nepatenka į sezono laikotarpį",
+				});
+			}
+
+			const updateParams: InsertParams = {
+				band: input.band,
+				contactCallsign,
+				contactSquare,
+				mode: input.mode,
+				operatorSquare,
+				qsoAt,
+				seasonId: qsoRow.seasonId,
+				team: qsoRow.team,
+				userId: qsoRow.userId,
+			};
+			const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+
+			await rejectExactQsoDuplicate(tx, updateParams, input.id);
+			await ruleSet.validateInsert(tx, updateParams, {
+				excludeQsoId: input.id,
+			});
+
+			const deleteDeltas =
+				qsoRow.operatorSquare === operatorSquare
+					? []
+					: await ruleSet.scoreDelete(tx, {
+							contactSquare: qsoRow.contactSquare,
+							operatorSquare: qsoRow.operatorSquare,
+							team: qsoRow.team,
+							userId: qsoRow.userId,
+						});
+
+			const rows = await tx
+				.update(qso)
+				.set({
+					contactCallsign,
+					band: input.band,
+					mode: input.mode,
+					qsoAt,
+					operatorSquare,
+					contactSquare,
+				})
+				.where(eq(qso.id, input.id))
+				.returning();
+
+			const updated = rows[0];
+			if (!updated) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Nepavyko atnaujinti QSO",
+				});
+			}
+
+			if (deleteDeltas.length > 0) {
+				const insertDeltas = await ruleSet.scoreInsert(tx, updateParams);
+				await applyScoreDeltas(tx, qsoRow.seasonId, [
+					...deleteDeltas,
+					...insertDeltas,
+				]);
+			}
+
+			return serializeQso(updated);
 		});
 	});
 
@@ -861,6 +1000,7 @@ export const qsosRouter = {
 	list,
 	stats,
 	create,
+	update,
 	bulkCreate,
 	delete: deleteQso,
 	importCabrillo,

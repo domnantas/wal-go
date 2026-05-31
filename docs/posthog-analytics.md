@@ -24,6 +24,7 @@ Environment variables in `apps/web/.env`:
 | Event | File | Description |
 |---|---|---|
 | `qso_created` | `apps/web/src/domains/log/add-qso-dialog.tsx` | User manually creates a QSO via the dialog |
+| `qso_updated` | `apps/web/src/domains/log/add-qso-dialog.tsx` | User edits an existing QSO via the log row dialog |
 | `cabrillo_imported` | `apps/web/src/routes/log.tsx` | User imports a Cabrillo log file; carries `accepted`, `skipped`, `errors` properties |
 | `qso_deleted` | `apps/web/src/routes/log.tsx` | User deletes a QSO from their log |
 | `season_joined` | `apps/web/src/routes/join-season.tsx` | User completes the wheel spin and joins a season team; carries `team` property |

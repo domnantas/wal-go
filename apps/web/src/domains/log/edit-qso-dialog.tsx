@@ -8,21 +8,33 @@ import {
 	DialogTrigger,
 } from "@WAL-GO/ui/components/dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
-import { EMPTY_QSO_FORM, QsoForm, type QsoFormPayload } from "./qso-form";
+import {
+	type EditableQso,
+	QsoForm,
+	type QsoFormPayload,
+	qsoToFormValues,
+} from "./qso-form";
 
-export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
+export function EditQsoDialog({
+	disabled = false,
+	qso,
+}: {
+	disabled?: boolean;
+	qso: EditableQso;
+}) {
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
 	const [open, setOpen] = useState(false);
 	const [formError, setFormError] = useState<string | null>(null);
-	const createQso = useMutation(
-		orpc.qsos.create.mutationOptions({
+	const defaultValues = useMemo(() => qsoToFormValues(qso), [qso]);
+	const updateQso = useMutation(
+		orpc.qsos.update.mutationOptions({
 			onSuccess: (_, variables) => {
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.list.queryOptions().queryKey,
@@ -30,14 +42,14 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 				queryClient.invalidateQueries({
 					queryKey: orpc.qsos.stats.queryOptions().queryKey,
 				});
-				posthog.capture("qso_created", {
+				posthog.capture("qso_updated", {
 					band: variables.band,
 					mode: variables.mode,
 					has_contact_square: variables.contactSquare !== null,
 				});
 				setFormError(null);
 				setOpen(false);
-				toast.success("QSO išsaugotas");
+				toast.success("QSO atnaujintas");
 			},
 			onError: (error) => {
 				setFormError(error.message);
@@ -46,7 +58,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 	);
 
 	function handleSubmit(payload: QsoFormPayload) {
-		createQso.mutate(payload);
+		updateQso.mutate({ ...payload, id: qso.id });
 	}
 
 	return (
@@ -59,25 +71,32 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 			}}
 			open={open}
 		>
-			<DialogTrigger render={<Button disabled={disabled} />}>
-				<Plus />
-				Pridėti QSO
+			<DialogTrigger
+				render={
+					<Button
+						aria-label="Redaguoti QSO"
+						disabled={disabled}
+						size="icon-sm"
+						variant="ghost"
+					/>
+				}
+			>
+				<Pencil />
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Pridėti QSO</DialogTitle>
+					<DialogTitle>Redaguoti QSO</DialogTitle>
 					<DialogDescription>
-						Įveskite ryšį aktyviam sezonui. Korespondento kvadratas
-						neprivalomas.
+						Pakeiskite ryšio duomenis. Korespondento kvadratas neprivalomas.
 					</DialogDescription>
 				</DialogHeader>
 				<QsoForm
-					defaultValues={EMPTY_QSO_FORM}
+					defaultValues={defaultValues}
 					formError={formError}
-					isPending={createQso.isPending}
+					isPending={updateQso.isPending}
 					onClearError={() => setFormError(null)}
 					onSubmit={handleSubmit}
-					submitLabel="Išsaugoti QSO"
+					submitLabel="Atnaujinti QSO"
 				/>
 			</DialogContent>
 		</Dialog>

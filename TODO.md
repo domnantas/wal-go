@@ -28,8 +28,7 @@
 - [] Add posthog tracking
 - [] Past season views
 - [] Profile with your impact on the map
-- [] QSO editing
+- [x] QSO editing
 - [] Rate limiting
 - [] Analysing uploaded qsos
 - [x] Map geolocation
- 
