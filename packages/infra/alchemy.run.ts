@@ -109,6 +109,10 @@ export default Stack(
 				BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
 				DATABASE_URL: role.connectionUrl,
 				RESEND_API_KEY: Secret("RESEND_API_KEY"),
+				VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: Variable(
+					"VITE_PUBLIC_POSTHOG_PROJECT_TOKEN"
+				),
+				VITE_PUBLIC_POSTHOG_HOST: Variable("VITE_PUBLIC_POSTHOG_HOST"),
 			},
 		});
 
