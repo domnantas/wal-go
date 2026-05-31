@@ -1,6 +1,6 @@
 import { type createDb, getDb } from "@WAL-GO/db";
 // biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
-import * as schema from "@WAL-GO/db/schema/auth";
+import * as schema from "@WAL-GO/db/schema";
 import { env } from "@WAL-GO/env/server";
 import { EmailVerificationEmail } from "@WAL-GO/ui/components/auth/email/email-verification";
 import { ResetPasswordEmail } from "@WAL-GO/ui/components/auth/email/reset-password-email";

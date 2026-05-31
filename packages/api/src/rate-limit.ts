@@ -1,4 +1,4 @@
-import { rateLimit as rateLimitTable } from "@WAL-GO/db/schema/auth";
+import { rateLimit as rateLimitTable } from "@WAL-GO/db/schema/rate-limit";
 import { ORPCError } from "@orpc/server";
 import { eq } from "drizzle-orm";
 

@@ -34,5 +34,9 @@ export interface ScoringRuleSet {
 	scoreBulkInsert(params: InsertParams[]): ScoreDelta[];
 	scoreDelete(tx: Tx, params: DeleteParams): Promise<ScoreDelta[]>;
 	scoreInsert(tx: Tx, params: InsertParams): Promise<ScoreDelta[]>;
-	validateInsert(tx: Tx, params: InsertParams): Promise<void>;
+	validateInsert(
+		tx: Tx,
+		params: InsertParams,
+		options?: { excludeQsoId?: number }
+	): Promise<void>;
 }
