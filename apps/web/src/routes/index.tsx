@@ -165,11 +165,11 @@ function HomeComponent() {
 						className="font-bold font-serif leading-[1.02] tracking-tight"
 						style={{ fontSize: "clamp(48px, 7vw, 96px)" }}
 					>
-						Atrask <span className="text-olive">Lietuvą</span>
+						Atrask <span className="text-golden">Lietuvą</span>
 						<br />
-						per <span className="text-rust">radijo</span>{" "}
+						per <span className="text-olive">radijo</span>{" "}
 						<em
-							className="text-golden italic"
+							className="text-rust italic"
 							style={{
 								textShadow: "1px 1px 0 oklch(0.45 0.08 55 / 0.4)",
 							}}
