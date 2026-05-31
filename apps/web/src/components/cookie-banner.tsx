@@ -10,7 +10,7 @@ export function CookieBanner() {
 
 	useEffect(() => {
 		setConsentStatus(posthog.get_explicit_consent_status());
-	}, [posthog]);
+	}, []);
 
 	console.log(consentStatus);
 
