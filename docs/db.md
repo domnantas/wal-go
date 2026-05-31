@@ -58,7 +58,7 @@ Resolution order (see `resolveConnectionString` in `packages/db/src/index.ts`):
 3. `cloudflareEnv.DATABASE_URL` — direct PlanetScale connection, fallback when no Hyperdrive binding
 4. `process.env.DATABASE_URL` — Node / local `vite dev`
 
-If a deployed Worker connects directly (PlanetScale shows `application_name = postgres.js` instead of `Cloudflare Hyperdrive`), the `HYPERDRIVE` binding is missing or empty and the code is falling through to step 3.
+In PlanetScale's `pg_stat_activity`, connections opened via Hyperdrive still show `application_name = postgres.js` — Hyperdrive passes the client's application name through to the origin and does **not** relabel them as `Cloudflare Hyperdrive`. Tell them apart by `usename` (Hyperdrive uses the deployed role's credential) and by their long-lived idle pooling. A genuine direct bypass only happens when the `HYPERDRIVE` binding is missing/empty and the code falls through to step 3.
 
 ### Pooling and request lifecycle
 
