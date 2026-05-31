@@ -37,6 +37,7 @@ Section `id` attributes enable deep-linking (e.g. `/rules#taskų-sistema`).
 - A team **controls** a square when it has strictly more points than either rival. Tied leaders → neutral.
 - Season winner: most squares controlled at end. Tiebreak: total points.
 - Next season starts from zero — no carry-over.
+- Admins may review QSOs and, on suspected cheating (fabricated QSOs, multi-accounting, rule circumvention), void QSOs and suspend or permanently delete the account; their decisions are final (rule 2.3).
 
 ## Navigation
 

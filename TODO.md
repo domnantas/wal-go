@@ -27,3 +27,6 @@
 - [x] Re-draw the logo
 - [] Add posthog tracking
 - [] Past season views
+- [] Profile with your impact on the map
+- [] QSO editing
+ 

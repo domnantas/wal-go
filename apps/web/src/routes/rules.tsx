@@ -88,6 +88,13 @@ function RulesComponent() {
 					kūrimas siekiant manipuliuoti rezultatais draudžiamas ir gali baigtis
 					paskyros panaikinimu.
 				</Rule>
+				<Rule n="2.3">
+					Administratoriai turi teisę tikrinti registruotus QSO ir įtarus
+					sukčiavimą — pavyzdžiui, išgalvotus ar suklastotus ryšius, kelių
+					paskyrų naudojimą ar kitokį nesąžiningą taisyklių nesilaikymą —
+					neįskaityti atitinkamų QSO, laikinai apriboti arba visam laikui
+					panaikinti žaidėjo paskyrą.
+				</Rule>
 			</RuleSection>
 
 			<RuleSection id="sezonas" number="3" title="Sezonas">
