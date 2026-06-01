@@ -222,7 +222,7 @@ function RulesComponent() {
 					Rusijos ir Baltarusijos korespondentų šaukiniai nėra priimami. QSO su
 					šaukiniais kurie prasideda{" "}
 					<code className="rounded bg-muted px-1 font-mono text-xs">
-						D0, D1, R, UA-UI, EU, EV, EW,
+						D0, D1, R, U0-U4, U6, U7 U9, UA-UI, EU, EV, EW
 					</code>{" "}
 					yra atmetami.
 				</Rule>

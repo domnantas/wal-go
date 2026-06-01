@@ -1,7 +1,7 @@
 export const CALLSIGN_REGEX = /^[A-Z0-9]{1,3}\d[A-Z]{1,5}$/;
 
 export const BLOCKED_CALLSIGN_REGEX =
-	/^(D[01]|U1|UA|UB|UC|UD|UE|UF|UG|UH|UI|R|EU|EV|EW)/i;
+	/^(D[01]|U[0-4]|U6|U7|U9|UA|UB|UC|UD|UE|UF|UG|UH|UI|R|EU|EV|EW)/i;
 
 export function normalizeCallsign(callsign: string): string {
 	const parts = callsign.trim().toUpperCase().split("/");
