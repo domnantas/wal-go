@@ -1,6 +1,6 @@
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { formatInVilnius } from "@/lib/date";
 import { orpc } from "@/utils/orpc";
 
 type Team = "yellow" | "green" | "red";
@@ -44,7 +44,7 @@ export function SeasonResultsBox({ season }: SeasonResultsBoxProps) {
 				{season.name}
 			</p>
 			<p className="mb-3 text-[11px] text-muted-foreground/70">
-				Baigėsi {format(season.endsAt, "yyyy-MM-dd HH:mm")}
+				Baigėsi {formatInVilnius(season.endsAt, "yyyy-MM-dd HH:mm")}
 			</p>
 			{winner ? (
 				<div

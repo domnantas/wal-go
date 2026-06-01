@@ -1,5 +1,6 @@
 import { differenceInSeconds, format, intervalToDuration } from "date-fns";
 import { useEffect, useRef, useState } from "react";
+import { formatInVilnius } from "@/lib/date";
 
 const COUNTDOWN_TICK_MS = 1000;
 
@@ -70,7 +71,7 @@ export function SeasonCountdownBox({
 				{season.name}
 			</p>
 			<p className="mb-3 text-[11px] text-muted-foreground/70">
-				Pradžia {format(season.startsAt, "yyyy-MM-dd HH:mm")}
+				Pradžia {formatInVilnius(season.startsAt, "yyyy-MM-dd HH:mm")}
 			</p>
 			<div className="rounded-md border border-border bg-muted/40 px-3 py-2">
 				<p

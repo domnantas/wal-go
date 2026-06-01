@@ -9,6 +9,7 @@ import {
 } from "date-fns";
 import { lt } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
+import { formatInVilnius } from "@/lib/date";
 
 function formatTimeLeft(target: Date, now: Date): string {
 	const secondsLeft = differenceInSeconds(target, now);
@@ -91,8 +92,7 @@ export function SeasonProgressBox({
 				{season.name}
 			</p>
 			<p className="mb-3 text-[11px] text-muted-foreground/70">
-				{format(season.startsAt, "yyyy-MM-dd")} →{" "}
-				{format(season.endsAt, "yyyy-MM-dd")}
+				{formatInVilnius(season.startsAt)} → {formatInVilnius(season.endsAt)}
 			</p>
 			<div className="mb-1.5 h-1.75 overflow-hidden rounded-lg bg-muted">
 				<div
@@ -102,8 +102,10 @@ export function SeasonProgressBox({
 				/>
 			</div>
 			<div className="flex justify-between text-[11px] text-muted-foreground/70">
-				<span>{Math.round(percentageTimeLeft)}% baigta</span>
-				<span>Liko {timeLeft}</span>
+				<span suppressHydrationWarning>
+					{Math.round(percentageTimeLeft)}% baigta
+				</span>
+				<span suppressHydrationWarning>Liko {timeLeft}</span>
 			</div>
 			{showJoinCta ? (
 				<Button

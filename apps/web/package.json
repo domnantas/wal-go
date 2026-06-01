@@ -32,6 +32,7 @@
     "better-auth": "catalog:",
     "canvas-confetti": "^1.9.4",
     "date-fns": "catalog:",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "catalog:",
     "lucide-react": "^1.8.0",
     "maplibre-gl": "^5.24.0",

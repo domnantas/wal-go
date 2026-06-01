@@ -1,6 +1,7 @@
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { differenceInSeconds, format, intervalToDuration } from "date-fns";
 import { useEffect, useRef, useState } from "react";
+import { formatInVilnius } from "@/lib/date";
 
 const COUNTDOWN_TICK_MS = 1000;
 
@@ -103,7 +104,7 @@ export function SeasonCountdownCard({
 				{season.name}
 			</p>
 			<p className="mt-1 text-muted-foreground text-xs">
-				Pradžia {format(season.startsAt, "yyyy-MM-dd HH:mm")}
+				Pradžia {formatInVilnius(season.startsAt, "yyyy-MM-dd HH:mm")}
 			</p>
 			<div
 				className={cn(
