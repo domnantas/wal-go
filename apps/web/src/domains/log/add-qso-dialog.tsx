@@ -14,7 +14,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
-import { EMPTY_QSO_FORM, QsoForm, type QsoFormPayload } from "./qso-form";
+import { getEmptyQsoForm, QsoForm, type QsoFormPayload } from "./qso-form";
 
 export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 	const queryClient = useQueryClient();
@@ -72,7 +72,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 					</DialogDescription>
 				</DialogHeader>
 				<QsoForm
-					defaultValues={EMPTY_QSO_FORM}
+					defaultValues={getEmptyQsoForm()}
 					formError={formError}
 					isPending={createQso.isPending}
 					onClearError={() => setFormError(null)}

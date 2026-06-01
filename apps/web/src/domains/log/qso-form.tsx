@@ -81,14 +81,16 @@ export interface QsoFormPayload {
 	qsoAt: string;
 }
 
-export const EMPTY_QSO_FORM: QsoFormState = {
-	contactCallsign: "",
-	band: "20m",
-	mode: "SSB",
-	qsoAt: "",
-	operatorSquare: "",
-	contactSquare: "",
-};
+export function getEmptyQsoForm(): QsoFormState {
+	return {
+		contactCallsign: "",
+		band: "20m",
+		mode: "SSB",
+		qsoAt: format(new Date(), DATE_TIME_INPUT_FORMAT),
+		operatorSquare: "",
+		contactSquare: "",
+	};
+}
 
 const requiredText = (message: string) => z.string().trim().min(1, message);
 
