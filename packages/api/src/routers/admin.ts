@@ -389,7 +389,7 @@ const getDashboard = adminProcedure.handler(async ({ context }) => {
 		driftBySeason,
 	] = await Promise.all([
 		context.db.select({ count: count() }).from(user),
-		context.db.select().from(season).orderBy(desc(season.startsAt)),
+		context.db.select().from(season).orderBy(asc(season.startsAt)),
 		context.db
 			.select({ seasonId: qso.seasonId, count: count() })
 			.from(qso)
