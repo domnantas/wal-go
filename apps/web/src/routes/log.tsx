@@ -1,6 +1,7 @@
 import type {
 	ImportError,
 	ImportSuccess,
+	QsoBand,
 	SkipReason,
 } from "@WAL-GO/api/routers/qsos";
 import { Button } from "@WAL-GO/ui/components/button";
@@ -19,16 +20,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
 	type ColumnDef,
-	type ColumnFiltersState,
 	flexRender,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
 import {
 	ChevronDown,
+	ChevronLeft,
+	ChevronRight,
 	ChevronUp,
 	MapPinned,
 	Radio,
@@ -38,7 +38,7 @@ import {
 	Users,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
 import { EditQsoDialog } from "@/domains/log/edit-qso-dialog";
@@ -79,8 +79,17 @@ const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
-	const { data: qsos, isPending: isQsosPending } = useQuery(
-		orpc.qsos.list.queryOptions()
+	const [page, setPage] = useState(0);
+	const [band, setBand] = useState<QsoBand | undefined>(undefined);
+	const logRef = useRef<HTMLDivElement>(null);
+
+	function handleBandChange(newBand: QsoBand | undefined) {
+		setBand(newBand);
+		setPage(0);
+	}
+
+	const { data: qsoPage, isPending: isQsosPending } = useQuery(
+		orpc.qsos.list.queryOptions({ input: { page, band } })
 	);
 	const { data: stats } = useQuery(orpc.qsos.stats.queryOptions());
 	const { data: currentSeason, isPending: isCurrentSeasonPending } = useQuery(
@@ -90,7 +99,9 @@ function RouteComponent() {
 		orpc.seasons.myMembership.queryOptions()
 	);
 	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
-	const data = qsos ?? [];
+	const items = qsoPage?.items ?? [];
+	const total = qsoPage?.total ?? 0;
+	const bands = qsoPage?.bands ?? [];
 	const statValues = stats ?? {
 		totalQsos: 0,
 		uniqueSquares: 0,
@@ -106,7 +117,8 @@ function RouteComponent() {
 		!(isCurrentSeasonPending || isMembershipPending) &&
 		!!activeSeason &&
 		!!membership;
-	const showLog = isMembershipPending || !!membership || data.length > 0;
+	const showLog =
+		isMembershipPending || !!membership || statValues.totalQsos > 0;
 	const upcomingSeason =
 		seasons?.find((season) => season.status === "upcoming") ?? null;
 
@@ -178,7 +190,18 @@ function RouteComponent() {
 							<Spinner className="size-8" />
 						</div>
 					) : (
-						<QsoLog canAddQso={canAddQso} qsos={data} />
+						<div ref={logRef}>
+							<QsoLog
+								band={band}
+								bands={bands}
+								canAddQso={canAddQso}
+								items={items}
+								onBandChange={handleBandChange}
+								onPageChange={setPage}
+								page={page}
+								total={total}
+							/>
+						</div>
 					)}
 				</>
 			) : null}
@@ -647,10 +670,30 @@ function SquareBadge({
 	);
 }
 
-function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
+const PAGE_SIZE = 20;
+
+function QsoLog({
+	band,
+	bands,
+	canAddQso,
+	items,
+	onBandChange,
+	onPageChange,
+	page,
+	total,
+}: {
+	band: QsoBand | undefined;
+	bands: QsoBand[];
+	canAddQso: boolean;
+	items: Qso[];
+	onBandChange: (band: QsoBand | undefined) => void;
+	onPageChange: (page: number) => void;
+	page: number;
+	total: number;
+}) {
+	const containerRef = useRef<HTMLDivElement>(null);
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [deletingQsoId, setDeletingQsoId] = useState<null | number>(null);
 	const deleteQso = useMutation(
 		orpc.qsos.delete.mutationOptions({
@@ -676,13 +719,6 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 		})
 	);
 
-	const bandOptions = useMemo(() => {
-		const unique = Array.from(new Set(qsos.map((q) => q.band)));
-		return unique.sort(
-			(a, b) => Number.parseInt(a, 10) - Number.parseInt(b, 10)
-		);
-	}, [qsos]);
-
 	const columns = useMemo(
 		() =>
 			getQsoColumns({
@@ -694,24 +730,27 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 	);
 
 	const table = useReactTable({
-		data: qsos,
+		data: items,
 		columns,
-		state: { columnFilters },
-		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 	});
 
-	const activeBand =
-		(table.getColumn("band")?.getFilterValue() as string | undefined) ?? "all";
+	const pageCount = Math.ceil(total / PAGE_SIZE);
 
-	function setBand(band: string) {
-		table.getColumn("band")?.setFilterValue(band === "all" ? undefined : band);
+	function navigateBand(newBand: QsoBand | undefined) {
+		onBandChange(newBand);
 	}
 
-	if (qsos.length === 0) {
+	function changePage(newPage: number) {
+		onPageChange(newPage);
+		containerRef.current?.scrollIntoView({
+			behavior: "smooth",
+			block: "start",
+		});
+	}
+
+	if (total === 0 && !band) {
 		return (
 			<div className="flex flex-col items-center gap-2 rounded-4xl border border-border bg-card px-6 py-16 text-center">
 				<Radio className="size-10 text-muted-foreground" />
@@ -725,20 +764,20 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 	}
 
 	return (
-		<>
+		<div className="flex flex-col gap-6" ref={containerRef}>
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex flex-wrap gap-2">
 					<BandChip
-						active={activeBand === "all"}
+						active={!band}
 						label="Visi diapazonai"
-						onClick={() => setBand("all")}
+						onClick={() => navigateBand(undefined)}
 					/>
-					{bandOptions.map((band) => (
+					{bands.map((b) => (
 						<BandChip
-							active={activeBand === band}
-							key={band}
-							label={band}
-							onClick={() => setBand(band)}
+							active={band === b}
+							key={b}
+							label={b}
+							onClick={() => navigateBand(b)}
 						/>
 					))}
 				</div>
@@ -779,7 +818,33 @@ function QsoLog({ canAddQso, qsos }: { canAddQso: boolean; qsos: Qso[] }) {
 					</TableBody>
 				</Table>
 			</div>
-		</>
+
+			{pageCount > 1 ? (
+				<div className="flex items-center justify-between gap-4">
+					<p className="text-muted-foreground text-sm">
+						{total} QSO &middot; puslapis {page + 1} iš {pageCount}
+					</p>
+					<div className="flex gap-2">
+						<Button
+							disabled={page <= 0}
+							onClick={() => changePage(page - 1)}
+							size="icon-sm"
+							variant="outline"
+						>
+							<ChevronLeft />
+						</Button>
+						<Button
+							disabled={page >= pageCount - 1}
+							onClick={() => changePage(page + 1)}
+							size="icon-sm"
+							variant="outline"
+						>
+							<ChevronRight />
+						</Button>
+					</div>
+				</div>
+			) : null}
+		</div>
 	);
 }
 

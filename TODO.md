@@ -22,16 +22,16 @@
 - [x] Admin page
 - [x] Audit trail of uploads in admin
 - [x] Score reconciliation
+- [x] Add posthog tracking
+- [x] QSO editing
+- [x] Re-draw the logo
+- [x] Rate limiting
+- [x] Map geolocation
 - [] Leaderboard – only visible when season ends
 - [] Spotting/self-spotting feature – send a message to discrod
-- [x] Re-draw the logo
-- [x] Add posthog tracking
 - [] Past season views
 - [] Profile with your impact on the map
-- [x] QSO editing
-- [x] Rate limiting
 - [] Analysing uploaded qsos
-- [x] Map geolocation
-- [] CF cache invalidation
 - [] History window – or send a message to Discord. 
 - [] Log export?
+- [] Log pagination

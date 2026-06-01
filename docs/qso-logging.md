@@ -159,7 +159,13 @@ Each accepted QSO is stored in the database linked to:
 
 ## Log View
 
-The `/log` page lists all QSOs the user has submitted in the current season, paginated. Columns include callsign, band, mode, date/time, the credited operator WAL square, and the optional contact WAL square. Manual creation opens `AddQsoDialog`; each row opens a separate `EditQsoDialog` for edits or can delete the QSO while the season is still active. Both dialogs share the lower-level `QsoForm` field component so validation and date/square handling stay consistent without merging the add and edit workflows.
+The `/log` page lists all QSOs the user has submitted in the current season. Columns include callsign, band, mode, date/time, the credited operator WAL square, and the optional contact WAL square. Manual creation opens `AddQsoDialog`; each row opens a separate `EditQsoDialog` for edits or can delete the QSO while the season is still active. Both dialogs share the lower-level `QsoForm` field component so validation and date/square handling stay consistent without merging the add and edit workflows.
+
+### Pagination
+
+The log uses server-side pagination with a fixed page size of 20. Current page and band filter are stored as URL search params (`?page=N&band=X`), so they survive refresh and are bookmarkable. The `qsos.list` API endpoint accepts optional `page`, `band`, and `seasonId` inputs and returns `{ items, total, bands }` — where `bands` is the distinct list of bands the user has logged in the season (used to render filter chips). The `qsos.stats` endpoint is unaffected and still returns season-wide aggregates.
+
+Band filtering is server-side: selecting a band resets to page 1. Previous/next pagination buttons appear below the table when there is more than one page.
 
 The summary cards on `/log` are backed by server-side aggregates, not calculations over the currently loaded table rows. They show total QSOs, unique credited operator WAL squares, points from `user_season_score`, and unique contact callsigns for the active season.
 

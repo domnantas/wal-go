@@ -26,9 +26,13 @@ const qsoInput = z.object({
 	contactSquare: z.string().trim().min(2).max(3).nullable().optional(),
 });
 
+const PAGE_SIZE = 20;
+
 const listInput = z
 	.object({
 		seasonId: z.number().int().positive().optional(),
+		page: z.number().int().min(0).optional(),
+		band: z.enum(QSO_BANDS).optional(),
 	})
 	.optional();
 
@@ -213,26 +217,48 @@ async function filterExactQsoDuplicates(
 const list = protectedProcedure
 	.input(listInput)
 	.handler(async ({ context, input }) => {
+		const page = input?.page ?? 0;
 		const currentSeason =
 			input?.seasonId === undefined ? await getCurrentSeason(context.db) : null;
 		const resolvedSeasonId = input?.seasonId ?? currentSeason?.id;
 
 		if (resolvedSeasonId === undefined) {
-			return [];
+			return { items: [], total: 0, bands: [] };
 		}
 
-		const rows = await context.db
-			.select()
-			.from(qso)
-			.where(
-				and(
-					eq(qso.userId, context.session.user.id),
-					eq(qso.seasonId, resolvedSeasonId)
-				)
-			)
-			.orderBy(desc(qso.qsoAt), desc(qso.id));
+		const baseWhere = and(
+			eq(qso.userId, context.session.user.id),
+			eq(qso.seasonId, resolvedSeasonId)
+		);
+		const filteredWhere = and(
+			baseWhere,
+			input?.band === undefined ? undefined : eq(qso.band, input.band)
+		);
 
-		return rows.map(serializeQso);
+		const [countResult, rows, bandRows] = await Promise.all([
+			context.db
+				.select({ count: sql<number>`count(*)` })
+				.from(qso)
+				.where(filteredWhere),
+			context.db
+				.select()
+				.from(qso)
+				.where(filteredWhere)
+				.orderBy(desc(qso.qsoAt), desc(qso.id))
+				.limit(PAGE_SIZE)
+				.offset(page * PAGE_SIZE),
+			context.db
+				.selectDistinct({ band: qso.band })
+				.from(qso)
+				.where(baseWhere)
+				.orderBy(qso.band),
+		]);
+
+		return {
+			items: rows.map(serializeQso),
+			total: toNumber(countResult[0]?.count),
+			bands: bandRows.map((r) => r.band),
+		};
 	});
 
 const stats = protectedProcedure
@@ -574,6 +600,8 @@ const deleteQso = protectedProcedure
 			return serializeQso(qsoRow);
 		});
 	});
+
+export type QsoBand = (typeof QSO_BANDS)[number];
 
 export type SkipReason =
 	| "callsignMismatch"
