@@ -53,7 +53,9 @@ interface UserData {
 
 export function UsersTab() {
 	const queryClient = useQueryClient();
-	const users = useQuery(orpc.admin.users.list.queryOptions());
+	const { data: users, isPending: isUsersPending } = useQuery(
+		orpc.admin.users.list.queryOptions()
+	);
 
 	const invalidate = () =>
 		queryClient.invalidateQueries({
@@ -103,7 +105,7 @@ export function UsersTab() {
 		})
 	);
 
-	if (users.isPending) {
+	if (isUsersPending) {
 		return (
 			<div className="flex justify-center py-10">
 				<Spinner className="size-8" />
@@ -111,7 +113,7 @@ export function UsersTab() {
 		);
 	}
 
-	const rows = users.data ?? [];
+	const rows = users ?? [];
 
 	return (
 		<div className="overflow-x-auto rounded-4xl border border-border bg-card">

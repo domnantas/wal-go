@@ -38,10 +38,12 @@ function formatDateTime(date: Date) {
 }
 
 export function UploadsTab() {
-	const uploads = useQuery(orpc.admin.uploads.list.queryOptions());
+	const { data: uploads, isPending: isUploadsPending } = useQuery(
+		orpc.admin.uploads.list.queryOptions()
+	);
 	const [selectedId, setSelectedId] = useState<null | number>(null);
 
-	if (uploads.isPending) {
+	if (isUploadsPending) {
 		return (
 			<div className="flex justify-center py-10">
 				<Spinner className="size-8" />
@@ -49,7 +51,7 @@ export function UploadsTab() {
 		);
 	}
 
-	const rows = uploads.data ?? [];
+	const rows = uploads ?? [];
 
 	return (
 		<>
@@ -122,7 +124,7 @@ export function UploadsTab() {
 }
 
 function UploadDetail({ id }: { id: number }) {
-	const upload = useQuery(
+	const { data: upload, isPending: isUploadPending } = useQuery(
 		orpc.admin.uploads.get.queryOptions({ input: { id } })
 	);
 
@@ -130,18 +132,18 @@ function UploadDetail({ id }: { id: number }) {
 		<DialogContent className="flex max-h-[90vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
 			<DialogHeader className="shrink-0 border-border border-b px-6 py-4">
 				<DialogTitle>
-					{upload.data
-						? `${upload.data.callsign} — ${formatDateTime(new Date(upload.data.uploadedAt))}`
+					{upload
+						? `${upload.callsign} — ${formatDateTime(new Date(upload.uploadedAt))}`
 						: "Įkėlimo detalės"}
 				</DialogTitle>
 			</DialogHeader>
 
-			{upload.isPending && (
+			{isUploadPending && (
 				<div className="flex justify-center py-10">
 					<Spinner className="size-8" />
 				</div>
 			)}
-			{upload.data && <UploadDetailBody data={upload.data} />}
+			{upload && <UploadDetailBody data={upload} />}
 		</DialogContent>
 	);
 }

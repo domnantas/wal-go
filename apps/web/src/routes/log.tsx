@@ -79,13 +79,19 @@ const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
-	const qsos = useQuery(orpc.qsos.list.queryOptions());
-	const stats = useQuery(orpc.qsos.stats.queryOptions());
-	const currentSeason = useQuery(orpc.seasons.current.queryOptions());
-	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
-	const seasons = useQuery(orpc.seasons.list.queryOptions());
-	const data = qsos.data ?? [];
-	const statValues = stats.data ?? {
+	const { data: qsos, isPending: isQsosPending } = useQuery(
+		orpc.qsos.list.queryOptions()
+	);
+	const { data: stats } = useQuery(orpc.qsos.stats.queryOptions());
+	const { data: currentSeason, isPending: isCurrentSeasonPending } = useQuery(
+		orpc.seasons.current.queryOptions()
+	);
+	const { data: membership, isPending: isMembershipPending } = useQuery(
+		orpc.seasons.myMembership.queryOptions()
+	);
+	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
+	const data = qsos ?? [];
+	const statValues = stats ?? {
 		totalQsos: 0,
 		uniqueSquares: 0,
 		points: 0,
@@ -93,16 +99,16 @@ function RouteComponent() {
 	};
 
 	const activeSeason =
-		currentSeason.data ??
-		seasons.data?.find((season) => season.status === "active") ??
+		currentSeason ??
+		seasons?.find((season) => season.status === "active") ??
 		null;
 	const canAddQso =
-		!(currentSeason.isPending || membership.isPending) &&
+		!(isCurrentSeasonPending || isMembershipPending) &&
 		!!activeSeason &&
-		!!membership.data;
-	const showLog = membership.isPending || !!membership.data || data.length > 0;
+		!!membership;
+	const showLog = isMembershipPending || !!membership || data.length > 0;
 	const upcomingSeason =
-		seasons.data?.find((season) => season.status === "upcoming") ?? null;
+		seasons?.find((season) => season.status === "upcoming") ?? null;
 
 	const handleSeasonTimingComplete = useCallback(() => {
 		queryClient.invalidateQueries({
@@ -127,7 +133,7 @@ function RouteComponent() {
 				/>
 			) : null}
 
-			{activeSeason && !membership.isPending && !membership.data ? (
+			{activeSeason && !isMembershipPending && !membership ? (
 				<div className="flex items-center justify-between gap-4 rounded-4xl border border-border bg-card px-5 py-4">
 					<p className="text-muted-foreground text-sm">
 						Prisijunkite prie sezono, kad galėtumėte pridėti QSO.
@@ -167,7 +173,7 @@ function RouteComponent() {
 						/>
 					</div>
 
-					{qsos.isPending ? (
+					{isQsosPending ? (
 						<div className="flex justify-center py-10">
 							<Spinner className="size-8" />
 						</div>

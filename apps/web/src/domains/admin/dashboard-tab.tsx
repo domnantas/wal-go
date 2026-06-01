@@ -41,9 +41,11 @@ function formatDate(date: Date) {
 }
 
 export function DashboardTab() {
-	const dashboard = useQuery(orpc.admin.dashboard.queryOptions());
+	const { data: dashboard, isPending: isDashboardPending } = useQuery(
+		orpc.admin.dashboard.queryOptions()
+	);
 
-	if (dashboard.isPending) {
+	if (isDashboardPending) {
 		return (
 			<div className="flex justify-center py-10">
 				<Spinner className="size-8" />
@@ -51,7 +53,7 @@ export function DashboardTab() {
 		);
 	}
 
-	const data = dashboard.data;
+	const data = dashboard;
 	if (!data) {
 		return null;
 	}

@@ -28,16 +28,16 @@ export default function Header() {
 	const { data: session } = useSession(authClient);
 	const isAuthenticated = !!session?.user;
 	const isAdmin = session?.user?.role === "admin";
-	const currentSeason = useQuery({
+	const { data: currentSeason } = useQuery({
 		...orpc.seasons.current.queryOptions(),
 		enabled: isAuthenticated,
 	});
-	const membership = useQuery({
+	const { data: membership, isPending: isMembershipPending } = useQuery({
 		...orpc.seasons.myMembership.queryOptions(),
 		enabled: isAuthenticated,
 	});
 	const showJoinSeason =
-		isAuthenticated && !!currentSeason.data && !membership.data;
+		isAuthenticated && !!currentSeason && !isMembershipPending && !membership;
 	const authLinks = [
 		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },

@@ -64,10 +64,10 @@ export function MembershipsDialog({
 	onClose: () => void;
 }) {
 	const queryClient = useQueryClient();
-	const memberships = useQuery(
+	const { data: memberships, isPending: isMembershipsPending } = useQuery(
 		orpc.admin.memberships.list.queryOptions({ input: { seasonId } })
 	);
-	const users = useQuery(orpc.admin.users.list.queryOptions());
+	const { data: users } = useQuery(orpc.admin.users.list.queryOptions());
 	const [addUserId, setAddUserId] = useState("");
 	const [addTeam, setAddTeam] = useState<"green" | "red" | "yellow">("yellow");
 
@@ -109,10 +109,8 @@ export function MembershipsDialog({
 		})
 	);
 
-	const existingUserIds = new Set(
-		(memberships.data ?? []).map((m) => m.userId)
-	);
-	const availableUsers = (users.data ?? []).filter(
+	const existingUserIds = new Set((memberships ?? []).map((m) => m.userId));
+	const availableUsers = (users ?? []).filter(
 		(u) => !existingUserIds.has(u.id)
 	);
 
@@ -131,7 +129,7 @@ export function MembershipsDialog({
 					<DialogTitle>Nariai — {seasonName}</DialogTitle>
 				</DialogHeader>
 				<div className="flex flex-col gap-4 overflow-x-auto">
-					{memberships.isPending ? (
+					{isMembershipsPending ? (
 						<div className="flex justify-center py-6">
 							<Spinner className="size-6" />
 						</div>
@@ -147,7 +145,7 @@ export function MembershipsDialog({
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{(memberships.data ?? []).map((m) => (
+									{(memberships ?? []).map((m) => (
 										<MembershipTableRow
 											key={m.id}
 											membership={m as MembershipRow}
@@ -159,7 +157,7 @@ export function MembershipsDialog({
 											}
 										/>
 									))}
-									{(memberships.data ?? []).length === 0 && (
+									{(memberships ?? []).length === 0 && (
 										<TableRow>
 											<TableCell
 												className="px-4 py-6 text-center text-muted-foreground"

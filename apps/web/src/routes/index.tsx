@@ -123,19 +123,19 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 function HomeComponent() {
 	const queryClient = useQueryClient();
 	const { data: session } = authClient.useSession();
-	const currentSeason = useQuery(orpc.seasons.current.queryOptions());
-	const seasons = useQuery(orpc.seasons.list.queryOptions());
-	const teamStandings = useQuery(
+	const { data: currentSeason } = useQuery(orpc.seasons.current.queryOptions());
+	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
+	const { data: teamStandings } = useQuery(
 		orpc.scoring.teamStandings.queryOptions({ input: {} })
 	);
 
 	const season =
-		currentSeason.data ??
-		seasons.data?.find((seasonRow) => seasonRow.status === "active") ??
+		currentSeason ??
+		seasons?.find((seasonRow) => seasonRow.status === "active") ??
 		null;
 	const upcomingSeason =
-		seasons.data?.find((seasonRow) => seasonRow.status === "upcoming") ?? null;
-	const standings = teamStandings.data ?? [];
+		seasons?.find((seasonRow) => seasonRow.status === "upcoming") ?? null;
+	const standings = teamStandings ?? [];
 	const handleSeasonTimingComplete = useCallback(() => {
 		queryClient.invalidateQueries({
 			queryKey: orpc.seasons.current.queryOptions().queryKey,

@@ -40,9 +40,9 @@ function formatDateTime(date: Date) {
 }
 
 export function QsosTab() {
-	const seasons = useQuery(orpc.admin.seasons.list.queryOptions());
+	const { data: seasons } = useQuery(orpc.admin.seasons.list.queryOptions());
 	const [seasonId, setSeasonId] = useState<null | number>(null);
-	const seasonOptions = seasons.data ?? [];
+	const seasonOptions = seasons ?? [];
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -86,7 +86,7 @@ export function QsosTab() {
 
 function QsosContent({ seasonId }: { seasonId: number }) {
 	const queryClient = useQueryClient();
-	const qsos = useQuery(
+	const { data: qsos, isPending: isQsosPending } = useQuery(
 		orpc.admin.qsos.list.queryOptions({ input: { seasonId } })
 	);
 
@@ -103,7 +103,7 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 		})
 	);
 
-	if (qsos.isPending) {
+	if (isQsosPending) {
 		return (
 			<div className="flex justify-center py-10">
 				<Spinner className="size-8" />
@@ -111,7 +111,7 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 		);
 	}
 
-	const rows = qsos.data ?? [];
+	const rows = qsos ?? [];
 
 	return (
 		<div className="overflow-x-auto rounded-4xl border border-border bg-card">

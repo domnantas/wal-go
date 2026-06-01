@@ -85,7 +85,9 @@ function deriveStatus(
 
 export function SeasonsTab() {
 	const queryClient = useQueryClient();
-	const seasons = useQuery(orpc.admin.seasons.list.queryOptions());
+	const { data: seasons, isPending: isSeasonsPending } = useQuery(
+		orpc.admin.seasons.list.queryOptions()
+	);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingSeason, setEditingSeason] = useState<null | SeasonRow>(null);
 	const [membersSeasonId, setMembersSeasonId] = useState<null | number>(null);
@@ -119,7 +121,7 @@ export function SeasonsTab() {
 		setDialogOpen(true);
 	}
 
-	if (seasons.isPending) {
+	if (isSeasonsPending) {
 		return (
 			<div className="flex justify-center py-10">
 				<Spinner className="size-8" />
@@ -127,7 +129,7 @@ export function SeasonsTab() {
 		);
 	}
 
-	const rows = seasons.data ?? [];
+	const rows = seasons ?? [];
 	const membersSeasonName = rows.find((s) => s.id === membersSeasonId)?.name;
 
 	return (

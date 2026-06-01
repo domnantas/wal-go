@@ -16,6 +16,20 @@ Document project features in the `docs/` directory to keep a reference for futur
 
 Do not run the dev server to check if changes are valid. Avoid `let`, prefer immutable/functional approach. Use `date-fns` for dates and time.
 
+### TanStack Query
+
+Always destructure `useQuery` results — never assign the full query object to a variable:
+
+```ts
+// correct
+const { data: seasons, isPending: isSeasonsPending } = useQuery(...)
+
+// wrong
+const seasons = useQuery(...)
+```
+
+Name the destructured `data` after what it contains. Name `isPending` with a descriptive `is*Pending` prefix.
+
 # Ultracite Code Standards
 
 This project uses **Ultracite**, a zero-config preset that enforces strict code quality standards through automated formatting and linting.

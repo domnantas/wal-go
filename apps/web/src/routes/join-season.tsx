@@ -122,8 +122,12 @@ function fireConfetti(team: Team) {
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
-	const current = useQuery(orpc.seasons.current.queryOptions());
-	const membership = useQuery(orpc.seasons.myMembership.queryOptions());
+	const { data: current, isPending: isCurrentPending } = useQuery(
+		orpc.seasons.current.queryOptions()
+	);
+	const { data: membership, isPending: isMembershipPending } = useQuery(
+		orpc.seasons.myMembership.queryOptions()
+	);
 	const join = useMutation(orpc.seasons.join.mutationOptions());
 
 	const [phase, setPhase] = useState<Phase>("idle");
@@ -202,7 +206,7 @@ function RouteComponent() {
 		}
 	}, [phase, join.isError]);
 
-	if (current.isPending || membership.isPending) {
+	if (isCurrentPending || isMembershipPending) {
 		return (
 			<main className="container mx-auto flex max-w-2xl items-center justify-center px-4 py-16">
 				<Spinner className="size-8" />
@@ -210,7 +214,7 @@ function RouteComponent() {
 		);
 	}
 
-	if (!current.data) {
+	if (!current) {
 		return (
 			<main className="container mx-auto flex max-w-2xl flex-col items-center px-4 py-16">
 				<Card className="w-full">
@@ -225,16 +229,16 @@ function RouteComponent() {
 		);
 	}
 
-	const season = current.data;
+	const season = current;
 	const settledTeam =
 		phase === "landed"
-			? ((join.data?.team ?? membership.data?.team) as Team | undefined)
+			? ((join.data?.team ?? membership?.team) as Team | undefined)
 			: undefined;
 
-	const showResultOnly = membership.data && phase === "idle";
+	const showResultOnly = membership && phase === "idle";
 
-	if (showResultOnly && membership.data) {
-		const team = membership.data.team as Team;
+	if (showResultOnly && membership) {
+		const team = membership.team as Team;
 		return (
 			<main className="container mx-auto flex max-w-2xl flex-col gap-6 px-4 py-16">
 				<Card>
