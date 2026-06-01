@@ -74,6 +74,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 				<QsoForm
 					defaultValues={getEmptyQsoForm()}
 					formError={formError}
+					geolocation
 					isPending={createQso.isPending}
 					onClearError={() => setFormError(null)}
 					onSubmit={handleSubmit}

@@ -31,7 +31,10 @@ import { useForm } from "@tanstack/react-form";
 import { format, getHours, getMinutes, isValid, parse, set } from "date-fns";
 import { lt } from "date-fns/locale";
 import { CalendarIcon, Save } from "lucide-react";
+import { useCallback } from "react";
 import { z } from "zod";
+
+import { GeolocationSquareButton } from "./geolocation-square-button";
 
 const BAND_OPTIONS = [
 	"160m",
@@ -191,6 +194,7 @@ export function qsoToFormValues(qso: EditableQso): QsoFormState {
 export function QsoForm({
 	defaultValues,
 	formError,
+	geolocation = false,
 	isPending,
 	onClearError,
 	onSubmit,
@@ -198,6 +202,7 @@ export function QsoForm({
 }: {
 	defaultValues: QsoFormState;
 	formError: null | string;
+	geolocation?: boolean;
 	isPending: boolean;
 	onClearError: () => void;
 	onSubmit: (payload: QsoFormPayload) => void;
@@ -226,6 +231,14 @@ export function QsoForm({
 			});
 		},
 	});
+
+	const handleGeolocationSquare = useCallback(
+		(wal: string) => {
+			form.setFieldValue("operatorSquare", wal);
+			onClearError();
+		},
+		[form, onClearError]
+	);
 
 	return (
 		<form
@@ -422,7 +435,18 @@ export function QsoForm({
 							field.state.meta.isTouched && !field.state.meta.isValid;
 						return (
 							<Field data-invalid={isInvalid}>
-								<FieldLabel htmlFor="operatorSquare">Mano kvadratas</FieldLabel>
+								<div className="flex items-center justify-between gap-2">
+									<FieldLabel htmlFor="operatorSquare">
+										Mano kvadratas
+									</FieldLabel>
+									{geolocation && (
+										<GeolocationSquareButton
+											className="-my-1.5"
+											disabled={isPending}
+											onSquare={handleGeolocationSquare}
+										/>
+									)}
+								</div>
 								<Input
 									aria-invalid={isInvalid}
 									autoCapitalize="characters"

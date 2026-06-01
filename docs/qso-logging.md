@@ -26,6 +26,49 @@ Manual entry captures:
 
 The backend validates that WAL square codes are valid Lithuanian WAL cells. Duplicate detection, scoring updates, and QSO deletion are implemented for manual entry.
 
+### Geolocation square
+
+The Add QSO dialog shows a geolocation toggle button next to the **Mano kvadratas**
+label (`GeolocationSquareButton`, driven by `useGeolocationSquare`). When enabled,
+the form derives the operator's WAL square from the device location via
+`navigator.geolocation` and `calculateWal` from `@WAL-GO/grid`. If the resolved
+coordinates fall outside any valid WAL cell, the field is left untouched.
+
+Behaviour:
+
+- **First click** triggers the browser permission prompt; while the request is
+  pending the button shows a spinner.
+- **Toggle state is persisted** in `localStorage`
+  (`wal-go:geolocation-square-enabled`). The toggle is only treated as *active*
+  when the stored flag is on **and** the browser permission is still `granted`.
+  If the user later resets permission to "ask" (not the same as denying), the
+  toggle reverts to off and the form will not silently re-prompt — the user must
+  click again to re-grant.
+- The square is **recalculated every time the dialog opens** (the form remounts),
+  so an operator who moved between logs gets their current square rather than a
+  stale one. With the toggle on and permission already granted, the field is
+  pre-filled automatically on open.
+- If the user **denies** permission, the button becomes disabled and shows the
+  crossed-out locate icon; the toggle is also turned off.
+
+Button states (lucide icons):
+
+| State | Icon | Variant |
+| --- | --- | --- |
+| Off (default) | `Locate` | `outline` |
+| On | `LocateFixed` | `default` (filled) |
+| Locating | `Spinner` | — (disabled) |
+| Denied / unsupported | `LocateOff` | disabled |
+
+A tooltip (`Tooltip` from `@WAL-GO/ui`) explains the current action on hover. The
+trigger wraps the button in a `span` so the tooltip still appears while the button
+is disabled (denied/locating). The tooltip label mirrors the button state
+("Nustatyti kvadratą pagal vietą" / "Nenaudoti mano vietos" / "Vietos prieiga
+užblokuota").
+
+The toggle is only rendered in `AddQsoDialog` (via the `geolocation` prop on
+`QsoForm`); the edit dialog keeps manual square entry.
+
 ## Cabrillo Import
 
 Users drop a `.log`, `.cbr`, or `.cabrillo` file onto the dropzone on `/log`. The file must be a valid Cabrillo v3 log for the `LY-WAL` contest.
