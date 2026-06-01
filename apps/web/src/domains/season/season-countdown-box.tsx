@@ -73,7 +73,10 @@ export function SeasonCountdownBox({
 				Pradžia {format(season.startsAt, "yyyy-MM-dd HH:mm")}
 			</p>
 			<div className="rounded-md border border-border bg-muted/40 px-3 py-2">
-				<p className="text-center font-bold text-[18px] text-foreground tabular-nums">
+				<p
+					className="text-center font-bold text-[18px] text-foreground tabular-nums"
+					suppressHydrationWarning
+				>
 					{formatCountdown(season.startsAt, now)}
 				</p>
 			</div>
