@@ -143,9 +143,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
 					<Providers>
-						<div className="grid grid-rows-[auto_1fr]">
+						<div className="grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr]">
 							<Header />
-							<div>{children}</div>
+							<div className="min-w-0">{children}</div>
 						</div>
 						<Toaster richColors />
 						<CookieBanner />

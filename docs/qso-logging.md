@@ -163,6 +163,12 @@ Each accepted QSO is stored in the database linked to:
 
 The `/log` page lists all QSOs the user has submitted in the current season. Columns include callsign, band, mode, date/time, the credited operator WAL square, and the optional contact WAL square. Manual creation opens `AddQsoDialog`; each row opens a separate `EditQsoDialog` for edits or can delete the QSO while the season is still active. Both dialogs share the lower-level `QsoForm` field component so validation and date/square handling stay consistent without merging the add and edit workflows.
 
+### Responsive Design
+
+The log table sits inside the shared `Table` component, which wraps the `<table>` in an `overflow-x-auto` container so wide content scrolls horizontally within the card rather than stretching the page. For this to work, the root layout grid (`__root.tsx`) declares `grid-cols-[minmax(0,1fr)]` — without an explicit, shrinkable column track the implicit `auto` column grows to the table's max-content width and blows out the page on the x axis. The `Mode` (Moduliacija) column is hidden below the `sm` breakpoint via a `meta.className` of `hidden sm:table-cell`, applied to both the header and body cells in the render loop, to keep the mobile table compact.
+
+`QsoForm`'s field grid goes `1 → sm:2 → md:3` columns; the callsign field spans both columns at `sm` (`sm:col-span-2 md:col-span-1`) and the date/time field uses `sm:col-span-2`, which (Tailwind breakpoints being min-width) carries up to `md` so it spans two of the three columns there too. The shared `DialogContent` caps height at `max-h-[calc(100svh-2rem)]` with `overflow-y-auto` so the add/edit dialog scrolls on short viewports instead of overflowing off-screen. Cabrillo import result tables use `overflow-auto` for both axes.
+
 ### Pagination
 
 The log uses server-side pagination with a fixed page size of 20. Current page and band filter are stored as URL search params (`?page=N&band=X`), so they survive refresh and are bookmarkable. The `qsos.list` API endpoint accepts optional `page`, `band`, and `seasonId` inputs and returns `{ items, total, bands }` — where `bands` is the distinct list of bands the user has logged in the season (used to render filter chips). The `qsos.stats` endpoint is unaffected and still returns season-wide aggregates.

@@ -246,7 +246,7 @@ export function QsoForm({
 				form.handleSubmit();
 			}}
 		>
-			<FieldGroup className="grid gap-4 md:grid-cols-3">
+			<FieldGroup className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
 				<form.Field
 					name="contactCallsign"
 					validators={{
@@ -257,7 +257,10 @@ export function QsoForm({
 						const isInvalid =
 							field.state.meta.isTouched && !field.state.meta.isValid;
 						return (
-							<Field data-invalid={isInvalid}>
+							<Field
+								className="sm:col-span-2 md:col-span-1"
+								data-invalid={isInvalid}
+							>
 								<FieldLabel htmlFor="contactCallsign">Šaukinys</FieldLabel>
 								<Input
 									aria-invalid={isInvalid}
@@ -287,7 +290,7 @@ export function QsoForm({
 						const selectedDate = toCalendarDate(field.state.value);
 						const timeValue = getTimePart(field.state.value);
 						return (
-							<Field className="md:col-span-2" data-invalid={isInvalid}>
+							<Field className="sm:col-span-2" data-invalid={isInvalid}>
 								<FieldLabel htmlFor="qsoAt">Data ir laikas</FieldLabel>
 								<div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
 									<Popover>

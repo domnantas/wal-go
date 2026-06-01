@@ -391,7 +391,7 @@ function CabrilloDropzone() {
 							Sėkmingai įkelti QSO
 						</button>
 						{importedExpanded && (
-							<div className="mt-2 max-h-72 overflow-y-auto rounded-2xl border border-border">
+							<div className="mt-2 max-h-72 overflow-auto rounded-2xl border border-border">
 								<table className="w-full text-xs">
 									<thead className="bg-muted/40">
 										<tr>
@@ -464,7 +464,7 @@ function CabrilloDropzone() {
 							Praleistos eilutės
 						</button>
 						{errorsExpanded && (
-							<div className="mt-2 max-h-60 overflow-y-auto rounded-2xl border border-border">
+							<div className="mt-2 max-h-60 overflow-auto rounded-2xl border border-border">
 								<table className="w-full text-xs">
 									<thead className="bg-muted/40">
 										<tr>
@@ -603,6 +603,7 @@ function getQsoColumns({
 		{
 			accessorKey: "mode",
 			header: "Moduliacija",
+			meta: { className: "hidden sm:table-cell" },
 			cell: ({ getValue }) => (
 				<span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
 					{getValue<string>()}
@@ -794,7 +795,14 @@ function QsoLog({
 								key={headerGroup.id}
 							>
 								{headerGroup.headers.map((header) => (
-									<TableHead className="px-4" key={header.id}>
+									<TableHead
+										className={cn(
+											"px-4",
+											(header.column.columnDef.meta as { className?: string })
+												?.className
+										)}
+										key={header.id}
+									>
 										{header.isPlaceholder
 											? null
 											: flexRender(
@@ -810,7 +818,14 @@ function QsoLog({
 						{table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id}>
 								{row.getVisibleCells().map((cell) => (
-									<TableCell className="px-4" key={cell.id}>
+									<TableCell
+										className={cn(
+											"px-4",
+											(cell.column.columnDef.meta as { className?: string })
+												?.className
+										)}
+										key={cell.id}
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}

@@ -27,6 +27,7 @@
 - [x] Re-draw the logo
 - [x] Rate limiting
 - [x] Map geolocation
+- [x] Log pagination
 - [] Leaderboard – only visible when season ends
 - [] Spotting/self-spotting feature – send a message to discrod
 - [] Past season views
@@ -34,6 +35,6 @@
 - [] Analysing uploaded qsos
 - [] History window – or send a message to Discord. 
 - [] Log export?
-- [x] Log pagination
 - [] Map visible when logged out as well
 - [] i18n
+- [] Remember geolocation setting on map (separate from the add qso)
