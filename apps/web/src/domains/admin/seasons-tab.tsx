@@ -69,6 +69,20 @@ function toDatetimeLocal(date: Date) {
 	return format(date, "yyyy-MM-dd'T'HH:mm");
 }
 
+function deriveStatus(
+	startsAt: Date,
+	endsAt: Date
+): "active" | "ended" | "upcoming" {
+	const now = new Date();
+	if (now < startsAt) {
+		return "upcoming";
+	}
+	if (now > endsAt) {
+		return "ended";
+	}
+	return "active";
+}
+
 export function SeasonsTab() {
 	const queryClient = useQueryClient();
 	const seasons = useQuery(orpc.admin.seasons.list.queryOptions());
@@ -83,7 +97,11 @@ export function SeasonsTab() {
 
 	const deleteSeason = useMutation(
 		orpc.admin.seasons.delete.mutationOptions({
-			onSuccess: () => {
+			onSuccess: (_, { id }) => {
+				queryClient.setQueryData(
+					orpc.admin.seasons.list.queryOptions().queryKey,
+					(old) => old?.filter((s) => s.id !== id) ?? []
+				);
 				invalidate();
 				toast.success("Sezonas ištrintas");
 			},
@@ -231,6 +249,7 @@ function SeasonFormDialog({
 	season: null | SeasonRow;
 	children: React.ReactNode;
 }) {
+	const queryClient = useQueryClient();
 	const [name, setName] = useState(season?.name ?? "");
 	const [startsAt, setStartsAt] = useState(
 		season ? toDatetimeLocal(new Date(season.startsAt)) : ""
@@ -239,9 +258,23 @@ function SeasonFormDialog({
 		season ? toDatetimeLocal(new Date(season.endsAt)) : ""
 	);
 
+	const listKey = orpc.admin.seasons.list.queryOptions().queryKey;
+
 	const create = useMutation(
 		orpc.admin.seasons.create.mutationOptions({
-			onSuccess: () => {
+			onSuccess: (data) => {
+				const startsAtDate = new Date(data.startsAt);
+				const endsAtDate = new Date(data.endsAt);
+				queryClient.setQueryData(listKey, (old) => [
+					...(old ?? []),
+					{
+						id: data.id,
+						name: data.name,
+						startsAt: startsAtDate,
+						endsAt: endsAtDate,
+						status: deriveStatus(startsAtDate, endsAtDate),
+					},
+				]);
 				onSaved();
 				onClose();
 				toast.success("Sezonas sukurtas");
@@ -252,7 +285,24 @@ function SeasonFormDialog({
 
 	const update = useMutation(
 		orpc.admin.seasons.update.mutationOptions({
-			onSuccess: () => {
+			onSuccess: (_, { id, name: newName, startsAt: s, endsAt: e }) => {
+				const startsAtDate = new Date(s);
+				const endsAtDate = new Date(e);
+				queryClient.setQueryData(
+					listKey,
+					(old) =>
+						old?.map((row) =>
+							row.id === id
+								? {
+										...row,
+										name: newName,
+										startsAt: startsAtDate,
+										endsAt: endsAtDate,
+										status: deriveStatus(startsAtDate, endsAtDate),
+									}
+								: row
+						) ?? []
+				);
 				onSaved();
 				onClose();
 				toast.success("Sezonas atnaujintas");

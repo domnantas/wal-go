@@ -171,10 +171,11 @@ const deleteUser = adminProcedure
 	});
 
 const listSeasons = adminProcedure.handler(async ({ context }) => {
-	const rows = await context.db
-		.select()
-		.from(season)
-		.orderBy(asc(season.startsAt));
+	// Transaction bypasses Hyperdrive's query cache so admin always sees
+	// fresh data after mutations. Public seasons.list keeps its cache.
+	const rows = await context.db.transaction((tx) =>
+		tx.select().from(season).orderBy(asc(season.startsAt))
+	);
 	const now = new Date();
 	return rows.map((row) => ({
 		id: row.id,
