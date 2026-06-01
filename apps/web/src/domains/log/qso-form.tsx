@@ -36,7 +36,7 @@ import { z } from "zod";
 
 import { GeolocationSquareButton } from "./geolocation-square-button";
 
-const BAND_OPTIONS = [
+export const BAND_OPTIONS = [
 	"160m",
 	"80m",
 	"40m",
@@ -51,8 +51,8 @@ const BAND_OPTIONS = [
 	"70cm",
 ] as const;
 
-const MODE_OPTIONS = ["CW", "SSB", "FM", "DIGI"] as const;
-const DATE_TIME_INPUT_FORMAT = "yyyy-MM-dd'T'HH:mm";
+export const MODE_OPTIONS = ["CW", "SSB", "FM", "DIGI"] as const;
+export const DATE_TIME_INPUT_FORMAT = "yyyy-MM-dd'T'HH:mm";
 const TIME_INPUT_FORMAT = "HH:mm";
 const DATE_BUTTON_FORMAT = "PPP";
 
@@ -82,17 +82,6 @@ export interface QsoFormPayload {
 	mode: (typeof MODE_OPTIONS)[number];
 	operatorSquare: string;
 	qsoAt: string;
-}
-
-export function getEmptyQsoForm(): QsoFormState {
-	return {
-		contactCallsign: "",
-		band: "20m",
-		mode: "SSB",
-		qsoAt: format(new Date(), DATE_TIME_INPUT_FORMAT),
-		operatorSquare: "",
-		contactSquare: "",
-	};
 }
 
 const requiredText = (message: string) => z.string().trim().min(1, message);
@@ -196,7 +185,9 @@ export function QsoForm({
 	formError,
 	geolocation = false,
 	isPending,
+	onBandChange,
 	onClearError,
+	onModeChange,
 	onSubmit,
 	submitLabel,
 }: {
@@ -204,7 +195,9 @@ export function QsoForm({
 	formError: null | string;
 	geolocation?: boolean;
 	isPending: boolean;
+	onBandChange?: (band: string) => void;
 	onClearError: () => void;
+	onModeChange?: (mode: string) => void;
 	onSubmit: (payload: QsoFormPayload) => void;
 	submitLabel: string;
 }) {
@@ -372,6 +365,7 @@ export function QsoForm({
 								onValueChange={(value) => {
 									onClearError();
 									handleFieldChange(field, value as QsoFormState["band"]);
+									onBandChange?.(value);
 								}}
 								value={field.state.value}
 							>
@@ -407,6 +401,7 @@ export function QsoForm({
 								onValueChange={(value) => {
 									onClearError();
 									handleFieldChange(field, value as QsoFormState["mode"]);
+									onModeChange?.(value);
 								}}
 								value={field.state.value}
 							>
