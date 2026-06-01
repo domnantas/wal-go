@@ -50,8 +50,8 @@ export default function Header() {
 		: publicLinks;
 
 	return (
-		<header className="sticky top-0 z-50 border-border/60 border-b bg-card/50 backdrop-blur-sm">
-			<div className="mx-auto flex items-center justify-between px-4 py-2">
+		<header className="sticky top-0 z-50 border-border/60 border-b bg-card/50 pt-[var(--safe-area-inset-top)] backdrop-blur-sm">
+			<div className="mx-auto flex h-[var(--header-height)] items-center justify-between px-4">
 				<div className="mr-4 flex w-full items-center justify-between gap-6">
 					<Link to="/">
 						<img

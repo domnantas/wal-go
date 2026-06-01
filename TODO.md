@@ -34,4 +34,5 @@
 - [] Analysing uploaded qsos
 - [] History window – or send a message to Discord. 
 - [] Log export?
-- [] Log pagination
+- [x] Log pagination
+- [] Map visible when logged out as well

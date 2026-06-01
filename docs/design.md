@@ -32,6 +32,8 @@ When a dropdown item uses a rendered link element with custom visible content, p
 
 Desktop public header actions show the theme toggle beside the sign-in button. On mobile, the public theme toggle lives inside the navigation dropdown as a `Tema` row so the header keeps a compact action area. Authenticated users manage the theme from the account dropdown on all breakpoints.
 
+The app opts into iOS edge-to-edge layout with `viewport-fit=cover`. The sticky header uses `--safe-area-inset-top` as top padding so its background extends behind the notch / Dynamic Island while keeping the visible controls inside the normal `--header-height` row. Full-height routes that subtract the header from the viewport should use `--app-header-height`, which includes both the visual header row and the safe-area inset.
+
 ## Button Rendering
 
 The shared `Button` component wraps Base UI's button primitive. When a `Button` uses `render` with a non-native button element, such as TanStack Router `Link` or an anchor tag, set `nativeButton={false}`. Keep the default native behavior for real button elements and for primitives that render an actual `Button`.

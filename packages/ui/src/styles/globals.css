@@ -50,6 +50,8 @@
 	--sidebar-border: oklch(0.88 0.02 80);
 	--sidebar-ring: var(--ring);
 	--header-height: 3.5rem;
+	--safe-area-inset-top: env(safe-area-inset-top, 0px);
+	--app-header-height: calc(var(--header-height) + var(--safe-area-inset-top));
 }
 
 .dark {
