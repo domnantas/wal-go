@@ -53,9 +53,8 @@ async function resolveConnectionString(
 }
 
 // Node keeps one long-lived shared pool of this size; Workers open a fresh
-// client per request with max: 1 (see getDb).
+// client per request with max: 1 (Hyperdrive pools the real DB connections).
 const NODE_POOL_MAX = 10;
-const CLOSE_TIMEOUT_SECONDS = 5;
 
 async function createClient(connectionString: string | undefined, max: number) {
 	const resolved = await resolveConnectionString(connectionString);
@@ -69,25 +68,12 @@ async function createClient(connectionString: string | undefined, max: number) {
 		idle_timeout: 20,
 		prepare: false,
 	});
-	return { db: drizzle({ client, relations }), client };
+	return drizzle({ client, relations });
 }
 
-export async function createDb(connectionString?: string) {
-	const { db } = await createClient(connectionString, 1);
-	return db;
+export function createDb(connectionString?: string) {
+	return createClient(connectionString, 1);
 }
-
-/**
- * A database handle plus a `dispose` to release it when the request ends.
- * On Workers `dispose` closes the per-request client; on Node it is a noop
- * because the pool is shared across requests.
- */
-export interface DbScope {
-	db: Awaited<ReturnType<typeof createDb>>;
-	dispose: () => Promise<void>;
-}
-
-const noopDispose = () => Promise.resolve();
 
 // Cache the shared Node pool's in-flight promise per process. Stored on
 // globalThis so Vite HMR module re-evaluation in dev reuses it instead of
@@ -102,29 +88,21 @@ type NodePoolGlobal = typeof globalThis & {
 /**
  * Resolve a database handle for the current request.
  *
- * Workers: a fresh client per call. Reusing one socket across requests on
- * Workers throws "Cannot perform I/O on behalf of a different request", so the
- * client is never cached; Hyperdrive pools the real DB connections, so closing
- * this node-local client in `dispose` is cheap.
+ * Workers: fresh client per call — reusing one socket across requests throws
+ * "Cannot perform I/O on behalf of a different request". Hyperdrive owns the
+ * real DB connection lifecycle, so we never call client.end().
  *
- * Node/local: a single shared pool (max NODE_POOL_MAX) reused across requests —
- * this is the connection pooling that prevents "too many clients already".
- * `dispose` is a noop here: closing the shared pool per request would re-create
- * the leak this exists to fix.
+ * Node/local: single shared pool (max NODE_POOL_MAX) reused across requests —
+ * prevents "too many clients already".
  */
-export async function getDb(): Promise<DbScope> {
+export async function getDb() {
 	const onWorkers = (await getCloudflareEnv()) !== undefined;
 
 	if (onWorkers) {
-		const { db, client } = await createClient(undefined, 1);
-		return {
-			db,
-			dispose: () => client.end({ timeout: CLOSE_TIMEOUT_SECONDS }),
-		};
+		return createClient(undefined, 1);
 	}
 
 	const globalWithPool = globalThis as NodePoolGlobal;
 	globalWithPool[NODE_POOL_KEY] ??= createClient(undefined, NODE_POOL_MAX);
-	const { db } = await globalWithPool[NODE_POOL_KEY];
-	return { db, dispose: noopDispose };
+	return globalWithPool[NODE_POOL_KEY];
 }

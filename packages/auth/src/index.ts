@@ -19,9 +19,6 @@ const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
 
 type Db = Awaited<ReturnType<typeof createDb>>;
 
-// The caller owns the db lifecycle (creates it via getDb and disposes it when
-// the request ends), so auth shares one pool/client per request instead of
-// opening its own.
 export function createAuth(db: Db) {
 	const resend = new Resend(env.RESEND_API_KEY);
 
@@ -209,17 +206,7 @@ export function createAuth(db: Db) {
 	});
 }
 
-/**
- * Build an auth instance bound to a fresh request-scoped db handle.
- *
- * The returned `dispose` must be called when the request ends to release the
- * per-request client on Workers (noop on Node's shared pool). Lets request
- * boundaries depend only on @WAL-GO/auth instead of reaching into the db.
- */
-export async function createAuthScope(): Promise<{
-	auth: ReturnType<typeof createAuth>;
-	dispose: () => Promise<void>;
-}> {
-	const { db, dispose } = await getDb();
-	return { auth: createAuth(db), dispose };
+export async function createAuthScope() {
+	const db = await getDb();
+	return { auth: createAuth(db) };
 }

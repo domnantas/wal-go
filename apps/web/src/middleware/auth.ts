@@ -3,7 +3,7 @@ import { createMiddleware } from "@tanstack/react-start";
 
 export const authMiddleware = createMiddleware().server(
 	async ({ next, request }) => {
-		const { auth, dispose } = await createAuthScope();
+		const { auth } = await createAuthScope();
 		try {
 			const session = await auth.api.getSession({
 				headers: request.headers,
@@ -17,8 +17,6 @@ export const authMiddleware = createMiddleware().server(
 				(error as Error)?.cause
 			);
 			return next({ context: { session: null } });
-		} finally {
-			await dispose();
 		}
 	}
 );

@@ -31,18 +31,6 @@ const getORPCClient = createIsomorphicFn()
 	.server(() =>
 		createRouterClient(appRouter, {
 			context: async () => createContext({ req: getRequest() }),
-			// Each SSR call builds its own context (and, on Workers, its own db
-			// client). Dispose it once the call resolves so the per-request
-			// client is released instead of leaking.
-			interceptors: [
-				async ({ context, next }) => {
-					try {
-						return await next();
-					} finally {
-						await context.dispose();
-					}
-				},
-			],
 		})
 	)
 	.client((): RouterClient<typeof appRouter> => {
