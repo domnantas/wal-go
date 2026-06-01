@@ -32,10 +32,6 @@ const listInput = z
 	})
 	.optional();
 
-const bulkCreateInput = z.object({
-	qsos: z.array(qsoInput).min(1).max(1000),
-});
-
 const deleteQsoInput = z.object({
 	id: z.number().int().positive(),
 });
@@ -302,6 +298,13 @@ const create = protectedProcedure
 		const { contactCallsign, contactSquare, operatorSquare, qsoAt } =
 			normalizeQsoInput(input);
 
+		const userCallsign = normalizeCallsign(context.session.user.name);
+		if (contactCallsign === userCallsign) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Negalima registruoti QSO su savimi",
+			});
+		}
+
 		const now = new Date();
 
 		return await context.db.transaction(async (tx) => {
@@ -404,6 +407,13 @@ const update = protectedProcedure
 		);
 		const { contactCallsign, contactSquare, operatorSquare, qsoAt } =
 			normalizeQsoInput(input);
+
+		const userCallsign = normalizeCallsign(context.session.user.name);
+		if (contactCallsign === userCallsign) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Negalima registruoti QSO su savimi",
+			});
+		}
 
 		return await context.db.transaction(async (tx) => {
 			const existing = await tx
@@ -511,135 +521,6 @@ const update = protectedProcedure
 		});
 	});
 
-const bulkCreate = protectedProcedure
-	.input(bulkCreateInput)
-	.handler(async ({ context, input }) => {
-		await checkRateLimit(
-			context.db,
-			`qso:bulkCreate:${context.session.user.id}`,
-			20,
-			3600
-		);
-		const now = new Date();
-
-		return await context.db.transaction(async (tx) => {
-			const seasonRows = await tx
-				.select()
-				.from(season)
-				.where(and(lte(season.startsAt, now), gte(season.endsAt, now)))
-				.limit(1);
-
-			const currentSeason = seasonRows[0];
-			if (!currentSeason) {
-				throw new ORPCError("NOT_FOUND", {
-					message: "Šiuo metu sezonas nevyksta",
-				});
-			}
-
-			const membershipRows = await tx
-				.select()
-				.from(seasonMembership)
-				.where(
-					and(
-						eq(seasonMembership.userId, context.session.user.id),
-						eq(seasonMembership.seasonId, currentSeason.id)
-					)
-				)
-				.for("update")
-				.limit(1);
-
-			if (!membershipRows[0]) {
-				throw new ORPCError("FORBIDDEN", {
-					message: "Prisijunkite prie sezono",
-				});
-			}
-
-			const team = membershipRows[0].team;
-			const userId = context.session.user.id;
-
-			// Normalize and filter to valid QSOs within season window
-			const normalized = input.qsos.flatMap((q) => {
-				const operatorSquare = normalizeWalSquare(q.operatorSquare);
-				const rawContactSquare = q.contactSquare
-					? normalizeWalSquare(q.contactSquare)
-					: null;
-				const contactSquare =
-					rawContactSquare && isValidWalSquare(rawContactSquare)
-						? rawContactSquare
-						: null;
-				const qsoAt = parseISO(q.qsoAt);
-				if (!isValidWalSquare(operatorSquare)) {
-					return [];
-				}
-				if (!isValid(qsoAt)) {
-					return [];
-				}
-				if (
-					isBefore(qsoAt, currentSeason.startsAt) ||
-					isAfter(qsoAt, currentSeason.endsAt)
-				) {
-					return [];
-				}
-				return [
-					{
-						contactCallsign: normalizeCallsign(q.contactCallsign),
-						band: q.band,
-						mode: q.mode,
-						qsoAt,
-						operatorSquare,
-						contactSquare,
-					},
-				];
-			});
-
-			if (normalized.length === 0) {
-				return [];
-			}
-
-			const insertParams: InsertParams[] = normalized.map((q) => ({
-				band: q.band,
-				contactCallsign: q.contactCallsign,
-				contactSquare: q.contactSquare,
-				mode: q.mode,
-				operatorSquare: q.operatorSquare,
-				qsoAt: q.qsoAt,
-				seasonId: currentSeason.id,
-				team,
-				userId,
-			}));
-
-			const exactDeduped = await filterExactQsoDuplicates(tx, insertParams);
-			const ruleSet = getScoringRuleSet(currentSeason.id);
-			const toInsert = await ruleSet.filterBulkInserts(tx, exactDeduped);
-
-			if (toInsert.length === 0) {
-				return [];
-			}
-
-			const inserted = await tx
-				.insert(qso)
-				.values(
-					toInsert.map((q) => ({
-						userId,
-						seasonId: currentSeason.id,
-						contactCallsign: q.contactCallsign,
-						band: q.band as typeof qso.band._.data,
-						mode: q.mode as typeof qso.mode._.data,
-						qsoAt: q.qsoAt,
-						team,
-						operatorSquare: q.operatorSquare,
-						contactSquare: q.contactSquare,
-					}))
-				)
-				.returning();
-
-			const deltas = ruleSet.scoreBulkInsert(toInsert);
-			await applyScoreDeltas(tx, currentSeason.id, deltas);
-
-			return inserted.map(serializeQso);
-		});
-	});
-
 const deleteQso = protectedProcedure
 	.input(deleteQsoInput)
 	.handler(async ({ context, input }) => {
@@ -704,7 +585,8 @@ export type SkipReason =
 	| "invalidMode"
 	| "invalidSquare"
 	| "malformedLine"
-	| "outsideSeason";
+	| "outsideSeason"
+	| "selfContact";
 
 export interface ImportError {
 	content: string;
@@ -773,6 +655,15 @@ function mapParsedQsos(
 				line: q.lineNumber,
 				content: q.rawLine,
 				reason: "invalidSquare",
+			});
+			continue;
+		}
+
+		if (normalizeCallsign(q.contactCallsign) === userCallsign) {
+			errors.push({
+				line: q.lineNumber,
+				content: q.rawLine,
+				reason: "selfContact",
 			});
 			continue;
 		}
@@ -1001,7 +892,6 @@ export const qsosRouter = {
 	stats,
 	create,
 	update,
-	bulkCreate,
 	delete: deleteQso,
 	importCabrillo,
 };

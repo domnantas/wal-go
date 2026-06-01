@@ -30,6 +30,7 @@ const SKIP_REASON_LABELS: Record<string, string> = {
 	invalidSquare: "Neteisingas kvadratas",
 	malformedLine: "Klaidinga eilutė",
 	outsideSeason: "Ne sezono laikotarpis",
+	selfContact: "QSO su savimi",
 };
 
 function formatDateTime(date: Date) {

@@ -22,13 +22,16 @@
 - [x] Admin page
 - [x] Audit trail of uploads in admin
 - [x] Score reconciliation
-- [] Leaderboard – open question - is it ok to see who is is on what team
+- [] Leaderboard – only visible when season ends
 - [] Spotting/self-spotting feature
 - [x] Re-draw the logo
-- [] Add posthog tracking
+- [x] Add posthog tracking
 - [] Past season views
 - [] Profile with your impact on the map
 - [x] QSO editing
-- [] Rate limiting
+- [x] Rate limiting
 - [] Analysing uploaded qsos
 - [x] Map geolocation
+- [] CF cache invalidation
+- [] History window
+- [] Log export?

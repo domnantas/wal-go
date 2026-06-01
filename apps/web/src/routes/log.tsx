@@ -232,6 +232,7 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	outsideSeason: "Už sezono ribų",
 	malformedLine: "Neteisingas formatas",
 	invalidCallsign: "Neteisingas šaukinys",
+	selfContact: "QSO su savimi",
 };
 
 function CabrilloDropzone() {
