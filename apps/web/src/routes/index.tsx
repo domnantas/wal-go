@@ -122,7 +122,8 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 function HomeComponent() {
 	const queryClient = useQueryClient();
-	const { data: session } = authClient.useSession();
+	const { data: session, isPending: isSessionPending } =
+		authClient.useSession();
 	const { data: currentSeason } = useQuery(orpc.seasons.current.queryOptions());
 	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
 	const { data: teamStandings } = useQuery(
@@ -209,7 +210,7 @@ function HomeComponent() {
 					</h1>
 
 					<div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-						{session ? (
+						{!isSessionPending && session ? (
 							<Button
 								className="px-6"
 								nativeButton={false}
