@@ -1,7 +1,7 @@
 import type { createDb } from "@WAL-GO/db";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { ORPCError } from "@orpc/server";
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, count, eq, gte, lte } from "drizzle-orm";
 
 import { protectedProcedure, publicProcedure } from "../index";
 
@@ -20,8 +20,32 @@ export async function getCurrentSeason(db: Db) {
 	return rows[0] ?? null;
 }
 
-function pickRandomTeam(): Team {
-	return TEAMS[Math.floor(Math.random() * TEAMS.length)] as Team;
+async function pickWeightedTeam(db: Db, seasonId: string): Promise<Team> {
+	const rows = await db
+		.select({ team: seasonMembership.team, count: count() })
+		.from(seasonMembership)
+		.where(eq(seasonMembership.seasonId, seasonId))
+		.groupBy(seasonMembership.team);
+
+	const memberCount = new Map(rows.map((r) => [r.team, r.count]));
+
+	// More members = lower weight = less likely to be picked
+	const teamWeights = TEAMS.map((team) => ({
+		team,
+		weight: 1 / ((memberCount.get(team) ?? 0) + 1),
+	}));
+
+	const totalWeight = teamWeights.reduce((sum, { weight }) => sum + weight, 0);
+	const threshold = Math.random() * totalWeight;
+
+	let cumulative = 0;
+	for (const { team, weight } of teamWeights) {
+		cumulative += weight;
+		if (threshold <= cumulative) {
+			return team;
+		}
+	}
+	return TEAMS[TEAMS.length - 1];
 }
 
 function deriveStatus(
@@ -132,7 +156,7 @@ const join = protectedProcedure.handler(async ({ context }) => {
 			.values({
 				seasonId,
 				userId,
-				team: pickRandomTeam(),
+				team: await pickWeightedTeam(tx, seasonId),
 			})
 			.onConflictDoNothing({
 				target: [seasonMembership.userId, seasonMembership.seasonId],
