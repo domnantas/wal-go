@@ -1,3 +1,4 @@
+import { BLOCKED_CALLSIGN_REGEX, CALLSIGN_REGEX } from "@WAL-GO/callsign";
 import { Button } from "@WAL-GO/ui/components/button";
 import {
 	Card,
@@ -33,12 +34,17 @@ import { z } from "zod";
 import { MagicLinkButton } from "./magic-link-button";
 import { ProviderButtons, type SocialLayout } from "./provider-buttons";
 
-const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
-
 const nameSchema = z
 	.string()
 	.min(1, "Šaukinys yra privalomas")
-	.regex(CALLSIGN_REGEX, "Šaukinys turi atitikti LY formatą (pvz. LY1AB)");
+	.refine(
+		(v) => !BLOCKED_CALLSIGN_REGEX.test(v.trim().toUpperCase()),
+		"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦"
+	)
+	.refine(
+		(v) => CALLSIGN_REGEX.test(v.trim().toUpperCase()),
+		"Neteisingas šaukinio formatas (pvz. LY1AB, SP5ABC)"
+	);
 const emailSchema = z
 	.email("Neteisingas el. pašto formatas")
 	.trim()

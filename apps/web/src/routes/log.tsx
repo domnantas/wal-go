@@ -262,6 +262,7 @@ const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	malformedLine: "Neteisingas formatas",
 	invalidCallsign: "Neteisingas šaukinys",
 	selfContact: "QSO su savimi",
+	blockedCallsign: "Blokuojamas šaukinys. Слава Україні! 🇺🇦",
 };
 
 function CabrilloDropzone() {

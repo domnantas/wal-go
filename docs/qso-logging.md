@@ -129,6 +129,8 @@ After parsing, the server further filters QSOs. Each skipped QSO gets one of:
 | `invalidDate` | Date/time cannot be parsed to a valid UTC timestamp |
 | `outsideSeason` | QSO timestamp is before season start or after season end |
 | `invalidSquare` | Operator square fails WAL validation |
+| `selfContact` | Contact callsign matches the operator's own callsign |
+| `blockedCallsign` | Contact callsign has a Russian or Belarusian prefix (blocked) |
 | `exactDuplicate` | Identical QSO already in database for this user/season |
 | `gameDuplicate` | Same call/band/mode/squares on same Lithuanian calendar day |
 

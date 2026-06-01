@@ -36,3 +36,4 @@
 - [] Log export?
 - [x] Log pagination
 - [] Map visible when logged out as well
+- [] i18n

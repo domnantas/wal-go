@@ -11,6 +11,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@WAL-GO/callsign": "workspace:*",
     "@WAL-GO/auth": "workspace:*",
     "@WAL-GO/db": "workspace:*",
     "@WAL-GO/env": "workspace:*",

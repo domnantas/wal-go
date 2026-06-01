@@ -98,6 +98,9 @@ importers:
       '@WAL-GO/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@WAL-GO/callsign':
+        specifier: workspace:*
+        version: link:../../packages/callsign
       '@WAL-GO/env':
         specifier: workspace:*
         version: link:../../packages/env
@@ -258,6 +261,9 @@ importers:
       '@WAL-GO/auth':
         specifier: workspace:*
         version: link:../auth
+      '@WAL-GO/callsign':
+        specifier: workspace:*
+        version: link:../callsign
       '@WAL-GO/db':
         specifier: workspace:*
         version: link:../db
@@ -304,6 +310,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@WAL-GO/callsign':
+        specifier: workspace:*
+        version: link:../callsign
       '@WAL-GO/db':
         specifier: workspace:*
         version: link:../db
@@ -340,6 +349,15 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.3.6
+    devDependencies:
+      '@WAL-GO/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+
+  packages/callsign:
     devDependencies:
       '@WAL-GO/config':
         specifier: workspace:*
@@ -438,6 +456,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@WAL-GO/callsign':
+        specifier: workspace:*
+        version: link:../callsign
       '@base-ui/react':
         specifier: ^1.0.0
         version: 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)

@@ -1,3 +1,4 @@
+import { isBlockedCallsign, normalizeCallsign } from "@WAL-GO/callsign";
 import { QSO_BANDS, QSO_MODES, qso } from "@WAL-GO/db/schema/qsos";
 import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
@@ -46,17 +47,6 @@ const updateQsoInput = qsoInput.extend({
 
 function normalizeValue(value: string) {
 	return value.trim().toUpperCase();
-}
-
-// Reduces a callsign to its base call by stripping operating
-// suffixes/prefixes (`/P`, `/M`, country prefixes like `9A/`). Keeps the
-// longest `/`-delimited part, which is the base call in practice. Applied to
-// both operator (for matching) and contact (for dedup/uniqueness) calls so a
-// station's `/P` `/M` variants collapse to one — location is already carried
-// by the WAL square field.
-function normalizeCallsign(callsign: string): string {
-	const parts = normalizeValue(callsign).split("/");
-	return parts.reduce((a, b) => (a.length >= b.length ? a : b), "");
 }
 
 function toNumber(value: number | string | null | undefined): number {
@@ -325,6 +315,12 @@ const create = protectedProcedure
 			normalizeQsoInput(input);
 
 		const userCallsign = normalizeCallsign(context.session.user.name);
+		if (isBlockedCallsign(contactCallsign)) {
+			throw new ORPCError("BAD_REQUEST", {
+				message:
+					"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦",
+			});
+		}
 		if (contactCallsign === userCallsign) {
 			throw new ORPCError("BAD_REQUEST", {
 				message: "Negalima registruoti QSO su savimi",
@@ -435,6 +431,12 @@ const update = protectedProcedure
 			normalizeQsoInput(input);
 
 		const userCallsign = normalizeCallsign(context.session.user.name);
+		if (isBlockedCallsign(contactCallsign)) {
+			throw new ORPCError("BAD_REQUEST", {
+				message:
+					"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦",
+			});
+		}
 		if (contactCallsign === userCallsign) {
 			throw new ORPCError("BAD_REQUEST", {
 				message: "Negalima registruoti QSO su savimi",
@@ -604,6 +606,7 @@ const deleteQso = protectedProcedure
 export type QsoBand = (typeof QSO_BANDS)[number];
 
 export type SkipReason =
+	| "blockedCallsign"
 	| "callsignMismatch"
 	| "exactDuplicate"
 	| "gameDuplicate"
@@ -692,6 +695,15 @@ function mapParsedQsos(
 				line: q.lineNumber,
 				content: q.rawLine,
 				reason: "selfContact",
+			});
+			continue;
+		}
+
+		if (isBlockedCallsign(normalizeCallsign(q.contactCallsign))) {
+			errors.push({
+				line: q.lineNumber,
+				content: q.rawLine,
+				reason: "blockedCallsign",
 			});
 			continue;
 		}

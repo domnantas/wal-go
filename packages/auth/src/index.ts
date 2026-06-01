@@ -1,3 +1,4 @@
+import { BLOCKED_CALLSIGN_REGEX, CALLSIGN_REGEX } from "@WAL-GO/callsign";
 import { type createDb, getDb } from "@WAL-GO/db";
 // biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
 import * as schema from "@WAL-GO/db/schema";
@@ -14,8 +15,6 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { eq } from "drizzle-orm";
 import { createElement } from "react";
 import { Resend } from "resend";
-
-const CALLSIGN_REGEX = /^LY\d{1,4}[A-Z]{1,5}$/;
 
 type Db = Awaited<ReturnType<typeof createDb>>;
 
@@ -184,9 +183,15 @@ export function createAuth(db: Db) {
 				}
 				if (ctx.path === "/sign-up/email" && ctx.body?.name) {
 					const callsign = String(ctx.body.name).toUpperCase();
+					if (BLOCKED_CALLSIGN_REGEX.test(callsign)) {
+						throw new APIError("BAD_REQUEST", {
+							message:
+								"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦",
+						});
+					}
 					if (!CALLSIGN_REGEX.test(callsign)) {
 						throw new APIError("BAD_REQUEST", {
-							message: "Šaukinys turi atitikti LY formatą (pvz. LY1AB)",
+							message: "Neteisingas šaukinio formatas (pvz. LY1AB, SP5ABC)",
 						});
 					}
 					const existing = await db

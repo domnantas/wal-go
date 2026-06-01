@@ -79,9 +79,9 @@ function RulesComponent() {
 
 			<RuleSection id="dalyviai" number="2" title="Dalyviai">
 				<Rule n="2.1">
-					Žaisti gali kiekvienas, turintis galiojantį radijo mėgėjo šaukinį.
-					Norėdamas dalyvauti, žaidėjas privalo sukurti paskyrą ir nurodyti savo
-					šaukinį.
+					Žaisti gali Lietuvoje ir kitose šalyse licencijuoti radijo mėgėjai,
+					išskyrus Rusijos ir Baltarusijos radijo mėgėjus. Norėdamas dalyvauti,
+					žaidėjas privalo sukurti paskyrą ir nurodyti savo šaukinį.
 				</Rule>
 				<Rule n="2.2">
 					Kiekvienam žaidėjui leidžiama turėti tik vieną paskyrą. Kelių paskyrų
@@ -217,6 +217,14 @@ function RulesComponent() {
 				<Rule n="6.5">
 					Registruoti ryšius galima tik aktyvaus sezono metu. Pasibaigus
 					sezonui, QSO įrašyti nebegalima.
+				</Rule>
+				<Rule n="6.6">
+					Rusijos ir Baltarusijos korespondentų šaukiniai nėra priimami. QSO su
+					šaukiniais kurie prasideda{" "}
+					<code className="rounded bg-muted px-1 font-mono text-xs">
+						D0, D1, R, UA-UI, EU, EV, EW,
+					</code>{" "}
+					yra atmetami.
 				</Rule>
 			</RuleSection>
 

@@ -8,6 +8,7 @@
     "dev:bare": "vite dev"
   },
   "dependencies": {
+    "@WAL-GO/callsign": "workspace:*",
     "@WAL-GO/api": "workspace:*",
     "@WAL-GO/auth": "workspace:*",
     "@WAL-GO/env": "workspace:*",
