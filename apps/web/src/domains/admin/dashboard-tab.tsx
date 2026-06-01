@@ -80,6 +80,10 @@ export function DashboardTab() {
 						season.memberCounts.yellow +
 						season.memberCounts.green +
 						season.memberCounts.red;
+					const totalControlledSquares =
+						season.controlledSquares.yellow +
+						season.controlledSquares.green +
+						season.controlledSquares.red;
 
 					return (
 						<div
@@ -118,13 +122,13 @@ export function DashboardTab() {
 
 							<div className="flex flex-col gap-2">
 								{TEAMS.map((team) => {
-									const score = season.teamScores[team];
+									const controlledSquares = season.controlledSquares[team];
+									const points = season.teamScores[team];
 									const members = season.memberCounts[team];
-									const totalScore =
-										season.teamScores.yellow +
-										season.teamScores.green +
-										season.teamScores.red;
-									const pct = totalScore > 0 ? (score / totalScore) * 100 : 0;
+									const pct =
+										totalControlledSquares > 0
+											? (controlledSquares / totalControlledSquares) * 100
+											: 0;
 
 									return (
 										<div className="flex items-center gap-3" key={team}>
@@ -139,12 +143,12 @@ export function DashboardTab() {
 														style={{ width: `${pct}%` }}
 													/>
 												</div>
-												<span className="w-16 text-right font-semibold text-sm tabular-nums">
-													{score} t.
+												<span className="w-20 text-right font-semibold text-sm tabular-nums">
+													{controlledSquares} kvadr.
 												</span>
 											</div>
-											<span className="w-14 text-right text-muted-foreground text-xs tabular-nums">
-												{members} nar.
+											<span className="w-24 text-right text-muted-foreground text-xs tabular-nums">
+												{points} t. · {members} nar.
 											</span>
 										</div>
 									);

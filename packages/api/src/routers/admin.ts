@@ -1,10 +1,10 @@
 import { session, user } from "@WAL-GO/db/schema/auth";
 import { qso } from "@WAL-GO/db/schema/qsos";
-import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
+import { squareScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
 import { ORPCError } from "@orpc/server";
-import { and, asc, count, desc, eq, gte, lte, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
@@ -17,6 +17,78 @@ import { computeScoreDrift, EMPTY_SEASON_DRIFT } from "../scoring/drift";
 import { getScoringRuleSet } from "../scoring/index";
 
 const TEAMS = ["yellow", "green", "red"] as const;
+type Team = (typeof TEAMS)[number];
+
+const createEmptyTeamCounts = (): Record<Team, number> => ({
+	yellow: 0,
+	green: 0,
+	red: 0,
+});
+
+const deriveControlledSquaresBySeason = (
+	rows: {
+		seasonId: number;
+		squareCode: string;
+		team: Team;
+		points: number;
+	}[]
+) => {
+	const bySeasonSquare = new Map<
+		string,
+		{ seasonId: number; scores: Record<Team, number> }
+	>();
+
+	for (const row of rows) {
+		const key = `${row.seasonId}:${row.squareCode}`;
+		if (!bySeasonSquare.has(key)) {
+			bySeasonSquare.set(key, {
+				seasonId: row.seasonId,
+				scores: createEmptyTeamCounts(),
+			});
+		}
+		const square = bySeasonSquare.get(key);
+		if (square) {
+			square.scores[row.team] = row.points;
+		}
+	}
+
+	const controlledSquaresBySeason = new Map<number, Record<Team, number>>();
+	for (const { seasonId, scores } of bySeasonSquare.values()) {
+		const maxPoints = Math.max(...TEAMS.map((team) => scores[team]));
+		const leaders = TEAMS.filter((team) => scores[team] === maxPoints);
+		const leader = leaders.length === 1 && maxPoints > 0 ? leaders[0] : null;
+
+		if (leader) {
+			if (!controlledSquaresBySeason.has(seasonId)) {
+				controlledSquaresBySeason.set(seasonId, createEmptyTeamCounts());
+			}
+			const seasonCounts = controlledSquaresBySeason.get(seasonId);
+			if (seasonCounts) {
+				seasonCounts[leader] += 1;
+			}
+		}
+	}
+
+	return controlledSquaresBySeason;
+};
+
+const deriveTeamScoresBySeason = (
+	rows: { seasonId: number; team: Team; points: number }[]
+) => {
+	const scoresBySeason = new Map<number, Record<Team, number>>();
+
+	for (const row of rows) {
+		if (!scoresBySeason.has(row.seasonId)) {
+			scoresBySeason.set(row.seasonId, createEmptyTeamCounts());
+		}
+		const seasonScores = scoresBySeason.get(row.seasonId);
+		if (seasonScores) {
+			seasonScores[row.team] += row.points;
+		}
+	}
+
+	return scoresBySeason;
+};
 
 function deriveSeasonStatus(
 	startsAt: Date,
@@ -385,7 +457,7 @@ const getDashboard = adminProcedure.handler(async ({ context }) => {
 		seasons,
 		qsoCounts,
 		memberCounts,
-		teamScores,
+		squareScoreRows,
 		driftBySeason,
 	] = await Promise.all([
 		context.db.select({ count: count() }).from(user),
@@ -404,36 +476,30 @@ const getDashboard = adminProcedure.handler(async ({ context }) => {
 			.groupBy(seasonMembership.seasonId, seasonMembership.team),
 		context.db
 			.select({
-				seasonId: seasonMembership.seasonId,
-				team: seasonMembership.team,
-				points: sum(userSeasonScore.points),
+				seasonId: squareScore.seasonId,
+				squareCode: squareScore.squareCode,
+				team: squareScore.team,
+				points: squareScore.points,
 			})
-			.from(userSeasonScore)
-			.innerJoin(
-				seasonMembership,
-				and(
-					eq(userSeasonScore.userId, seasonMembership.userId),
-					eq(userSeasonScore.seasonId, seasonMembership.seasonId)
-				)
-			)
-			.groupBy(seasonMembership.seasonId, seasonMembership.team),
+			.from(squareScore),
 		computeScoreDrift(context.db),
 	]);
 
 	const totalUsers = totalUsersResult[0]?.count ?? 0;
 	const totalQsos = qsoCounts.reduce((acc, r) => acc + r.count, 0);
 	const now = new Date();
+	const controlledSquaresBySeason =
+		deriveControlledSquaresBySeason(squareScoreRows);
+	const teamScoresBySeason = deriveTeamScoresBySeason(squareScoreRows);
 
 	const seasonStats = seasons.map((s) => {
 		const qsoCount = qsoCounts.find((q) => q.seasonId === s.id)?.count ?? 0;
 		const memberCount = (team: "yellow" | "green" | "red") =>
 			memberCounts.find((m) => m.seasonId === s.id && m.team === team)?.count ??
 			0;
-		const teamScore = (team: "yellow" | "green" | "red") =>
-			Number(
-				teamScores.find((t) => t.seasonId === s.id && t.team === team)
-					?.points ?? 0
-			);
+		const teamScores = teamScoresBySeason.get(s.id) ?? createEmptyTeamCounts();
+		const controlledSquares =
+			controlledSquaresBySeason.get(s.id) ?? createEmptyTeamCounts();
 
 		return {
 			id: s.id,
@@ -448,9 +514,14 @@ const getDashboard = adminProcedure.handler(async ({ context }) => {
 				red: memberCount("red"),
 			},
 			teamScores: {
-				yellow: teamScore("yellow"),
-				green: teamScore("green"),
-				red: teamScore("red"),
+				yellow: teamScores.yellow,
+				green: teamScores.green,
+				red: teamScores.red,
+			},
+			controlledSquares: {
+				yellow: controlledSquares.yellow,
+				green: controlledSquares.green,
+				red: controlledSquares.red,
 			},
 			drift: driftBySeason.get(s.id) ?? EMPTY_SEASON_DRIFT,
 		};

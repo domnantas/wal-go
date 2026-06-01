@@ -16,10 +16,10 @@ Two layers enforce admin-only access:
 Default tab. Shows at-a-glance stats:
 
 - **Global stat cards**: total registered users, total QSOs across all seasons, season count.
-- **Per-season cards** (chronological by start date, oldest first): season name, status badge (`active` / `upcoming` / `ended`), date range, QSO count, total member count, and a score bar per team (yellow / green / red) showing points and member count.
+- **Per-season cards** (chronological by start date, oldest first): season name, status badge (`active` / `upcoming` / `ended`), date range, QSO count, total member count, and a team bar (yellow / green / red) where the primary metric is controlled WAL square count. Points and member count are shown as secondary metrics.
 - **Drift badge** (per season card): a green "Taškai sutampa" badge when the stored scores match the source-of-truth QSOs, or a red "Aptiktas taškų neatitikimas" warning showing how many square rows, user rows, and total points differ. Computed by `computeScoreDrift` (`packages/api/src/scoring/drift.ts`); see `docs/scoring.md` for the detector logic. The red badge carries a **"Perskaičiuoti"** button (procedure `orpc.admin.scores.recompute`) that wipes and rebuilds the season's score tables from the source-of-truth QSOs, fixing the drift; see `docs/scoring.md` § Repair: recompute scores.
 
-Team scores are summed from `user_season_score` joined with `season_membership` to attribute each user's score to their team.
+Team points and controlled-square counts are derived from `square_score`. A square counts as controlled by a team only when that team has strictly more points than either rival on the square; tied leaders do not control the square.
 
 Implemented via `orpc.admin.dashboard` in `packages/api/src/routers/admin.ts`.
 
