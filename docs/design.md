@@ -32,7 +32,7 @@ When a dropdown item uses a rendered link element with custom visible content, p
 
 Desktop public header actions show the theme toggle beside the sign-in button. On mobile, the public theme toggle lives inside the navigation dropdown as a `Tema` row so the header keeps a compact action area. Authenticated users manage the theme from the account dropdown on all breakpoints.
 
-The app opts into iOS edge-to-edge layout with `viewport-fit=cover`. The sticky header uses `--safe-area-inset-top` as top padding so its background extends behind the notch / Dynamic Island while keeping the visible controls inside the normal `--header-height` row. Full-height routes that subtract the header from the viewport should use `--app-header-height`, which includes both the visual header row and the safe-area inset.
+The app opts into iOS edge-to-edge layout with `viewport-fit=cover`. The sticky header uses `--safe-area-inset-top` as top padding so its background extends behind the notch / Dynamic Island while keeping the visible controls inside the normal `--header-height` row. The blurred background (`bg-card/50 backdrop-blur-sm`) is applied directly on the `<header>` element — not on a separate absolutely-positioned overlay — so iOS Safari reliably renders the blur across the full element, including the safe-area padding behind the notch. Full-height routes that subtract the header from the viewport should use `--app-header-height`, which includes both the visual header row and the safe-area inset.
 
 ## Button Rendering
 
