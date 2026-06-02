@@ -182,7 +182,7 @@ function HomeComponent() {
 	return (
 		<main>
 			{/* ── Hero ─────────────────────────────────────────────── */}
-			<section className="relative flex min-h-[85vh] items-center overflow-hidden">
+			<section className="relative flex min-h-[68vh] items-center overflow-hidden md:min-h-[85vh]">
 				{/* Persistent, stationary map */}
 				<div
 					className={cn(
@@ -226,13 +226,13 @@ function HomeComponent() {
 				{/* Content — moves up and fades out when map revealed */}
 				<div
 					className={cn(
-						"relative z-10 mx-auto w-full max-w-6xl px-8 pt-14 pb-24 text-center transition-all duration-500",
+						"relative z-10 mx-auto w-full max-w-6xl px-6 pt-8 pb-14 text-center transition-all duration-500 md:px-8 md:pt-14 md:pb-24",
 						isMapRevealed && "pointer-events-none -translate-y-4 opacity-0"
 					)}
 				>
 					<img
 						alt="WAL GO logo"
-						className="mx-auto mb-4 h-40 w-auto drop-shadow-md"
+						className="mx-auto mb-3 h-28 w-auto drop-shadow-md md:mb-4 md:h-40"
 						src={walGoLogo}
 					/>
 
@@ -240,7 +240,7 @@ function HomeComponent() {
 
 					<h1
 						className="font-bold font-serif leading-[1.02] tracking-tight"
-						style={{ fontSize: "clamp(48px, 7vw, 96px)" }}
+						style={{ fontSize: "clamp(36px, 7vw, 96px)" }}
 					>
 						Atrask <span className="text-golden">Lietuvą</span>
 						<br />
@@ -255,7 +255,7 @@ function HomeComponent() {
 						</em>
 					</h1>
 
-					<div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+					<div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row md:mt-10">
 						{!isSessionPending && session ? (
 							<Button
 								className="px-6"
