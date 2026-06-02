@@ -14,6 +14,10 @@ The route imports MapLibre CSS and initializes the map on the client in a React 
 
 The map uses MapLibre's native controls for map navigation, scale, and geolocation. The geolocation button asks for browser location permission, then shows the user's current location with high accuracy, the accuracy circle, and user-location tracking enabled.
 
+### Current square indicator
+
+While geolocation tracking is active, the map listens to the `GeolocateControl` `geolocate` event and computes the user's WAL square from the reported coordinates via `@WAL-GO/grid`'s `calculateWal`. The current square is shown in a small overlay box (labeled "Jūsų kvadratas") pinned to the top-right of the map, beside the zoom/geolocation controls. Because tracking emits a `geolocate` event on every position update, the box updates automatically as the operator moves from square to square. Only valid WAL squares are shown. The box stays put when the user pans the map — it is not cleared on `trackuserlocationend` (which MapLibre also fires when the map moves out of active lock), only on a geolocation `error`.
+
 ## Local map styles
 
 The web app keeps local OpenFreeMap-compatible style JSON files in `apps/web/src/assets/`:

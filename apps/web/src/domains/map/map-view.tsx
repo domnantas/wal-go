@@ -1,4 +1,9 @@
-import { useEffect, useRef } from "react";
+import {
+	calculateWal,
+	isValidWalSquare,
+	normalizeWalSquare,
+} from "@WAL-GO/grid";
+import { useEffect, useRef, useState } from "react";
 import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useQuery } from "@tanstack/react-query";
@@ -130,6 +135,11 @@ function updateSelectedSquareFilter(
 	);
 }
 
+function squareFromCoords(latitude: number, longitude: number): null | string {
+	const wal = normalizeWalSquare(calculateWal(latitude, longitude));
+	return isValidWalSquare(wal) ? wal : null;
+}
+
 function getClickableWalGridLayerIds(map: import("maplibre-gl").Map) {
 	return CLICKABLE_WAL_GRID_LAYER_IDS.filter((layerId) =>
 		map.getLayer(layerId)
@@ -151,6 +161,7 @@ export function MapView({
 	const mapRef = useRef<import("maplibre-gl").Map | null>(null);
 	const onSquareSelectRef = useRef(onSquareSelect);
 	const selectedSquareCodeRef = useRef(selectedSquareCode);
+	const [currentSquare, setCurrentSquare] = useState<string | null>(null);
 	const { theme, systemTheme } = useTheme();
 
 	const { data: squaresData } = useQuery(
@@ -247,17 +258,23 @@ export function MapView({
 				new maplibregl.NavigationControl({ visualizePitch: true }),
 				"top-right"
 			);
-			map.addControl(
-				new maplibregl.GeolocateControl({
-					positionOptions: {
-						enableHighAccuracy: true,
-					},
-					showAccuracyCircle: true,
-					showUserLocation: true,
-					trackUserLocation: true,
-				}),
-				"top-right"
-			);
+			const geolocateControl = new maplibregl.GeolocateControl({
+				positionOptions: {
+					enableHighAccuracy: true,
+				},
+				showAccuracyCircle: true,
+				showUserLocation: true,
+				trackUserLocation: true,
+			});
+			map.addControl(geolocateControl, "top-right");
+
+			geolocateControl.on("geolocate", (event) => {
+				const position = event as GeolocationPosition;
+				setCurrentSquare(
+					squareFromCoords(position.coords.latitude, position.coords.longitude)
+				);
+			});
+			geolocateControl.on("error", () => setCurrentSquare(null));
 			map.addControl(new maplibregl.ScaleControl({ unit: "metric" }));
 
 			map.on("style.load", () => {
@@ -318,7 +335,18 @@ export function MapView({
 		};
 	}, []);
 
-	return <div className="relative flex-1" ref={mapContainerRef} />;
+	return (
+		<div className="relative flex-1" ref={mapContainerRef}>
+			{currentSquare ? (
+				<div className="pointer-events-none absolute top-2 right-12 z-10 rounded-md border border-border bg-card/90 px-3 py-2 shadow-md backdrop-blur">
+					<div className="text-muted-foreground text-xs">Jūsų kvadratas</div>
+					<div className="font-semibold text-foreground text-lg tabular-nums">
+						{currentSquare}
+					</div>
+				</div>
+			) : null}
+		</div>
+	);
 }
 
 function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
