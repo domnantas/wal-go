@@ -50,12 +50,8 @@ export default function Header() {
 		: publicLinks;
 
 	return (
-		<header className="sticky top-0 z-50 border-border/60 border-b pt-[var(--safe-area-inset-top)]">
-			<div
-				aria-hidden
-				className="fixed inset-x-0 top-0 -z-10 h-[var(--app-header-height)] bg-card/50 backdrop-blur-sm"
-			/>
-			<div className="mx-auto flex h-[var(--header-height)] items-center justify-between px-4">
+		<header className="sticky top-0 z-50 border-border/60 border-b bg-card/50 backdrop-blur-sm">
+			<div className="mx-auto flex h-(--header-height) items-center justify-between px-4">
 				<div className="mr-4 flex w-full items-center justify-between gap-6">
 					<Link to="/">
 						<img
