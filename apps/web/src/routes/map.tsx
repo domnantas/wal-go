@@ -2,6 +2,7 @@ import { sessionOptions } from "@better-auth-ui/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DiscordCommunityBox } from "@/domains/map/discord-community-box";
 import { MapView } from "@/domains/map/map-view";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { TeamControlledSquaresBox } from "@/domains/scoring/team-controlled-squares-box";
@@ -124,6 +125,7 @@ function RouteComponent() {
 						selectedSquareCode={selectedSquareCode}
 					/>
 				</div>
+				<DiscordCommunityBox />
 			</aside>
 		</main>
 	);

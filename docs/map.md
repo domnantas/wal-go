@@ -71,6 +71,12 @@ The right sidebar starts with season timing. During an active season it shows pr
 
 The controlled-square summary and selected-square statistics use the same displayed season as the map: active season first, then the most recently ended season. When a next-season countdown reaches zero, the route immediately treats that upcoming season as the displayed active season and refreshes season queries in the background.
 
+## Discord community box
+
+The bottom of the right sidebar shows a dismissable Discord invite (`DiscordCommunityBox`). It links to `DISCORD_INVITE_URL` and is hidden once the user clicks the close button. Dismissal is persisted in `localStorage` under the `discord-community-box-dismissed` key.
+
+To stay SSR-safe, the box starts hidden and reads `localStorage` in a mount effect, so the server render never assumes a visibility state.
+
 ## Authorization
 
 The route is protected with TanStack Router `beforeLoad` using `context.session?.user`. This is a navigation guard only; any future map data APIs must still use server-side authorization through ORPC `protectedProcedure`.
