@@ -6,6 +6,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "./maplibre-theme.css";
 import { useQuery } from "@tanstack/react-query";
 import type { StyleSpecification } from "maplibre-gl";
 import { useTheme } from "tanstack-theme-kit";
@@ -14,6 +15,15 @@ import lightStyle from "@/assets/walgo-style.json";
 import { orpc } from "@/utils/orpc";
 
 const LITHUANIA_CENTER: [number, number] = [23.88, 55.17];
+// Country extent used to frame the map. The initial zoom and minZoom are
+// derived from fitting these bounds to the container, so the whole country
+// stays visible on any viewport (narrow mobile included) instead of relying
+// on hardcoded per-breakpoint zoom values.
+const LITHUANIA_BOUNDS: [[number, number], [number, number]] = [
+	[20.9, 53.89],
+	[26.87, 56.45],
+];
+const FIT_PADDING = 24;
 const WAL_GRID_SOURCE_ID = "wal-grid";
 const WAL_GRID_FILL_LAYER_ID = "wal-grid-fill";
 const WAL_GRID_LINE_LAYER_ID = "wal-grid-lines";
@@ -146,6 +156,22 @@ function getClickableWalGridLayerIds(map: import("maplibre-gl").Map) {
 	);
 }
 
+// Lock minZoom to the zoom that fits the whole country in the current
+// container. `reframe` also recenters/zooms the camera (used on first load);
+// on resize we only tighten minZoom so the user's current view is preserved.
+function fitLithuaniaBounds(map: import("maplibre-gl").Map, reframe: boolean) {
+	const camera = map.cameraForBounds(LITHUANIA_BOUNDS, {
+		padding: FIT_PADDING,
+	});
+	if (!camera || typeof camera.zoom !== "number") {
+		return;
+	}
+	map.setMinZoom(camera.zoom);
+	if (reframe) {
+		map.jumpTo(camera);
+	}
+}
+
 interface MapViewProps {
 	onSquareSelect(selectedSquareCode: string | null): void;
 	seasonId: number | null;
@@ -244,8 +270,6 @@ export function MapView({
 				center: LITHUANIA_CENTER,
 				container: mapContainerRef.current,
 				style: initialStyle as StyleSpecification,
-				zoom: 7,
-				minZoom: 7,
 				maxBounds: [
 					[19, 52.896_667],
 					[29, 57.450_278],
@@ -253,6 +277,11 @@ export function MapView({
 			});
 
 			mapRef.current = map;
+
+			// Frame the whole country and derive minZoom from the fit, so it adapts
+			// to the viewport. Re-tighten minZoom on resize (e.g. device rotation).
+			fitLithuaniaBounds(map, true);
+			map.on("resize", () => fitLithuaniaBounds(map, false));
 
 			map.addControl(
 				new maplibregl.NavigationControl({ visualizePitch: true }),
@@ -265,6 +294,9 @@ export function MapView({
 				showAccuracyCircle: true,
 				showUserLocation: true,
 				trackUserLocation: true,
+				fitBoundsOptions: {
+					maxZoom: 9,
+				},
 			});
 			map.addControl(geolocateControl, "top-right");
 
@@ -444,7 +476,7 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 			layout: {
 				"text-allow-overlap": true,
 				"text-field": ["get", "wal"],
-				"text-size": ["interpolate", ["linear"], ["zoom"], 7, 12, 10, 30],
+				"text-size": ["interpolate", ["linear"], ["zoom"], 5, 1, 7, 10, 10, 30],
 			},
 			paint: {
 				"text-color": theme.labelColor,

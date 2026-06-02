@@ -86,7 +86,7 @@ function RouteComponent() {
 			className="relative flex flex-col md:flex-row md:overflow-hidden"
 			style={{ height: "calc(100dvh - var(--header-height))" }}
 		>
-			<div className="flex h-[70dvh] shrink-0 flex-col md:h-auto md:flex-1 md:shrink">
+			<div className="flex h-[60dvh] shrink-0 flex-col md:h-auto md:flex-1 md:shrink">
 				<MapView
 					onSquareSelect={setSelectedSquareCode}
 					seasonId={displayedSeasonId}

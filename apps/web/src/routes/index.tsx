@@ -182,7 +182,7 @@ function HomeComponent() {
 	return (
 		<main>
 			{/* ── Hero ─────────────────────────────────────────────── */}
-			<section className="relative flex min-h-[68vh] items-center overflow-hidden md:min-h-[85vh]">
+			<section className="relative flex min-h-[60vh] items-center overflow-hidden md:min-h-[85vh]">
 				{/* Persistent, stationary map */}
 				<div
 					className={cn(
