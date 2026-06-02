@@ -5,6 +5,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { publicProcedure } from "../index";
+import { computeLeader, TEAMS, type Team } from "../scoring/control";
 import { getCurrentSeason } from "./seasons";
 
 const scoringInput = z.object({
@@ -21,9 +22,6 @@ async function resolveSeasonId(
 	const current = await getCurrentSeason(db);
 	return current?.id ?? null;
 }
-
-const TEAMS = ["yellow", "green", "red"] as const;
-type Team = (typeof TEAMS)[number];
 
 const squares = publicProcedure
 	.input(scoringInput)
@@ -125,16 +123,7 @@ const teamStandings = publicProcedure
 		}
 
 		for (const [, scores] of bySquare) {
-			let maxPoints = 0;
-			let leader: Team | null = null;
-			for (const team of TEAMS) {
-				if (scores[team] > maxPoints) {
-					maxPoints = scores[team];
-					leader = team;
-				} else if (scores[team] === maxPoints && maxPoints > 0) {
-					leader = null;
-				}
-			}
+			const leader = computeLeader(scores);
 			if (leader) {
 				totals[leader].squaresControlled += 1;
 			}

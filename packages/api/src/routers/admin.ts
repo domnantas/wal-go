@@ -8,6 +8,7 @@ import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
+import { announceOwnershipChanges } from "../notifications/discord";
 import {
 	applyScoreDeltas,
 	applyUserBanScoreChange,
@@ -166,7 +167,7 @@ const banUser = adminProcedure
 				message: "Negalima užblokuoti savęs",
 			});
 		}
-		await context.db.transaction(async (tx) => {
+		const changes = await context.db.transaction(async (tx) => {
 			const rows = await tx
 				.select({ banned: user.banned })
 				.from(user)
@@ -186,16 +187,19 @@ const banUser = adminProcedure
 			// not invalidate an existing session. Without this, a banned user could
 			// keep logging QSOs and re-add the points we just removed.
 			await tx.delete(session).where(eq(session.userId, input.userId));
-			if (!existing.banned) {
-				await applyUserBanScoreChange(tx, input.userId, true);
+			if (existing.banned) {
+				return [];
 			}
+			return await applyUserBanScoreChange(tx, input.userId, true);
 		});
+
+		announceOwnershipChanges(changes);
 	});
 
 const unbanUser = adminProcedure
 	.input(z.object({ userId: z.string() }))
 	.handler(async ({ context, input }) => {
-		await context.db.transaction(async (tx) => {
+		const changes = await context.db.transaction(async (tx) => {
 			const rows = await tx
 				.select({ banned: user.banned })
 				.from(user)
@@ -211,9 +215,12 @@ const unbanUser = adminProcedure
 				.set({ banned: false, banReason: null })
 				.where(eq(user.id, input.userId));
 			if (existing.banned) {
-				await applyUserBanScoreChange(tx, input.userId, false);
+				return await applyUserBanScoreChange(tx, input.userId, false);
 			}
+			return [];
 		});
+
+		announceOwnershipChanges(changes);
 	});
 
 const deleteUser = adminProcedure
@@ -224,7 +231,7 @@ const deleteUser = adminProcedure
 				message: "Negalima ištrinti savęs",
 			});
 		}
-		await context.db.transaction(async (tx) => {
+		const changes = await context.db.transaction(async (tx) => {
 			const rows = await tx
 				.select({ banned: user.banned })
 				.from(user)
@@ -235,11 +242,14 @@ const deleteUser = adminProcedure
 			if (!existing) {
 				throw new ORPCError("NOT_FOUND", { message: "Naudotojas nerastas" });
 			}
-			if (!existing.banned) {
-				await applyUserBanScoreChange(tx, input.userId, true);
-			}
+			const banChanges = existing.banned
+				? []
+				: await applyUserBanScoreChange(tx, input.userId, true);
 			await tx.delete(user).where(eq(user.id, input.userId));
+			return banChanges;
 		});
+
+		announceOwnershipChanges(changes);
 	});
 
 const listSeasons = adminProcedure.handler(async ({ context }) => {
@@ -418,7 +428,7 @@ const listQsos = adminProcedure
 const deleteQso = adminProcedure
 	.input(z.object({ id: z.number().int().positive() }))
 	.handler(async ({ context, input }) => {
-		await context.db.transaction(async (tx) => {
+		const changes = await context.db.transaction(async (tx) => {
 			const existing = await tx
 				.select()
 				.from(qso)
@@ -438,9 +448,16 @@ const deleteQso = adminProcedure
 				team: qsoRow.team,
 				userId: qsoRow.userId,
 			});
-			await applyScoreDeltas(tx, qsoRow.seasonId, deltas);
+			const ownershipChanges = await applyScoreDeltas(
+				tx,
+				qsoRow.seasonId,
+				deltas
+			);
 			await tx.delete(qso).where(eq(qso.id, input.id));
+			return ownershipChanges;
 		});
+
+		announceOwnershipChanges(changes);
 	});
 
 const recomputeScores = adminProcedure

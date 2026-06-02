@@ -110,6 +110,11 @@ export default Stack(
 				BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
 				DATABASE_URL: role.connectionUrl,
 				RESEND_API_KEY: Secret("RESEND_API_KEY"),
+				// Optional: announcements are disabled when the secret is unset, so
+				// only bind it when present (e.g. preview deploys may omit it).
+				...(process.env.DISCORD_WEBHOOK_URL
+					? { DISCORD_WEBHOOK_URL: Secret("DISCORD_WEBHOOK_URL") }
+					: {}),
 				VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: Variable(
 					"VITE_PUBLIC_POSTHOG_PROJECT_TOKEN"
 				),

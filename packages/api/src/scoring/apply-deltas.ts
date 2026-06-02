@@ -1,18 +1,73 @@
 import { user } from "@WAL-GO/db/schema/auth";
 import { qso } from "@WAL-GO/db/schema/qsos";
 import { squareScore, userSeasonScore } from "@WAL-GO/db/schema/scoring";
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 
+import { computeLeader, type Team } from "./control";
 import type { ScoreDelta, Tx } from "./types";
+
+/** A square whose controlling team changed as a result of applied deltas. */
+export interface OwnershipChange {
+	after: Team | null;
+	before: Team | null;
+	squareCode: string;
+}
+
+/**
+ * Snapshots the controlling team for each given square in a season. Squares
+ * with no stored rows resolve to uncontrolled (`null`).
+ */
+async function snapshotLeaders(
+	tx: Tx,
+	seasonId: number,
+	squareCodes: string[]
+): Promise<Map<string, Team | null>> {
+	const leaders = new Map<string, Team | null>();
+	if (squareCodes.length === 0) {
+		return leaders;
+	}
+
+	const rows: { squareCode: string; team: Team; points: number }[] = await tx
+		.select({
+			squareCode: squareScore.squareCode,
+			team: squareScore.team,
+			points: squareScore.points,
+		})
+		.from(squareScore)
+		.where(
+			and(
+				eq(squareScore.seasonId, seasonId),
+				inArray(squareScore.squareCode, squareCodes)
+			)
+		);
+
+	const scoresByCode = new Map<string, Record<Team, number>>(
+		squareCodes.map((code) => [code, { yellow: 0, green: 0, red: 0 }])
+	);
+	for (const row of rows) {
+		const scores = scoresByCode.get(row.squareCode);
+		if (scores) {
+			scores[row.team] = row.points;
+		}
+	}
+
+	for (const [code, scores] of scoresByCode) {
+		leaders.set(code, computeLeader(scores));
+	}
+	return leaders;
+}
 
 export async function applyScoreDeltas(
 	tx: Tx,
 	seasonId: number,
 	deltas: ScoreDelta[]
-): Promise<void> {
+): Promise<OwnershipChange[]> {
 	if (deltas.length === 0) {
-		return;
+		return [];
 	}
+
+	const affectedSquares = [...new Set(deltas.map((d) => d.squareCode))];
+	const before = await snapshotLeaders(tx, seasonId, affectedSquares);
 
 	const positiveDeltas = deltas.filter((d) => d.pointsDelta > 0);
 	const negativeDeltas = deltas.filter((d) => d.pointsDelta < 0);
@@ -107,6 +162,16 @@ export async function applyScoreDeltas(
 		.where(
 			and(eq(userSeasonScore.seasonId, seasonId), eq(userSeasonScore.points, 0))
 		);
+
+	const after = await snapshotLeaders(tx, seasonId, affectedSquares);
+	return affectedSquares.flatMap((squareCode) => {
+		const beforeLeader = before.get(squareCode) ?? null;
+		const afterLeader = after.get(squareCode) ?? null;
+		if (beforeLeader === afterLeader) {
+			return [];
+		}
+		return [{ squareCode, before: beforeLeader, after: afterLeader }];
+	});
 }
 
 /**
@@ -199,7 +264,7 @@ export async function applyUserBanScoreChange(
 	tx: Tx,
 	userId: string,
 	banned: boolean
-): Promise<void> {
+): Promise<OwnershipChange[]> {
 	const rows = await tx
 		.select({
 			seasonId: qso.seasonId,
@@ -224,7 +289,9 @@ export async function applyUserBanScoreChange(
 		deltasBySeason.set(row.seasonId, deltas);
 	}
 
+	const changesBySeason: OwnershipChange[][] = [];
 	for (const [seasonId, deltas] of deltasBySeason) {
-		await applyScoreDeltas(tx, seasonId, deltas);
+		changesBySeason.push(await applyScoreDeltas(tx, seasonId, deltas));
 	}
+	return changesBySeason.flat();
 }

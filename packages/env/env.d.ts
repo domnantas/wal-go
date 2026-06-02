@@ -6,6 +6,7 @@ declare global {
 		BETTER_AUTH_URL: string;
 		CORS_ORIGIN: string;
 		DATABASE_URL?: string;
+		DISCORD_WEBHOOK_URL?: string;
 		HYPERDRIVE?: { connectionString: string };
 		RESEND_API_KEY: string;
 	}

@@ -153,3 +153,9 @@ Deleting a QSO decrements points symmetrically. The transaction:
 3. Decrement `user_season_score.points` for the user.
 
 The UI map next polls and reflects the change.
+
+## Discord announcements
+
+Square control changes (takeovers) are posted to Discord. Detection is built
+into `applyScoreDeltas`, the single chokepoint all score changes pass through.
+See [discord-announcements.md](./discord-announcements.md).

@@ -10,8 +10,8 @@ import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { parseCabrillo, parseCabrilloDateTime } from "../cabrillo/parser";
-
 import { protectedProcedure } from "../index";
+import { announceOwnershipChanges } from "../notifications/discord";
 import { checkRateLimit } from "../rate-limit";
 import { applyScoreDeltas } from "../scoring/apply-deltas";
 import { getScoringRuleSet } from "../scoring/index";
@@ -329,7 +329,7 @@ const create = protectedProcedure
 
 		const now = new Date();
 
-		return await context.db.transaction(async (tx) => {
+		const result = await context.db.transaction(async (tx) => {
 			const seasonRows = await tx
 				.select()
 				.from(season)
@@ -412,10 +412,13 @@ const create = protectedProcedure
 			}
 
 			const deltas = await ruleSet.scoreInsert(tx, insertParams);
-			await applyScoreDeltas(tx, currentSeason.id, deltas);
+			const changes = await applyScoreDeltas(tx, currentSeason.id, deltas);
 
-			return serializeQso(created);
+			return { payload: serializeQso(created), changes };
 		});
+
+		announceOwnershipChanges(result.changes);
+		return result.payload;
 	});
 
 const update = protectedProcedure
@@ -443,7 +446,7 @@ const update = protectedProcedure
 			});
 		}
 
-		return await context.db.transaction(async (tx) => {
+		const result = await context.db.transaction(async (tx) => {
 			const existing = await tx
 				.select()
 				.from(qso)
@@ -537,16 +540,21 @@ const update = protectedProcedure
 				});
 			}
 
-			if (deleteDeltas.length > 0) {
-				const insertDeltas = await ruleSet.scoreInsert(tx, updateParams);
-				await applyScoreDeltas(tx, qsoRow.seasonId, [
-					...deleteDeltas,
-					...insertDeltas,
-				]);
+			if (deleteDeltas.length === 0) {
+				return { payload: serializeQso(updated), changes: [] };
 			}
 
-			return serializeQso(updated);
+			const insertDeltas = await ruleSet.scoreInsert(tx, updateParams);
+			const changes = await applyScoreDeltas(tx, qsoRow.seasonId, [
+				...deleteDeltas,
+				...insertDeltas,
+			]);
+
+			return { payload: serializeQso(updated), changes };
 		});
+
+		announceOwnershipChanges(result.changes);
+		return result.payload;
 	});
 
 const deleteQso = protectedProcedure
@@ -558,7 +566,7 @@ const deleteQso = protectedProcedure
 			120,
 			60
 		);
-		return await context.db.transaction(async (tx) => {
+		const result = await context.db.transaction(async (tx) => {
 			const existing = await tx
 				.select()
 				.from(qso)
@@ -595,12 +603,15 @@ const deleteQso = protectedProcedure
 				team: qsoRow.team,
 				userId: qsoRow.userId,
 			});
-			await applyScoreDeltas(tx, qsoRow.seasonId, deltas);
+			const changes = await applyScoreDeltas(tx, qsoRow.seasonId, deltas);
 
 			await tx.delete(qso).where(eq(qso.id, input.id));
 
-			return serializeQso(qsoRow);
+			return { payload: serializeQso(qsoRow), changes };
 		});
+
+		announceOwnershipChanges(result.changes);
+		return result.payload;
 	});
 
 export type QsoBand = (typeof QSO_BANDS)[number];
@@ -790,7 +801,7 @@ const importCabrillo = protectedProcedure
 			reason: e.reason,
 		}));
 
-		return await context.db.transaction(async (tx) => {
+		const result = await context.db.transaction(async (tx) => {
 			const now = new Date();
 			const seasonRows = await tx
 				.select()
@@ -888,10 +899,16 @@ const importCabrillo = protectedProcedure
 						});
 					}
 				}
-
-				const deltas = ruleSet.scoreBulkInsert(toInsert);
-				await applyScoreDeltas(tx, currentSeason.id, deltas);
 			}
+
+			const changes =
+				toInsert.length > 0
+					? await applyScoreDeltas(
+							tx,
+							currentSeason.id,
+							ruleSet.scoreBulkInsert(toInsert)
+						)
+					: [];
 
 			const errors = [
 				...parseImportErrors,
@@ -919,12 +936,18 @@ const importCabrillo = protectedProcedure
 			});
 
 			return {
-				accepted: toInsert.length,
-				skipped: errors.length,
-				errors,
-				imported,
+				payload: {
+					accepted: toInsert.length,
+					skipped: errors.length,
+					errors,
+					imported,
+				},
+				changes,
 			};
 		});
+
+		announceOwnershipChanges(result.changes);
+		return result.payload;
 	});
 
 export const qsosRouter = {
