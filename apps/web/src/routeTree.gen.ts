@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LogRouteImport } from './routes/log'
@@ -21,6 +22,11 @@ import { Route as AuthPathRouteImport } from './routes/auth/$path'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RulesRoute = RulesRouteImport.update({
   id: '/rules',
   path: '/rules',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/log': typeof LogRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
+  '/test': typeof TestRoute
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/log': typeof LogRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
+  '/test': typeof TestRoute
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/log': typeof LogRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
+  '/test': typeof TestRoute
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/log'
     | '/map'
     | '/rules'
+    | '/test'
     | '/auth/$path'
     | '/ingest/$'
     | '/settings/$path'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/log'
     | '/map'
     | '/rules'
+    | '/test'
     | '/auth/$path'
     | '/ingest/$'
     | '/settings/$path'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/log'
     | '/map'
     | '/rules'
+    | '/test'
     | '/auth/$path'
     | '/ingest/$'
     | '/settings/$path'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   LogRoute: typeof LogRoute
   MapRoute: typeof MapRoute
   RulesRoute: typeof RulesRoute
+  TestRoute: typeof TestRoute
   AuthPathRoute: typeof AuthPathRoute
   IngestSplatRoute: typeof IngestSplatRoute
   SettingsPathRoute: typeof SettingsPathRoute
@@ -175,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rules': {
       id: '/rules'
       path: '/rules'
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   LogRoute: LogRoute,
   MapRoute: MapRoute,
   RulesRoute: RulesRoute,
+  TestRoute: TestRoute,
   AuthPathRoute: AuthPathRoute,
   IngestSplatRoute: IngestSplatRoute,
   SettingsPathRoute: SettingsPathRoute,
