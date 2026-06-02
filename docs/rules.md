@@ -14,6 +14,8 @@ Rules are rendered as numbered sections using three internal components:
 
 Section `id` attributes enable deep-linking (e.g. `/rules#taskų-sistema`).
 
+Each individual `Rule` is also deep-linkable: it renders with `id="rule-<n>"` (e.g. `/rules#rule-7.3`), and its number is a clickable anchor (`<a href="#rule-<n>">`) that jumps to that rule. Anchored targets use `scroll-mt-24` to clear the fixed header.
+
 ## Sections
 
 | Number | ID | Title (LT) |

@@ -13,7 +13,7 @@ interface RuleSectionProps {
 
 function RuleSection({ id, number, title, children }: RuleSectionProps) {
 	return (
-		<section className="mb-12" id={id}>
+		<section className="mb-12 scroll-mt-24" id={id}>
 			<div className="mb-4 flex items-baseline gap-3">
 				<span className="font-mono text-muted-foreground text-sm">
 					{number}
@@ -34,11 +34,15 @@ function Rule({
 	n: number | string;
 	children: React.ReactNode;
 }) {
+	const id = `rule-${n}`;
 	return (
-		<div className="flex gap-3">
-			<span className="mt-0.5 shrink-0 font-mono text-muted-foreground/60 text-sm">
+		<div className="group flex scroll-mt-24 gap-3" id={id}>
+			<a
+				className="mt-0.5 shrink-0 font-mono text-muted-foreground/60 text-sm transition-colors hover:text-olive"
+				href={`#${id}`}
+			>
 				{n}.
-			</span>
+			</a>
 			<p>{children}</p>
 		</div>
 	);
