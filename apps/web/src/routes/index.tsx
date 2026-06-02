@@ -1,12 +1,14 @@
 import { Button, buttonVariants } from "@WAL-GO/ui/components/button";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { useSession } from "@better-auth-ui/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Plus } from "lucide-react";
-import { useCallback } from "react";
+import { ArrowRight, Map as MapIcon, Plus, X } from "lucide-react";
+import { useCallback, useState } from "react";
 import walGoLogo from "@/assets/logo_512.png";
 import { DiscordIcon } from "@/components/discord-icon";
 import { MapView } from "@/domains/map/map-view";
+import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { authClient } from "@/lib/auth-client";
 import { DISCORD_INVITE_URL } from "@/lib/constants";
@@ -122,8 +124,18 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 
 function HomeComponent() {
 	const queryClient = useQueryClient();
-	const { data: session, isPending: isSessionPending } =
-		authClient.useSession();
+	const [isMapRevealed, setIsMapRevealed] = useState(false);
+	const [selectedSquareCode, setSelectedSquareCode] = useState<string | null>(
+		null
+	);
+	const revealMap = useCallback(() => {
+		setIsMapRevealed(true);
+	}, []);
+	const hideMap = useCallback(() => {
+		setIsMapRevealed(false);
+		setSelectedSquareCode(null);
+	}, []);
+	const { data: session, isPending: isSessionPending } = useSession(authClient);
 	const { data: currentSeason } = useQuery(orpc.seasons.current.queryOptions());
 	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
 	const { data: teamStandings } = useQuery(
@@ -136,6 +148,9 @@ function HomeComponent() {
 		null;
 	const upcomingSeason =
 		seasons?.find((seasonRow) => seasonRow.status === "upcoming") ?? null;
+	const recentlyEndedSeason =
+		seasons?.findLast((seasonRow) => seasonRow.status === "ended") ?? null;
+	const displayedSeasonId = season?.id ?? recentlyEndedSeason?.id ?? null;
 	const standings = teamStandings ?? [];
 	const handleSeasonTimingComplete = useCallback(() => {
 		queryClient.invalidateQueries({
@@ -168,22 +183,53 @@ function HomeComponent() {
 		<main>
 			{/* ── Hero ─────────────────────────────────────────────── */}
 			<section className="relative flex min-h-[85vh] items-center overflow-hidden">
-				{/* Map background — non-interactive */}
-				<div className="pointer-events-none absolute inset-0 flex [&_.maplibregl-ctrl-bottom-left]:hidden [&_.maplibregl-ctrl-bottom-right]:hidden [&_.maplibregl-ctrl-top-right]:hidden">
+				{/* Persistent, stationary map */}
+				<div
+					className={cn(
+						"absolute inset-0 flex",
+						isMapRevealed
+							? "z-0"
+							: "pointer-events-none [&_.maplibregl-ctrl-bottom-left]:hidden [&_.maplibregl-ctrl-bottom-right]:hidden [&_.maplibregl-ctrl-top-right]:hidden"
+					)}
+				>
 					<MapView
-						onSquareSelect={(_code) => {
-							/* background map — no selection */
-						}}
-						seasonId={null}
-						selectedSquareCode={null}
+						onSquareSelect={setSelectedSquareCode}
+						seasonId={displayedSeasonId}
+						selectedSquareCode={isMapRevealed ? selectedSquareCode : null}
 					/>
 				</div>
 
-				{/* Gradient overlay for text legibility */}
-				<div className="pointer-events-none absolute inset-0 bg-linear-to-b from-background/70 via-background/65 to-background" />
+				{/* Gradient overlay — fades out when map revealed */}
+				<div
+					className={cn(
+						"pointer-events-none absolute inset-0 bg-linear-to-b from-background/70 via-background/65 to-background transition-opacity duration-500",
+						isMapRevealed && "opacity-0"
+					)}
+				/>
 
-				{/* Content */}
-				<div className="relative z-10 mx-auto w-full max-w-6xl px-8 pt-14 pb-24 text-center">
+				{/* Hide-map button — fades in when map revealed */}
+				<Button
+					className={cn(
+						"absolute top-4 left-4 z-20 shadow-md transition-all duration-500",
+						isMapRevealed
+							? "translate-y-0 opacity-100"
+							: "pointer-events-none -translate-y-2 opacity-0"
+					)}
+					onClick={hideMap}
+					size="sm"
+					variant="secondary"
+				>
+					<X className="size-4" />
+					Slėpti žemėlapį
+				</Button>
+
+				{/* Content — moves up and fades out when map revealed */}
+				<div
+					className={cn(
+						"relative z-10 mx-auto w-full max-w-6xl px-8 pt-14 pb-24 text-center transition-all duration-500",
+						isMapRevealed && "pointer-events-none -translate-y-4 opacity-0"
+					)}
+				>
 					<img
 						alt="WAL GO logo"
 						className="mx-auto mb-4 h-40 w-auto drop-shadow-md"
@@ -221,15 +267,23 @@ function HomeComponent() {
 								<ArrowRight className="size-4" />
 							</Button>
 						) : (
-							<Button
-								className="px-6"
-								nativeButton={false}
-								render={<Link params={{ path: "sign-in" }} to="/auth/$path" />}
-								size="lg"
-							>
-								Prisijungti
-								<ArrowRight className="size-4" />
-							</Button>
+							<>
+								<Button
+									className="px-6"
+									nativeButton={false}
+									render={
+										<Link params={{ path: "sign-in" }} to="/auth/$path" />
+									}
+									size="lg"
+								>
+									Prisijungti
+									<ArrowRight className="size-4" />
+								</Button>
+								<Button onClick={revealMap} size="lg" variant="outline">
+									<MapIcon className="size-4" />
+									Žiūrėti žemėlapį
+								</Button>
+							</>
 						)}
 						<Button
 							onClick={() => scrollToSection("kaip-tai-veikia")}
@@ -242,9 +296,20 @@ function HomeComponent() {
 				</div>
 			</section>
 
+			{/* Selected square stats — under the map when revealed */}
+			{isMapRevealed && selectedSquareCode && (
+				<div className="fade-in slide-in-from-top-2 mx-auto max-w-xl animate-in px-8 pt-6 duration-300">
+					<SelectedSquareStatsBox
+						seasonId={displayedSeasonId}
+						selectedSquareCode={selectedSquareCode}
+						variant="row"
+					/>
+				</div>
+			)}
+
 			{/* ── Team standings ───────────────────────────────────── */}
 			{standings.length > 0 && (
-				<section className="mx-auto max-w-6xl px-8 pb-20">
+				<section className={cn("mx-auto max-w-6xl px-8 pt-12 pb-20")}>
 					<div className="mb-8 flex flex-wrap items-end justify-between gap-8">
 						<div>
 							<SectionEyebrow>

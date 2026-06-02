@@ -37,11 +37,13 @@ const EMPTY_SCORES: Record<Team, number> = {
 interface SelectedSquareStatsBoxProps {
 	seasonId: number | null;
 	selectedSquareCode: string | null;
+	variant?: "panel" | "row";
 }
 
 export function SelectedSquareStatsBox({
 	selectedSquareCode,
 	seasonId,
+	variant = "panel",
 }: SelectedSquareStatsBoxProps) {
 	const { data } = useQuery(
 		orpc.scoring.squares.queryOptions({
@@ -59,6 +61,60 @@ export function SelectedSquareStatsBox({
 	const scores = selectedSquare?.scores ?? EMPTY_SCORES;
 	const maxScore = Math.max(...TEAM_ORDER.map((team) => scores[team]));
 	const progressMax = Math.max(maxScore, 1);
+
+	if (variant === "row") {
+		return (
+			<section className="flex items-center gap-4 rounded-3xl border border-border bg-card px-5 py-3.5">
+				<p className="shrink-0 font-bold font-serif text-[18px] text-foreground">
+					{selectedSquareCode}
+				</p>
+				<div className="flex flex-1 items-stretch gap-3">
+					{TEAM_ORDER.map((team) => {
+						const score = scores[team];
+						const progress = (score / progressMax) * 100;
+
+						return (
+							<div className="flex flex-1 flex-col gap-1.5" key={team}>
+								<div className="flex items-center justify-between gap-2">
+									<div className="flex min-w-0 items-center gap-1.5">
+										<span
+											aria-hidden="true"
+											className={cn(
+												"size-2 shrink-0 rounded-full",
+												TEAM_DOT_CLASSES[team]
+											)}
+										/>
+										<span className="truncate font-medium text-foreground text-xs">
+											{TEAM_LABELS[team]}
+										</span>
+									</div>
+									<span className="shrink-0 font-semibold text-foreground text-xs tabular-nums">
+										{score}
+									</span>
+								</div>
+								<div
+									aria-label={`${TEAM_LABELS[team]} komanda turi ${score} taškų kvadrate ${selectedSquareCode}`}
+									aria-valuemax={progressMax}
+									aria-valuemin={0}
+									aria-valuenow={score}
+									className="h-1.5 overflow-hidden rounded-lg bg-muted"
+									role="progressbar"
+								>
+									<div
+										className={cn(
+											"h-full rounded-lg transition-[width] duration-500",
+											TEAM_BAR_CLASSES[team]
+										)}
+										style={{ width: `${progress}%` }}
+									/>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			</section>
+		);
+	}
 
 	return (
 		<section className="border-border border-b px-5 py-4.5">

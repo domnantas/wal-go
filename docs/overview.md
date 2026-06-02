@@ -33,6 +33,21 @@ The main screen renders a MapLibre GL map of Lithuania overlaid with the WAL gri
 
 The homepage introduces WAL GO, shows live season/team context when available, shows a hero countdown when the next season is scheduled but not active yet, explains the gameplay loop, demonstrates Cabrillo log processing, answers common questions, and ends with a Discord invite that links to the community server.
 
+### Public map preview
+
+The hero shows a non-interactive map as a background behind the marketing copy. A `Žiūrėti žemėlapį` button (outline, always rendered server-side since the action needs no auth) swaps the hero for a full interactive map without requiring login. The primary button next to it is auth-aware: `Prisijungti` (sign-in) for signed-out visitors, `Atidaryti žemėlapį` (links to the full `/map` route) for signed-in visitors.
+
+The hero uses a single `min-h-[85vh]` section with one persistent `MapView` mounted in an absolutely positioned layer. The map never remounts or moves between states, so revealing/hiding is instant and flicker-free. The map always loads the displayed season's data (active season first, then the most recently ended season), the same as `/map`. The section keeps the page below it (team standings, gameplay sections) scrollable on mobile.
+
+Reveal/hide is a two-way CSS transition (no mount/unmount), so it animates in both directions:
+
+- The gradient legibility overlay fades its opacity to `0` when revealed.
+- The hero content (logo, heading, buttons) fades out and shifts up (`-translate-y-4`) and becomes `pointer-events-none`, letting map clicks pass through.
+- The map layer toggles `pointer-events` and its native controls (hidden until revealed).
+- The `Slėpti žemėlapį` button fades/slides in.
+
+Clicking a WAL square shows the square statistics directly under the map using `SelectedSquareStatsBox` in its leaner `row` variant — the WAL code on the left and the three team scores laid out side by side, each with a thin progress bar. The default `panel` variant (stacked bars) is still used in the `/map` sidebar.
+
 ## Social Previews
 
 The root route (`apps/web/src/routes/__root.tsx`) defines the global document metadata. It includes the Lithuanian page title and description, plus Open Graph tags for `https://walgo.lt`:
