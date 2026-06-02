@@ -5,7 +5,6 @@ import {
 	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
-	useLocation,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "tanstack-theme-kit";
 import { getUser } from "@/functions/get-user";
@@ -136,11 +135,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-	// TEMP: /test is a standalone experiment page rendered without the global
-	// header/layout. Remove this branch when deleting routes/test.tsx.
-	const { pathname } = useLocation();
-	const isBareLayout = pathname === "/test";
-
 	return (
 		<html lang="lt" suppressHydrationWarning>
 			<head>
@@ -149,14 +143,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
 					<Providers>
-						{isBareLayout ? (
-							children
-						) : (
-							<div className="grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr]">
-								<Header />
-								<div className="min-w-0">{children}</div>
-							</div>
-						)}
+						<div className="grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr]">
+							<Header />
+							<div className="min-w-0">{children}</div>
+						</div>
 						<Toaster richColors />
 						<CookieBanner />
 						{/* <TanStackRouterDevtools />
