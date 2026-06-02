@@ -14,6 +14,14 @@ The route imports MapLibre CSS and initializes the map on the client in a React 
 
 The map uses MapLibre's native controls for map navigation, scale, and geolocation. The geolocation button asks for browser location permission, then shows the user's current location with high accuracy, the accuracy circle, and user-location tracking enabled.
 
+Geolocation is gated behind the `enableGeolocation` prop on `MapView` (default `false`). Only `/map` passes `enableGeolocation`; when it is off the `GeolocateControl`, its auto-trigger, and the current-square box are not added at all. The homepage embeds `MapView` without the prop, so it renders no geolocation control and never prompts for location.
+
+### Persisted geolocation opt-in
+
+When the user successfully geolocates on the map (the `GeolocateControl` `geolocate` event fires), the opt-in is persisted to `localStorage` under `wal-go:map-geolocation-enabled`. On the next `/map` load, if that flag is set **and** the browser still reports geolocation permission as `granted` (checked via the Permissions API without prompting), the map auto-triggers geolocation on the `load` event so it opens centered on (and zoomed to) the operator. A `PERMISSION_DENIED` error clears the flag. A revoked/reset permission is never silently re-prompted — the user must click the button again. De-selecting the geolocate button (turning tracking fully off) also clears the persisted flag and the current-square box. This is detected on `trackuserlocationend` by checking the control's `_watchState` is `OFF`, since that event also fires on pan (state `BACKGROUND`), where the box must stay.
+
+This flag is **separate** from the add-QSO geolocation opt-in (`wal-go:geolocation-square-enabled`, see `qso-logging.md`). Allowing location on the map does not opt the operator into QSO auto-location, and vice versa. Auto-location only runs on `/map` (where `enableGeolocation` is set), not on the homepage.
+
 ### Control theming
 
 MapLibre's default controls don't follow the app's light/dark theme: the button chrome is hardcoded light, and the icons ship as inline SVG `background-image` data URIs with a fixed fill, so they can't inherit color. We theme them in `apps/web/src/domains/map/maplibre-theme.css` (imported by `map-view.tsx` right after MapLibre's own CSS) without the `filter: invert()` hack:
@@ -28,7 +36,7 @@ When MapLibre is upgraded, re-check the icon data URIs in its CSS in case the SV
 
 ### Current square indicator
 
-While geolocation tracking is active, the map listens to the `GeolocateControl` `geolocate` event and computes the user's WAL square from the reported coordinates via `@WAL-GO/grid`'s `calculateWal`. The current square is shown in a small overlay box (labeled "Jūsų kvadratas") pinned to the top-right of the map, beside the zoom/geolocation controls. Because tracking emits a `geolocate` event on every position update, the box updates automatically as the operator moves from square to square. Only valid WAL squares are shown. The box stays put when the user pans the map — it is not cleared on `trackuserlocationend` (which MapLibre also fires when the map moves out of active lock), only on a geolocation `error`.
+While geolocation tracking is active, the map listens to the `GeolocateControl` `geolocate` event and computes the user's WAL square from the reported coordinates via `@WAL-GO/grid`'s `calculateWal`. The current square is shown in a small overlay box (labeled "Jūsų kvadratas") pinned to the top-right of the map, beside the zoom/geolocation controls. Because tracking emits a `geolocate` event on every position update, the box updates automatically as the operator moves from square to square. Only valid WAL squares are shown. The box stays put when the user pans the map — it is not cleared when MapLibre fires `trackuserlocationend` for moving out of active lock (state `BACKGROUND`). It is cleared on a geolocation `error`, and on a true de-select (`trackuserlocationend` with `_watchState` `OFF`), which also clears the persisted geolocation opt-in.
 
 ## Local map styles
 
@@ -54,6 +62,8 @@ Map square control is scoped to the displayed season. While a season is active, 
 WAL squares are clickable on the map. Clicking a square stores the selected WAL code in the `/map` route state, outlines the selected square, and shows a square statistics panel in the right sidebar under the team-controlled squares panel.
 
 The selected-square panel uses the same `scoring.squares` query as the map overlay. If a square has no score rows yet, each team is shown with zero points. Progress bars are normalized against the highest team score in the selected square, so the local team balance is visible even when totals are small.
+
+On `/map`, selecting a square also scrolls its statistics panel into view (`scrollIntoView` with `behavior: "smooth"`, `block: "nearest"`), so the panel is visible without manual scrolling — in the sidebar on desktop and below the map on mobile. This is driven by an effect on the selected code in the route, scoped to `/map` only; the homepage map does not scroll.
 
 ## Season sidebar
 

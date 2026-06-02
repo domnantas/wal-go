@@ -14,6 +14,39 @@ import darkStyle from "@/assets/walgo-dark-style.json";
 import lightStyle from "@/assets/walgo-style.json";
 import { orpc } from "@/utils/orpc";
 
+// Persisted opt-in for map geolocation. Kept separate from the add-QSO
+// geolocation flag (`wal-go:geolocation-square-enabled`) so allowing location
+// on the map does not implicitly opt the operator into QSO auto-location.
+const MAP_GEOLOCATION_STORAGE_KEY = "wal-go:map-geolocation-enabled";
+
+function readMapGeolocationEnabled() {
+	if (typeof window === "undefined") {
+		return false;
+	}
+	return window.localStorage.getItem(MAP_GEOLOCATION_STORAGE_KEY) === "true";
+}
+
+function writeMapGeolocationEnabled(value: boolean) {
+	if (typeof window === "undefined") {
+		return;
+	}
+	window.localStorage.setItem(MAP_GEOLOCATION_STORAGE_KEY, String(value));
+}
+
+// Resolve the current browser geolocation permission without prompting, so a
+// persisted opt-in only auto-locates when permission is still granted.
+async function isGeolocationGranted() {
+	if (typeof navigator === "undefined" || !navigator.permissions?.query) {
+		return false;
+	}
+	try {
+		const status = await navigator.permissions.query({ name: "geolocation" });
+		return status.state === "granted";
+	} catch {
+		return false;
+	}
+}
+
 const LITHUANIA_CENTER: [number, number] = [23.88, 55.17];
 // Country extent used to frame the map. The initial zoom and minZoom are
 // derived from fitting these bounds to the container, so the whole country
@@ -173,12 +206,14 @@ function fitLithuaniaBounds(map: import("maplibre-gl").Map, reframe: boolean) {
 }
 
 interface MapViewProps {
+	enableGeolocation?: boolean;
 	onSquareSelect(selectedSquareCode: string | null): void;
 	seasonId: number | null;
 	selectedSquareCode: string | null;
 }
 
 export function MapView({
+	enableGeolocation = false,
 	onSquareSelect,
 	seasonId,
 	selectedSquareCode,
@@ -287,26 +322,54 @@ export function MapView({
 				new maplibregl.NavigationControl({ visualizePitch: true }),
 				"top-right"
 			);
-			const geolocateControl = new maplibregl.GeolocateControl({
-				positionOptions: {
-					enableHighAccuracy: true,
-				},
-				showAccuracyCircle: true,
-				showUserLocation: true,
-				trackUserLocation: true,
-				fitBoundsOptions: {
-					maxZoom: 9,
-				},
-			});
-			map.addControl(geolocateControl, "top-right");
+			if (enableGeolocation) {
+				const geolocateControl = new maplibregl.GeolocateControl({
+					positionOptions: {
+						enableHighAccuracy: true,
+					},
+					showAccuracyCircle: true,
+					showUserLocation: true,
+					trackUserLocation: true,
+					fitBoundsOptions: {
+						maxZoom: 9,
+					},
+				});
+				map.addControl(geolocateControl, "top-right");
 
-			geolocateControl.on("geolocate", (event) => {
-				const position = event as GeolocationPosition;
-				setCurrentSquare(
-					squareFromCoords(position.coords.latitude, position.coords.longitude)
-				);
-			});
-			geolocateControl.on("error", () => setCurrentSquare(null));
+				geolocateControl.on("geolocate", (event) => {
+					const position = event as GeolocationPosition;
+					writeMapGeolocationEnabled(true);
+					setCurrentSquare(
+						squareFromCoords(
+							position.coords.latitude,
+							position.coords.longitude
+						)
+					);
+				});
+				geolocateControl.on("error", (event) => {
+					const error = event as GeolocationPositionError;
+					if (error.code === error.PERMISSION_DENIED) {
+						writeMapGeolocationEnabled(false);
+					}
+					setCurrentSquare(null);
+				});
+				geolocateControl.on("trackuserlocationend", () => {
+					if (geolocateControl._watchState === "OFF") {
+						writeMapGeolocationEnabled(false);
+						setCurrentSquare(null);
+					}
+				});
+
+				if (readMapGeolocationEnabled()) {
+					map.on("load", () => {
+						isGeolocationGranted().then((granted) => {
+							if (granted) {
+								geolocateControl.trigger();
+							}
+						});
+					});
+				}
+			}
 			map.addControl(new maplibregl.ScaleControl({ unit: "metric" }));
 
 			map.on("style.load", () => {

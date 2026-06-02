@@ -1,7 +1,7 @@
 import { sessionOptions } from "@better-auth-ui/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapView } from "@/domains/map/map-view";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { TeamControlledSquaresBox } from "@/domains/scoring/team-controlled-squares-box";
@@ -49,6 +49,19 @@ function RouteComponent() {
 	const [selectedSquareCode, setSelectedSquareCode] = useState<string | null>(
 		null
 	);
+	const statsBoxRef = useRef<HTMLDivElement>(null);
+
+	// Scroll the square stats into view on selection so it's visible without
+	// manual scrolling (sidebar on desktop, below the map on mobile).
+	useEffect(() => {
+		if (selectedSquareCode === null) {
+			return;
+		}
+		statsBoxRef.current?.scrollIntoView({
+			behavior: "smooth",
+			block: "nearest",
+		});
+	}, [selectedSquareCode]);
 
 	const { data: seasons, isPending: areSeasonsPending } = useQuery(
 		orpc.seasons.list.queryOptions()
@@ -88,6 +101,7 @@ function RouteComponent() {
 		>
 			<div className="flex h-[60dvh] shrink-0 flex-col md:h-auto md:flex-1 md:shrink">
 				<MapView
+					enableGeolocation
 					onSquareSelect={setSelectedSquareCode}
 					seasonId={displayedSeasonId}
 					selectedSquareCode={selectedSquareCode}
@@ -104,10 +118,12 @@ function RouteComponent() {
 					upcomingSeason={upcomingSeason}
 				/>
 				<TeamControlledSquaresBox seasonId={displayedSeasonId} />
-				<SelectedSquareStatsBox
-					seasonId={displayedSeasonId}
-					selectedSquareCode={selectedSquareCode}
-				/>
+				<div ref={statsBoxRef}>
+					<SelectedSquareStatsBox
+						seasonId={displayedSeasonId}
+						selectedSquareCode={selectedSquareCode}
+					/>
+				</div>
 			</aside>
 		</main>
 	);
