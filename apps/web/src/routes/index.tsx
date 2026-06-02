@@ -297,26 +297,26 @@ function HomeComponent() {
 			</section>
 
 			{/* Selected square stats — under the map when revealed */}
-			{isMapRevealed && selectedSquareCode && (
-				<div className="fade-in slide-in-from-top-2 mx-auto max-w-xl animate-in px-8 pt-6 duration-300">
-					<SelectedSquareStatsBox
-						seasonId={displayedSeasonId}
-						selectedSquareCode={selectedSquareCode}
-						variant="row"
-					/>
-				</div>
-			)}
 
 			{/* ── Team standings ───────────────────────────────────── */}
 			{standings.length > 0 && (
-				<section className={cn("mx-auto max-w-6xl px-8 pt-12 pb-20")}>
-					<div className="mb-8 flex flex-wrap items-end justify-between gap-8">
+				<section className={cn("mx-auto max-w-6xl px-8 pt-6 pb-20")}>
+					<div className="mb-6 flex flex-wrap items-end justify-between gap-8">
 						<div>
 							<SectionEyebrow>
 								{season ? `Tiesiogiai · ${season.name}` : "Tiesiogiai"}
 							</SectionEyebrow>
 						</div>
 					</div>
+					{isMapRevealed && selectedSquareCode && (
+						<div className="fade-in slide-in-from-top-2 mx-auto mb-3 max-w-xl animate-in duration-300">
+							<SelectedSquareStatsBox
+								seasonId={displayedSeasonId}
+								selectedSquareCode={selectedSquareCode}
+								variant="row"
+							/>
+						</div>
+					)}
 					<div className="grid gap-3 md:grid-cols-3">
 						{standings.map((s) => {
 							const config = TEAM_CONFIG[s.team as keyof typeof TEAM_CONFIG];
