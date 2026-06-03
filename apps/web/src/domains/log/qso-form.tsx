@@ -343,6 +343,7 @@ export function QsoForm({
 									</Popover>
 									<Input
 										aria-invalid={isInvalid}
+										className="appearance-none"
 										disabled={isPending}
 										name="qsoAtTime"
 										onBlur={field.handleBlur}
