@@ -568,6 +568,7 @@ const listUploads = adminProcedure.handler(async ({ context }) => {
 			id: cabrilloUpload.id,
 			uploadedAt: cabrilloUpload.uploadedAt,
 			callsign: cabrilloUpload.callsign,
+			format: cabrilloUpload.format,
 			accepted: cabrilloUpload.accepted,
 			skipped: cabrilloUpload.skipped,
 			seasonId: cabrilloUpload.seasonId,

@@ -16,6 +16,7 @@
     "@WAL-GO/db": "workspace:*",
     "@WAL-GO/env": "workspace:*",
     "@WAL-GO/grid": "workspace:*",
+    "@WAL-GO/log-parse": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",

@@ -13,6 +13,7 @@
     "@WAL-GO/auth": "workspace:*",
     "@WAL-GO/env": "workspace:*",
     "@WAL-GO/grid": "workspace:*",
+    "@WAL-GO/log-parse": "workspace:*",
     "@WAL-GO/ui": "workspace:*",
     "@better-auth-ui/core": "^1.6.14",
     "@better-auth-ui/react": "^1.6.14",

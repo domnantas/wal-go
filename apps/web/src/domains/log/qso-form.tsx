@@ -1,4 +1,8 @@
-import { BLOCKED_CALLSIGN_REGEX, normalizeCallsign } from "@WAL-GO/callsign";
+import {
+	BLOCKED_CALLSIGN_REGEX,
+	isValidCallsign,
+	normalizeCallsign,
+} from "@WAL-GO/callsign";
 import { isValidWalSquare, normalizeWalSquare } from "@WAL-GO/grid";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Calendar } from "@WAL-GO/ui/components/calendar";
@@ -107,10 +111,12 @@ const optionalWalSchema = z
 	);
 
 const qsoFormSchema = z.object({
-	contactCallsign: requiredText("Įveskite šaukinį").refine(
-		(v) => !BLOCKED_CALLSIGN_REGEX.test(normalizeCallsign(v)),
-		"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦"
-	),
+	contactCallsign: requiredText("Įveskite šaukinį")
+		.refine((v) => isValidCallsign(v), "Neteisingas šaukinys")
+		.refine(
+			(v) => !BLOCKED_CALLSIGN_REGEX.test(normalizeCallsign(v)),
+			"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦"
+		),
 	band: z.enum(BAND_OPTIONS),
 	mode: z.enum(MODE_OPTIONS),
 	qsoAt: dateTimeSchema,

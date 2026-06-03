@@ -1,15 +1,19 @@
-import { isBlockedCallsign, normalizeCallsign } from "@WAL-GO/callsign";
+import {
+	isBlockedCallsign,
+	isValidCallsign,
+	normalizeCallsign,
+} from "@WAL-GO/callsign";
 import { QSO_BANDS, QSO_MODES, qso } from "@WAL-GO/db/schema/qsos";
 import { userSeasonScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
 import { isValidWalSquare, normalizeWalSquare } from "@WAL-GO/grid";
+import type { SkipReason } from "@WAL-GO/log-parse";
 import { ORPCError } from "@orpc/server";
 import { formatISO, isAfter, isBefore, isValid, parseISO } from "date-fns";
 import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { parseCabrillo, parseCabrilloDateTime } from "../cabrillo/parser";
 import { protectedProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
 import { checkRateLimit } from "../rate-limit";
@@ -315,6 +319,11 @@ const create = protectedProcedure
 			normalizeQsoInput(input);
 
 		const userCallsign = normalizeCallsign(context.session.user.name);
+		if (!isValidCallsign(contactCallsign)) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Neteisingas korespondento šaukinys",
+			});
+		}
 		if (isBlockedCallsign(contactCallsign)) {
 			throw new ORPCError("BAD_REQUEST", {
 				message:
@@ -434,6 +443,11 @@ const update = protectedProcedure
 			normalizeQsoInput(input);
 
 		const userCallsign = normalizeCallsign(context.session.user.name);
+		if (!isValidCallsign(contactCallsign)) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Neteisingas korespondento šaukinys",
+			});
+		}
 		if (isBlockedCallsign(contactCallsign)) {
 			throw new ORPCError("BAD_REQUEST", {
 				message:
@@ -616,19 +630,7 @@ const deleteQso = protectedProcedure
 
 export type QsoBand = (typeof QSO_BANDS)[number];
 
-export type SkipReason =
-	| "blockedCallsign"
-	| "callsignMismatch"
-	| "exactDuplicate"
-	| "gameDuplicate"
-	| "invalidBand"
-	| "invalidCallsign"
-	| "invalidDate"
-	| "invalidMode"
-	| "invalidSquare"
-	| "malformedLine"
-	| "outsideSeason"
-	| "selfContact";
+export type { SkipReason } from "@WAL-GO/log-parse";
 
 export interface ImportError {
 	content: string;
@@ -653,8 +655,107 @@ interface MappedQsos {
 	metaMap: Map<InsertParams, LineMeta>;
 }
 
-function mapParsedQsos(
-	parsedQsos: import("../cabrillo/parser").CabrilloQso[],
+const QSO_BAND_SET = new Set<string>(QSO_BANDS);
+const QSO_MODE_SET = new Set<string>(QSO_MODES);
+
+interface CommitQso {
+	band: string;
+	contactCallsign: string;
+	contactSquare: null | string;
+	line: number;
+	mode: string;
+	operatorCallsign: string;
+	operatorSquare: string;
+	qsoAt: null | string;
+	raw: string;
+}
+
+interface ValidatedRow {
+	band: string;
+	contactCallsign: string;
+	contactSquare: null | string;
+	mode: string;
+	operatorSquare: string;
+	qsoAt: Date;
+}
+
+interface RowContext {
+	seasonEnd: Date;
+	seasonStart: Date;
+	userCallsign: string;
+}
+
+/**
+ * Authoritatively re-validate one edited row from the review dialog. Returns a
+ * skip reason, or the normalized fields ready for insertion. Station-callsign
+ * matching is advisory (handled in the dialog) — rows always insert under the
+ * authenticated user.
+ */
+function validateClientQso(
+	row: CommitQso,
+	ctx: RowContext
+): SkipReason | ValidatedRow {
+	if (!QSO_BAND_SET.has(row.band)) {
+		return "invalidBand";
+	}
+	const mode = row.mode.trim().toUpperCase();
+	if (!QSO_MODE_SET.has(mode)) {
+		return "invalidMode";
+	}
+
+	const qsoAt = row.qsoAt ? parseISO(row.qsoAt) : null;
+	if (!(qsoAt && isValid(qsoAt))) {
+		return "invalidDate";
+	}
+	if (isBefore(qsoAt, ctx.seasonStart) || isAfter(qsoAt, ctx.seasonEnd)) {
+		return "outsideSeason";
+	}
+
+	const operatorCallsign = normalizeCallsign(row.operatorCallsign);
+	if (operatorCallsign && operatorCallsign !== ctx.userCallsign) {
+		return "callsignMismatch";
+	}
+
+	const operatorSquare = normalizeWalSquare(row.operatorSquare);
+	if (!isValidWalSquare(operatorSquare)) {
+		return "invalidSquare";
+	}
+
+	const normalizedContact = row.contactSquare
+		? normalizeWalSquare(row.contactSquare)
+		: "";
+	const contactSquare =
+		normalizedContact === "" || normalizedContact === "DX"
+			? null
+			: normalizedContact;
+	if (contactSquare && !isValidWalSquare(contactSquare)) {
+		return "invalidSquare";
+	}
+
+	const contactCallsign = normalizeCallsign(row.contactCallsign);
+	if (!(contactCallsign && isValidCallsign(contactCallsign))) {
+		return "invalidCallsign";
+	}
+	if (contactCallsign === ctx.userCallsign) {
+		return "selfContact";
+	}
+	if (isBlockedCallsign(contactCallsign)) {
+		return "blockedCallsign";
+	}
+
+	return {
+		band: row.band,
+		contactCallsign,
+		contactSquare,
+		mode,
+		operatorSquare,
+		qsoAt,
+	};
+}
+
+/** Validate every edited row the review dialog submits before insert. */
+function mapClientQsos(
+	rows: CommitQso[],
 	seasonStart: Date,
 	seasonEnd: Date,
 	seasonId: number,
@@ -665,78 +766,17 @@ function mapParsedQsos(
 	const insertParams: InsertParams[] = [];
 	const metaMap = new Map<InsertParams, LineMeta>();
 	const errors: ImportError[] = [];
+	const ctx: RowContext = { seasonEnd, seasonStart, userCallsign };
 
-	for (const q of parsedQsos) {
-		if (normalizeCallsign(q.mycall) !== userCallsign) {
-			errors.push({
-				line: q.lineNumber,
-				content: q.rawLine,
-				reason: "callsignMismatch",
-			});
+	for (const row of rows) {
+		const result = validateClientQso(row, ctx);
+		if (typeof result === "string") {
+			errors.push({ line: row.line, content: row.raw, reason: result });
 			continue;
 		}
-		const qsoAt = parseCabrilloDateTime(q.qsoDate, q.qsoTime);
-		if (!qsoAt) {
-			errors.push({
-				line: q.lineNumber,
-				content: q.rawLine,
-				reason: "invalidDate",
-			});
-			continue;
-		}
-		if (isBefore(qsoAt, seasonStart) || isAfter(qsoAt, seasonEnd)) {
-			errors.push({
-				line: q.lineNumber,
-				content: q.rawLine,
-				reason: "outsideSeason",
-			});
-			continue;
-		}
-		if (!isValidWalSquare(q.operatorSquare)) {
-			errors.push({
-				line: q.lineNumber,
-				content: q.rawLine,
-				reason: "invalidSquare",
-			});
-			continue;
-		}
-
-		if (normalizeCallsign(q.contactCallsign) === userCallsign) {
-			errors.push({
-				line: q.lineNumber,
-				content: q.rawLine,
-				reason: "selfContact",
-			});
-			continue;
-		}
-
-		if (isBlockedCallsign(normalizeCallsign(q.contactCallsign))) {
-			errors.push({
-				line: q.lineNumber,
-				content: q.rawLine,
-				reason: "blockedCallsign",
-			});
-			continue;
-		}
-
-		const contactSquare =
-			q.contactSquare && isValidWalSquare(q.contactSquare)
-				? q.contactSquare
-				: null;
-
-		const p: InsertParams = {
-			band: q.band,
-			contactCallsign: normalizeCallsign(q.contactCallsign),
-			contactSquare,
-			mode: q.mode,
-			operatorSquare: q.operatorSquare,
-			qsoAt,
-			seasonId,
-			team,
-			userId,
-		};
+		const p: InsertParams = { ...result, seasonId, team, userId };
 		insertParams.push(p);
-		metaMap.set(p, { lineNumber: q.lineNumber, rawLine: q.rawLine });
+		metaMap.set(p, { lineNumber: row.line, rawLine: row.raw });
 	}
 
 	return { insertParams, metaMap, errors };
@@ -760,46 +800,36 @@ function collectFilteredErrors(
 	});
 }
 
-const importCabrillo = protectedProcedure
-	.input(z.object({ content: z.string().max(2_000_000) }))
+const commitQsoInput = z.object({
+	band: z.string().max(16),
+	contactCallsign: z.string().max(32),
+	contactSquare: z.string().max(8).nullable(),
+	line: z.number().int(),
+	mode: z.string().max(16),
+	operatorCallsign: z.string().max(32),
+	operatorSquare: z.string().max(8),
+	qsoAt: z.string().max(40).nullable(),
+	raw: z.string().max(2000),
+});
+
+const commitUploadInput = z.object({
+	content: z.string().max(2_000_000),
+	format: z.enum(["adif", "cabrillo"]),
+	qsos: z.array(commitQsoInput).max(10_000),
+});
+
+const commitUpload = protectedProcedure
+	.input(commitUploadInput)
 	.handler(async ({ context, input }) => {
 		await checkRateLimit(
 			context.db,
-			`qso:importCabrillo:${context.session.user.id}`,
+			`qso:commitUpload:${context.session.user.id}`,
 			10,
 			3600
 		);
-		const {
-			callsign,
-			contest,
-			qsos: parsedQsos,
-			parseErrors,
-		} = parseCabrillo(input.content);
 
-		if (!callsign) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "Cabrillo faile nerastas CALLSIGN",
-			});
-		}
-
-		if (contest !== "LY-WAL") {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "Failas nėra LY-WAL varžybų žurnalas",
-			});
-		}
-
-		const userCallsign = context.session.user.name.toUpperCase();
-		if (normalizeCallsign(callsign) !== userCallsign) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "Cabrillo šaukinys nesutampa su jūsų paskyros šaukiniu",
-			});
-		}
-
-		const parseImportErrors: ImportError[] = parseErrors.map((e) => ({
-			line: e.lineNumber,
-			content: e.rawLine,
-			reason: e.reason,
-		}));
+		const userCallsign = normalizeCallsign(context.session.user.name);
+		const callsign = context.session.user.name.toUpperCase();
 
 		const result = await context.db.transaction(async (tx) => {
 			const now = new Date();
@@ -841,8 +871,8 @@ const importCabrillo = protectedProcedure
 				insertParams,
 				metaMap,
 				errors: mappingErrors,
-			} = mapParsedQsos(
-				parsedQsos,
+			} = mapClientQsos(
+				input.qsos,
 				currentSeason.startsAt,
 				currentSeason.endsAt,
 				currentSeason.id,
@@ -910,17 +940,13 @@ const importCabrillo = protectedProcedure
 						)
 					: [];
 
-			const errors = [
-				...parseImportErrors,
-				...mappingErrors,
-				...exactDupErrors,
-				...gameDupErrors,
-			];
+			const errors = [...mappingErrors, ...exactDupErrors, ...gameDupErrors];
 
 			await tx.insert(cabrilloUpload).values({
 				userId,
 				seasonId: currentSeason.id,
 				callsign,
+				format: input.format,
 				accepted: toInsert.length,
 				skipped: errors.length,
 				cabrilloContent: input.content,
@@ -956,5 +982,5 @@ export const qsosRouter = {
 	create,
 	update,
 	delete: deleteQso,
-	importCabrillo,
+	commitUpload,
 };

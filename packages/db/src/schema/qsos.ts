@@ -27,7 +27,7 @@ export const QSO_BANDS = [
 	"4m",
 	"2m",
 	"70cm",
-	"24cm",
+	"23cm",
 	"13cm",
 	"9cm",
 	"6cm",

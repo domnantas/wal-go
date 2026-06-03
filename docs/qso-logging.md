@@ -1,8 +1,9 @@
 # QSO Logging
 
-The `/log` page has two responsibilities: Cabrillo file import and QSO log review/management.
+The `/log` page has two responsibilities: log file import (Cabrillo or ADIF) and
+QSO log review/management.
 
-Both write entry points on `/log` are gated by season state. The Cabrillo dropzone
+Both write entry points on `/log` are gated by season state. The log dropzone
 and manual QSO button are shown only when there is an active season and the
 signed-in user has joined it. If a season is active but the user has not joined,
 the page shows a join-season prompt instead of upload controls. If no season is
@@ -69,23 +70,52 @@ užblokuota").
 The toggle is only rendered in `AddQsoDialog` (via the `geolocation` prop on
 `QsoForm`); the edit dialog keeps manual square entry.
 
-## Cabrillo Import
+## Log Import (Cabrillo & ADIF)
 
-Users drop a `.log`, `.cbr`, or `.cabrillo` file onto the dropzone on `/log`. The file must be a valid Cabrillo v3 log for the `LY-WAL` contest.
+Importing is a **two-step** flow: the file is parsed and shown in an editable
+review dialog, and nothing is stored until the user submits it.
 
-### File Requirements
+1. The user drops a `.log`, `.cbr`, `.cabrillo`, `.adi`, or `.adif` file onto the
+   dropzone on `/log`. The file is read as text **in the browser**.
+2. `@WAL-GO/log-parse` parses it client-side (format auto-detected) into draft
+   QSOs and they open in the **review dialog** (`log-review-dialog.tsx`).
+3. The user edits squares row by row and submits. The `qsos.commitUpload`
+   endpoint authoritatively re-validates, de-duplicates, inserts, scores, and
+   records the upload.
 
-- `CALLSIGN:` header must be present and match the logged-in user's callsign (normalized — prefix/suffix stripped for comparison).
-- `CONTEST:` header must equal `LY-WAL` (case-insensitive). Any other contest is rejected.
-- File size limit: 2 MB.
+File size limit: 2 MB.
 
-### Accepted file extensions
+### Format detection
 
-`.log`, `.cbr`, `.cabrillo`
+`detectLogFormat(content)` returns `adif` when the content contains an ADIF
+marker (`<eor>`, `<eoh>`, or `<call:`, case-insensitive), otherwise `cabrillo`.
 
-### QSO Line Format
+### The `@WAL-GO/log-parse` package
 
-Each `QSO:` line must follow the Cabrillo v3 exchange layout:
+A pure, dependency-free package shared by the web app and the API. It is
+deliberately **lenient**: squares are returned **raw** (never dropped or nulled)
+so the review dialog can let the user fix them. Each draft QSO is:
+
+```ts
+interface DraftQso {
+  index: number;           // line number (Cabrillo) or record index (ADIF)
+  raw: string;             // source line / record, used for the upload audit
+  contactCallsign: string;
+  band: string | null;
+  mode: "CW" | "SSB" | "FM" | "DIGI" | null;
+  qsoAt: string | null;    // ISO 8601 UTC
+  operatorSquare: string;  // raw
+  contactSquare: string;   // raw
+  issues: SkipReason[];    // structural only (see Validation tiers)
+}
+```
+
+`parseLog(content)` returns `{ format, stationCallsign, qsos }` with the QSOs
+sorted by time (rows with no parseable time sort last). The package owns its own
+band/mode constants (a test asserts the band set stays a subset of the
+`QSO_BANDS` database enum).
+
+### Cabrillo QSO line format
 
 ```
 QSO: <freq> <mo> <date> <time> <mycall> <rst> <mysquare> <dxcall> <rst> <theirsquare>
@@ -95,48 +125,83 @@ QSO: <freq> <mo> <date> <time> <mycall> <rst> <mysquare> <dxcall> <rst> <theirsq
 |---|---|
 | `freq` | Frequency in kHz, or Cabrillo band designator (e.g. `144`, `1.2G`) |
 | `mo` | Mode: `CW`, `PH`/`SSB`, `FM`, `RY`/`DG`/`DIGI` |
-| `date` | `YYYY-MM-DD` |
-| `time` | `HHMM` UTC |
-| `mycall` | Operator callsign — must match file `CALLSIGN:` |
-| `rst` | Signal report (ignored) |
-| `mysquare` | Operator's WAL square, e.g. `A05` (format `[A-Z]\d{2}`) |
+| `date` / `time` | `YYYY-MM-DD` / `HHMM` UTC |
+| `mycall` | Operator callsign — must match the signed-in user (per-row check) |
+| `mysquare` | Operator's WAL square, e.g. `A05` |
 | `dxcall` | Contact callsign |
-| `rst` | Contact signal report (ignored) |
-| `theirsquare` | Contact's WAL square (optional; omitted or non-WAL format stored as null) |
+| `theirsquare` | Contact's WAL square (optional) |
 
-### Parser (`packages/api/src/cabrillo/parser.ts`)
+The exchange is parsed by **anchoring on the two RST reports** (`mycall RST
+[mysquare] dxcall RST [theirsquare]`) rather than fixed column offsets, so an
+omitted square does not shift the remaining fields. A missing **contact** square
+is simply empty; a missing **operator** square leaves `operatorSquare` empty
+(flagged as a fixable `invalidSquare` in the dialog) instead of pulling the RST
+into the callsign slot. Square fields are kept **raw** even when malformed (e.g.
+`ZZ9`) so the dialog can fix them. `malformedLine` is reserved for lines that
+cannot be split into two stations at all (e.g. no recognisable `dxcall`).
 
-`parseCabrillo(content)` returns a `CabrilloParseResult`:
+The `CALLSIGN:` header populates `stationCallsign`. The Cabrillo `CONTEST:`
+header is no longer required or rejected.
 
-```ts
-interface CabrilloParseResult {
-  callsign: string | null;
-  contest: string | null;
-  qsos: CabrilloQso[];
-  parseErrors: CabrilloParseError[];
-}
-```
+### ADIF field mapping
 
-Parse errors carry a `reason`: `invalidBand`, `invalidCallsign`, `invalidMode`, `invalidSquare`, or `malformedLine`.
+ADIF records (`<NAME:len[:type]>value` fields ended by `<EOR>`, header ended by
+`<EOH>`; field names case-insensitive) map as:
 
-### Skip Reasons (server-side)
-
-After parsing, the server further filters QSOs. Each skipped QSO gets one of:
-
-| Reason | Cause |
+| ADIF field | Maps to |
 |---|---|
-| `callsignMismatch` | `mycall` on QSO line differs from file callsign |
-| `invalidDate` | Date/time cannot be parsed to a valid UTC timestamp |
-| `outsideSeason` | QSO timestamp is before season start or after season end |
-| `invalidSquare` | Operator square fails WAL validation |
-| `selfContact` | Contact callsign matches the operator's own callsign |
-| `blockedCallsign` | Contact callsign has a Russian or Belarusian prefix (blocked) |
-| `exactDuplicate` | Identical QSO already in database for this user/season |
-| `gameDuplicate` | Same call/band/mode/squares on same Lithuanian calendar day |
+| `CALL` | Contact callsign |
+| `BAND` (e.g. `20m`) or `FREQ` (MHz) | Band — `FREQ` preferred when present |
+| `MODE` / `SUBMODE` | Mode (USB/LSB→SSB, RTTY/FT8/FT4/PSK/JT*→DIGI, …) |
+| `QSO_DATE` (YYYYMMDD) + `TIME_ON` (HHMM[SS]) | QSO timestamp (UTC) |
+| `MY_SIG_INFO` | Operator WAL square |
+| `SIG_INFO` | Contact WAL square (empty or `DX` ⇒ no square) |
+| `STATION_CALLSIGN` / `OPERATOR` | Station callsign |
 
-### Processing
+`MY_SIG` and `SIG` are expected to be `WAL` but are **ignored** — a missing or
+different value does not reject the record.
 
-Import runs synchronously in a single DB transaction (no background job). The endpoint returns immediately with:
+The header `STATION_CALLSIGN` (or `OPERATOR`) is the per-record operator
+fallback: a record without its own value inherits it, so every QSO shows the
+station callsign.
+
+### Validation tiers
+
+| Tier | Where | Checks |
+|---|---|---|
+| Structural | `@WAL-GO/log-parse` (`issues`) | `invalidBand`, `invalidMode`, `invalidDate`, `invalidCallsign`, `malformedLine` |
+| Square validity | Review dialog (live, via `@WAL-GO/grid`) | operator square required + valid; contact square valid / empty / `DX` |
+| Contextual | `qsos.commitUpload` (authoritative) | `outsideSeason`, `selfContact`, `blockedCallsign`, `exactDuplicate`, `gameDuplicate` |
+
+Structurally-invalid rows (bad band/mode/date) are shown in the dialog, marked,
+and excluded from import (their square inputs are disabled — editing a square
+cannot fix them). Rows whose only problem is the square are editable. The dialog
+lists valid and invalid QSOs together, sorted by time. Bulk square-fill is not
+implemented yet; squares are edited one row at a time.
+
+There are two distinct callsign checks:
+
+- The **header** station callsign (Cabrillo `CALLSIGN:` / ADIF `STATION_CALLSIGN`)
+  is **advisory** only — a mismatch shows a banner but never blocks anything,
+  because every QSO is inserted under the authenticated user regardless.
+- The **per-row** operator callsign (`mycall` on each QSO line) **must** match the
+  signed-in user. A row whose operator callsign differs is skipped with
+  `callsignMismatch` — enforced both in the dialog and authoritatively in
+  `commitUpload` (`validateClientQso`).
+
+The review dialog also flags **within-log** duplicates — exact and game
+duplicates **between rows of the same upload** — using keys that mirror the
+server (`exactDuplicateKey`/`gameDuplicateKey`; game day in `Europe/Vilnius`).
+These are marked fixable, since editing a square changes the key. Duplicates
+**against the database** (other uploads / manual entries) still surface only at
+`commitUpload`, which remains authoritative for all duplicate detection.
+
+### Commit
+
+`commitUpload({ format, content, qsos })` runs synchronously in a single DB
+transaction. The client sends **every** parsed row (with edited squares) plus the
+raw file `content`; the server re-derives accept/skip so the audit record is
+faithful, and never trusts a client-supplied verdict for insertion. It returns:
 
 ```ts
 {
@@ -147,9 +212,8 @@ Import runs synchronously in a single DB transaction (no background job). The en
 }
 ```
 
-Each `ImportError` contains the line number, raw line content, and skip reason. The UI displays a summary and a collapsible error list.
-
-Each `ImportSuccess` contains the source line number, raw line content, and stored QSO. After a successful import, the UI shows the imported QSOs in an expanded result table so users can confirm which contacts were accepted without relying only on the main log refresh.
+After a successful commit the dropzone shows a summary plus collapsible tables of
+imported and skipped rows.
 
 ## QSO Storage
 
@@ -181,7 +245,7 @@ The summary cards on `/log` are backed by server-side aggregates, not calculatio
 
 | Operation | Supported | Notes                                              |
 |-----------|-----------|----------------------------------------------------|
-| Create    | Yes       | Via manual entry now; ADIF upload later           |
+| Create    | Yes       | Manual entry, or Cabrillo/ADIF upload via the review dialog |
 | Read      | Yes       | Paginated table on `/log`                          |
 | Update    | Yes       | Edits the user's QSO while the season is active    |
 | Delete    | Yes       | Removes the user's QSO from the active season      |
@@ -191,6 +255,16 @@ Editing runs the same WAL square, exact duplicate, game duplicate, and season-wi
 Deleting a QSO that was the sole point giving a team control of its operator square immediately releases that square to the next-highest team (or to neutral if tied/empty).
 
 ## Callsign Normalization
+
+Contact callsigns must match the shared `CALLSIGN_REGEX`
+(`@WAL-GO/callsign`, `isValidCallsign` on the normalized base call) — the same
+shape rule used for account callsigns at sign-up — so malformed entries like `L`
+or `L1` are rejected. The shape is an ITU-style prefix (`[A-Z]\d`, one or two
+letters, or `\d[A-Z]`), one or more area digits, then a one-or-more-letter suffix.
+The unbounded digit/letter counts accommodate special-event calls like `DL100IARU`
+and `VK100MARCONI`. This is enforced at every entry point: the manual form,
+`qsos.create`/`update`, the import review dialog (`invalidCallsign`), and
+`qsos.commitUpload`.
 
 Both operator and contact callsigns are reduced to their **base call** before
 comparison and storage via `normalizeCallsign` (`packages/api/src/routers/qsos.ts`).
@@ -220,11 +294,16 @@ All write endpoints are rate-limited per authenticated user using the shared `ra
 | `qsos.create` | 120 | 60s |
 | `qsos.update` | 120 | 60s |
 | `qsos.delete` | 120 | 60s |
-| `qsos.bulkCreate` | 20 | 1 hour |
-| `qsos.importCabrillo` | 10 | 1 hour |
+| `qsos.commitUpload` | 10 | 1 hour |
 
 Exceeding a limit returns a `TOO_MANY_REQUESTS` error with the message "Per daug užklausų. Bandykite vėliau."
 
 ## User Callsign Requirement
 
-A callsign is required on the user profile before logging QSOs. The callsign is used to validate that the `STATION_CALLSIGN` field in the ADIF matches the logged-in operator (exact validation rules TBD during implementation).
+A callsign is required on the user profile before logging QSOs. During import the
+log's **header** station callsign (Cabrillo `CALLSIGN:` / ADIF `STATION_CALLSIGN`)
+is compared against the signed-in operator and a mismatch is surfaced in the review
+dialog as an advisory warning only. The **per-row** operator callsign, however, must
+match the signed-in user: rows whose operator callsign differs are skipped with
+`callsignMismatch` (see [Validation tiers](#validation-tiers)). Every imported QSO
+is stored under the authenticated user regardless.

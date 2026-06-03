@@ -57,13 +57,13 @@ Implemented via `orpc.admin.memberships.*` procedures in `packages/api/src/route
 
 ### Uploads tab (Įkėlimai)
 
-Lists all Cabrillo file imports across all seasons, newest first.
+Lists all log file imports (Cabrillo and ADIF) across all seasons, newest first.
 
-Columns: timestamp, callsign, season name, accepted QSO count (green badge), skipped count (muted badge).
+Columns: timestamp, callsign, format (`cabrillo`/`adif` badge), season name, accepted QSO count (green badge), skipped count (muted badge). The detail dialog shows the raw log content under "Žurnalo turinys".
 
-A row is written to `cabrillo_upload` inside the same transaction as the QSO inserts, so accepted/skipped counts are always consistent with what actually landed in the DB. Rows cascade-delete if the user or season is deleted.
+A row is written to `cabrillo_upload` (which carries a `format` column) inside the same transaction as the QSO inserts, so accepted/skipped counts are always consistent with what actually landed in the DB. Rows cascade-delete if the user or season is deleted.
 
-Implemented via `orpc.admin.uploads.list` in `packages/api/src/routers/admin.ts`. Record inserted in `importCabrillo` in `packages/api/src/routers/qsos.ts`.
+Implemented via `orpc.admin.uploads.list` in `packages/api/src/routers/admin.ts`. Record inserted in `commitUpload` in `packages/api/src/routers/qsos.ts`.
 
 ### QSOs tab
 

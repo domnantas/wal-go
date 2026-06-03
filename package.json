@@ -11,6 +11,7 @@
     "dev:bare": "turbo dev:bare",
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "test": "turbo test",
     "db:push": "turbo -F @WAL-GO/db db:push",
     "db:studio": "turbo -F @WAL-GO/db db:studio",
     "db:generate": "turbo -F @WAL-GO/db db:generate",

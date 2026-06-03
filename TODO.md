@@ -28,13 +28,14 @@
 - [x] Rate limiting
 - [x] Map geolocation
 - [x] Log pagination
+- [x] History window – or send a message to Discord. 
+- [x] Map visible when logged out as well
+- [x] Remember geolocation setting on map (separate from the add qso)
+- [x] ADIF import
 - [] Leaderboard – only visible when season ends
 - [] Spotting/self-spotting feature – send a message to discrod
 - [] Past season views
 - [] Profile with your impact on the map
 - [] Analysing uploaded qsos
-- [] History window – or send a message to Discord. 
 - [] Log export?
-- [] Map visible when logged out as well
 - [] i18n
-- [] Remember geolocation setting on map (separate from the add qso)

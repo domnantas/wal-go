@@ -1,0 +1,18 @@
+{
+  "name": "@WAL-GO/log-parse",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@WAL-GO/config": "workspace:*",
+    "@WAL-GO/db": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

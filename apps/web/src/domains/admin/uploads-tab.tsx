@@ -20,7 +20,7 @@ import { useState } from "react";
 import { orpc } from "@/utils/orpc";
 
 const SKIP_REASON_LABELS: Record<string, string> = {
-	callsignMismatch: "Šaukinys nesutampa",
+	callsignMismatch: "Operatoriaus šaukinys nesutampa",
 	exactDuplicate: "Tikslus dublikatas",
 	gameDuplicate: "Žaidimo dublikatas",
 	invalidBand: "Neteisingas diapazonas",
@@ -61,6 +61,7 @@ export function UploadsTab() {
 						<TableRow className="bg-muted/40 hover:bg-muted/40">
 							<TableHead className="px-4">Data ir laikas</TableHead>
 							<TableHead className="px-4">Šaukinys</TableHead>
+							<TableHead className="px-4">Formatas</TableHead>
 							<TableHead className="px-4">Sezonas</TableHead>
 							<TableHead className="px-4 text-right">Priimta</TableHead>
 							<TableHead className="px-4 text-right">Praleista</TableHead>
@@ -71,7 +72,7 @@ export function UploadsTab() {
 							<TableRow>
 								<TableCell
 									className="px-4 py-10 text-center text-muted-foreground"
-									colSpan={5}
+									colSpan={6}
 								>
 									Nėra įkėlimų
 								</TableCell>
@@ -88,6 +89,11 @@ export function UploadsTab() {
 									</TableCell>
 									<TableCell className="px-4 font-bold">
 										{row.callsign}
+									</TableCell>
+									<TableCell className="px-4">
+										<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-muted-foreground text-xs uppercase">
+											{row.format}
+										</span>
 									</TableCell>
 									<TableCell className="px-4 text-muted-foreground">
 										{row.seasonName}
@@ -193,7 +199,7 @@ function UploadDetailBody({ data }: { data: UploadData }) {
 				)}
 			</Section>
 
-			<Section title="Cabrillo turinys">
+			<Section title="Žurnalo turinys">
 				<pre className="overflow-x-auto whitespace-pre rounded-xl bg-muted p-4 font-mono text-xs leading-relaxed">
 					{data.cabrilloContent}
 				</pre>

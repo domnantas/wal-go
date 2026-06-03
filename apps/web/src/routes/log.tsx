@@ -1,9 +1,6 @@
-import type {
-	ImportError,
-	ImportSuccess,
-	QsoBand,
-	SkipReason,
-} from "@WAL-GO/api/routers/qsos";
+import type { QsoBand } from "@WAL-GO/api/routers/qsos";
+import { normalizeCallsign } from "@WAL-GO/callsign";
+import { type ParseResult, parseLog } from "@WAL-GO/log-parse";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
@@ -42,9 +39,15 @@ import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";
 import { EditQsoDialog } from "@/domains/log/edit-qso-dialog";
+import {
+	type ImportResult,
+	LogReviewDialog,
+	SKIP_REASON_LABELS,
+} from "@/domains/log/log-review-dialog";
 import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
+import { formatInVilnius } from "@/lib/date";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/log")({
@@ -68,14 +71,6 @@ interface Qso {
 	operatorSquare: string;
 	qsoAt: Date | string;
 }
-
-const dateTimeFormatter = new Intl.DateTimeFormat("lt-LT", {
-	year: "numeric",
-	month: "2-digit",
-	day: "2-digit",
-	hour: "2-digit",
-	minute: "2-digit",
-});
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
@@ -136,7 +131,7 @@ function RouteComponent() {
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
-			{canAddQso ? <CabrilloDropzone /> : null}
+			{canAddQso ? <LogDropzone /> : null}
 
 			{!activeSeason && upcomingSeason ? (
 				<SeasonCountdownCard
@@ -210,7 +205,7 @@ function RouteComponent() {
 }
 
 function toDisplayDate(value: Date | string) {
-	return dateTimeFormatter.format(new Date(value));
+	return formatInVilnius(value, "yyyy-MM-dd HH:mm");
 }
 
 function StatCard({
@@ -237,77 +232,40 @@ function StatCard({
 	);
 }
 
-interface ImportResult {
-	accepted: number;
-	errors: ImportError[];
-	imported: ImportSuccess[];
-	skipped: number;
-}
-
 type DropzoneState =
 	| { status: "idle" }
-	| { status: "importing" }
+	| { status: "review"; parseResult: ParseResult; content: string }
 	| { status: "done"; result: ImportResult }
 	| { status: "error"; message: string };
 
-const SKIP_REASON_LABELS: Record<SkipReason, string> = {
-	callsignMismatch: "Šaukinys nesutampa",
-	exactDuplicate: "Jau užregistruotas",
-	gameDuplicate: "Pakartotinis pagal žaidimo taisykles",
-	invalidBand: "Neatpažintas diapazonas",
-	invalidDate: "Neteisinga data",
-	invalidMode: "Neatpažinta moduliacija",
-	invalidSquare: "Neteisingas WAL kvadratas",
-	outsideSeason: "Už sezono ribų",
-	malformedLine: "Neteisingas formatas",
-	invalidCallsign: "Neteisingas šaukinys",
-	selfContact: "QSO su savimi",
-	blockedCallsign: "Blokuojamas šaukinys. Слава Україні! 🇺🇦",
-};
-
-function CabrilloDropzone() {
-	const queryClient = useQueryClient();
-	const posthog = usePostHog();
+function LogDropzone() {
 	const [state, setState] = useState<DropzoneState>({ status: "idle" });
 	const [isDragging, setIsDragging] = useState(false);
 	const [errorsExpanded, setErrorsExpanded] = useState(false);
 	const [importedExpanded, setImportedExpanded] = useState(true);
-
-	const importMutation = useMutation(
-		orpc.qsos.importCabrillo.mutationOptions({
-			onSuccess: (result) => {
-				setState({ status: "done", result });
-				setImportedExpanded(true);
-				posthog.capture("cabrillo_imported", {
-					accepted: result.accepted,
-					skipped: result.skipped,
-					errors: result.errors.length,
-				});
-				queryClient.invalidateQueries({
-					queryKey: orpc.qsos.list.queryOptions().queryKey,
-				});
-				queryClient.invalidateQueries({
-					queryKey: orpc.qsos.stats.queryOptions().queryKey,
-				});
-			},
-			onError: (error) => {
-				setState({ status: "error", message: error.message });
-			},
-		})
-	);
+	const { data: session } = useQuery(sessionOptions(authClient));
+	const { data: currentSeason } = useQuery(orpc.seasons.current.queryOptions());
+	const userCallsign = session?.user.name
+		? normalizeCallsign(session.user.name)
+		: "";
 
 	function handleFile(file: File) {
 		if (file.size > 2 * 1024 * 1024) {
 			setState({ status: "error", message: "Failas per didelis (maks. 2 MB)" });
 			return;
 		}
-		setState({ status: "importing" });
 		const reader = new FileReader();
 		reader.onload = (e) => {
 			const content = e.target?.result;
-			if (typeof content === "string") {
-				importMutation.mutate({ content });
+			if (typeof content !== "string") {
+				return;
 			}
+			const parseResult = parseLog(content);
+			if (parseResult.qsos.length === 0) {
+				setState({ status: "error", message: "Faile nerasta QSO įrašų" });
+				return;
+			}
+			setState({ status: "review", parseResult, content });
 		};
 		reader.readAsText(file);
 	}
@@ -336,15 +294,6 @@ function CabrilloDropzone() {
 			handleFile(file);
 		}
 		e.target.value = "";
-	}
-
-	if (state.status === "importing") {
-		return (
-			<div className="flex w-full flex-col items-center gap-2 rounded-4xl border-2 border-border border-dashed bg-card px-6 py-10 text-center">
-				<Spinner className="size-8" />
-				<p className="font-medium text-sm">Įkeliama...</p>
-			</div>
-		);
 	}
 
 	if (state.status === "done") {
@@ -524,44 +473,67 @@ function CabrilloDropzone() {
 	}
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: HTML5 drag-and-drop zone; keyboard/click handled by inner label
-		// biome-ignore lint/a11y/noNoninteractiveElementInteractions: HTML5 drag-and-drop zone; keyboard/click handled by inner label
-		<div
-			className={cn(
-				"group rounded-4xl border-2 border-dashed bg-card transition-colors",
-				isDragging
-					? "border-accent bg-accent/5"
-					: "border-border hover:border-accent hover:bg-accent/5"
-			)}
-			onDragLeave={handleDragLeave}
-			onDragOver={handleDragOver}
-			onDrop={handleDrop}
-		>
-			<label
-				className="flex w-full cursor-pointer flex-col items-center gap-2 px-6 py-10 text-center"
-				htmlFor="cabrillo-file-input"
+		<>
+			{state.status === "review" ? (
+				<LogReviewDialog
+					content={state.content}
+					onCommitted={(result) => {
+						setImportedExpanded(true);
+						setState({ status: "done", result });
+					}}
+					onOpenChange={(nextOpen) => {
+						if (!nextOpen) {
+							setState({ status: "idle" });
+						}
+					}}
+					open
+					parseResult={state.parseResult}
+					seasonEnd={currentSeason?.endsAt}
+					seasonStart={currentSeason?.startsAt}
+					userCallsign={userCallsign}
+				/>
+			) : null}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: HTML5 drag-and-drop zone; keyboard/click handled by inner label */}
+			{/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: HTML5 drag-and-drop zone; keyboard/click handled by inner label */}
+			<div
+				className={cn(
+					"group rounded-4xl border-2 border-dashed bg-card transition-colors",
+					isDragging
+						? "border-accent bg-accent/5"
+						: "border-border hover:border-accent hover:bg-accent/5"
+				)}
+				onDragLeave={handleDragLeave}
+				onDragOver={handleDragOver}
+				onDrop={handleDrop}
 			>
-				<input
-					accept=".log,.cbr,.cabrillo"
-					className="sr-only"
-					id="cabrillo-file-input"
-					onChange={handleInputChange}
-					type="file"
-				/>
-				<Upload
-					className={cn(
-						"size-8 transition-colors",
-						isDragging
-							? "text-accent"
-							: "text-muted-foreground group-hover:text-accent"
-					)}
-				/>
-				<p className="font-medium text-sm">Įkelti Cabrillo failą</p>
-				<p className="text-muted-foreground text-xs">
-					Vilkite failą arba paspauskite (.log, .cbr, .cabrillo)
-				</p>
-			</label>
-		</div>
+				<label
+					className="flex w-full cursor-pointer flex-col items-center gap-2 px-6 py-10 text-center"
+					htmlFor="log-file-input"
+				>
+					<input
+						accept=".log,.cbr,.cabrillo,.adi,.adif"
+						className="sr-only"
+						id="log-file-input"
+						onChange={handleInputChange}
+						type="file"
+					/>
+					<Upload
+						className={cn(
+							"size-8 transition-colors",
+							isDragging
+								? "text-accent"
+								: "text-muted-foreground group-hover:text-accent"
+						)}
+					/>
+					<p className="font-medium text-sm">
+						Įkelti žurnalą (Cabrillo arba ADIF)
+					</p>
+					<p className="text-muted-foreground text-xs">
+						Vilkite failą arba paspauskite (.log, .cbr, .cabrillo, .adi, .adif)
+					</p>
+				</label>
+			</div>
+		</>
 	);
 }
 
