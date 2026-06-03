@@ -45,6 +45,12 @@ Behaviour:
   If the user later resets permission to "ask" (not the same as denying), the
   toggle reverts to off and the form will not silently re-prompt — the user must
   click again to re-grant.
+- **iOS Safari has no Permissions API for geolocation** (`navigator.permissions
+  .query({ name: "geolocation" })` is unavailable), so the permission state can
+  never resolve to `granted` there. To avoid the persisted toggle appearing
+  permanently off on iOS, when the Permissions API is unsupported the toggle is
+  treated as active based on the stored opt-in flag alone
+  (`isPermissionsApiSupported()` in `useGeolocationSquare`).
 - The square is **recalculated every time the dialog opens** (the form remounts),
   so an operator who moved between logs gets their current square rather than a
   stale one. With the toggle on and permission already granted, the field is

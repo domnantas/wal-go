@@ -17,6 +17,16 @@ function isGeolocationSupported() {
 	return typeof navigator !== "undefined" && "geolocation" in navigator;
 }
 
+// iOS Safari does not implement the Permissions API for geolocation, so
+// `navigator.permissions.query({ name: "geolocation" })` is unavailable there
+// and the permission state can never resolve to "granted".
+function isPermissionsApiSupported() {
+	return (
+		typeof navigator !== "undefined" &&
+		typeof navigator.permissions?.query === "function"
+	);
+}
+
 function readEnabled() {
 	if (typeof window === "undefined") {
 		return false;
@@ -49,7 +59,7 @@ export function useGeolocationSquare(onSquare: (wal: string) => void) {
 	// Track the browser permission state so a previously denied user sees the
 	// disabled button without having to click first.
 	useEffect(() => {
-		if (!(isGeolocationSupported() && navigator.permissions?.query)) {
+		if (!(isGeolocationSupported() && isPermissionsApiSupported())) {
 			return;
 		}
 		let status: null | PermissionStatus = null;
@@ -102,7 +112,11 @@ export function useGeolocationSquare(onSquare: (wal: string) => void) {
 	// The toggle is only truly active when the user both opted in (persisted) and
 	// the browser still grants permission. A revoked/reset permission leaves the
 	// stored flag on but reverts the toggle to off until the user re-grants.
-	const isActive = enabled && permission === "granted";
+	// Where the Permissions API is unavailable (iOS Safari) we cannot read the
+	// permission state, so trust the persisted opt-in instead of the stuck
+	// "prompt" value — otherwise the toggle could never appear active there.
+	const isActive =
+		enabled && (permission === "granted" || !isPermissionsApiSupported());
 
 	// Recalculate the square every time the dialog opens (mount) so a moved
 	// operator gets their current square, not a stale one. Only auto-locate when
@@ -112,7 +126,7 @@ export function useGeolocationSquare(onSquare: (wal: string) => void) {
 		if (hasAutoLocated.current) {
 			return;
 		}
-		if (enabled && permission === "granted") {
+		if (enabled && (permission === "granted" || !isPermissionsApiSupported())) {
 			hasAutoLocated.current = true;
 			locate();
 		}
