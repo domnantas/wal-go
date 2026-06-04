@@ -146,8 +146,10 @@ Required GitHub variables:
 
 | Variable | Description |
 |---|---|
-| `CORS_ORIGIN` | Allowed CORS origin |
-| `BETTER_AUTH_URL` | Public URL for better-auth |
+| `CORS_ORIGIN` | Allowed CORS origin (prod only — see note) |
+| `BETTER_AUTH_URL` | Public URL for better-auth (prod only — see note) |
+
+`CORS_ORIGIN` and `BETTER_AUTH_URL` are bound on the Worker **only when `isProd`** (`alchemy.run.ts`). Preview stages deploy to an ephemeral per-PR URL (`web.url`) that no static variable can know ahead of time, so they leave both unset. better-auth then infers `baseURL` from the request and auto-trusts that origin — fixing the "Invalid origin" login failure on previews. CSRF protection is unaffected: better-auth still validates the browser-set `Origin` header, which an attacker cannot forge cross-site. Prod keeps the pinned values, so its security posture is unchanged. See `packages/auth/src/index.ts`.
 
 ## Local infra credentials
 

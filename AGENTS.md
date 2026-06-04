@@ -12,6 +12,8 @@ Document project features in the `docs/` directory to keep a reference for futur
 
 **Always update docs when making changes.** When implementing or modifying a feature, update the corresponding doc file in `docs/` to reflect the new state. If no doc exists for the feature, create one. Do this as part of the same task — never leave docs stale.
 
+Avoid unnecessary comments when the code is understandable by itself.
+
 ## Development
 
 Do not run the dev server to check if changes are valid. Avoid `let`, prefer immutable/functional approach. Use `date-fns` for dates and time.
