@@ -16,14 +16,20 @@ import {
 } from "alchemy/Planetscale";
 import { Effect, Layer, Redacted } from "effect";
 
+const prNumber = process.env.PULL_REQUEST
+	? Number(process.env.PULL_REQUEST)
+	: undefined;
+
 export default Stack(
 	"WAL-GO",
 	{
 		providers: Layer.mergeAll(
 			cfProviders(),
 			psProviders(),
-			ghProviders(),
-			drizzleProviders()
+			drizzleProviders(),
+			// GitHub provider resolves credentials eagerly. Only load it when we
+			// actually post a PR comment, so local runs and destroys need no token.
+			...(prNumber === undefined ? [] : [ghProviders()])
 		),
 		state: state(),
 	},
@@ -121,10 +127,6 @@ export default Stack(
 				VITE_PUBLIC_POSTHOG_HOST: Variable("VITE_PUBLIC_POSTHOG_HOST"),
 			},
 		});
-
-		const prNumber = process.env.PULL_REQUEST
-			? Number(process.env.PULL_REQUEST)
-			: undefined;
 
 		if (prNumber !== undefined) {
 			yield* Comment("preview-url", {

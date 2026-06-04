@@ -27,6 +27,13 @@ The stack creates:
 4. `Hyperdrive` — pools connections; uses the unique logical id `hyperdrive` so it does not collide with the PlanetScale database resource; `dev` override points to `localhost:5432` for `alchemy dev`
 5. `Drizzle.Schema` — generates migration SQL using drizzle-kit's programmatic API whenever the schema in `packages/db/src/schema/` changes; migrations are written to `packages/db/migrations/`
 6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding, a direct `DATABASE_URL` secret from the PlanetScale role, and `nodejs_compat_populate_process_env` so Worker variables/secrets are available through `process.env`. `memo.include` is set to `../../apps/**` and `../../packages/**` so changes to any workspace package trigger a rebuild — Alchemy's default hashes only the `packages/infra` cwd.
+7. `GitHub.Comment` — posts a preview-URL comment on the PR. Only created when `PULL_REQUEST` is set.
+
+### GitHub provider is conditional
+
+`ghProviders()` resolves GitHub credentials **eagerly** when the provider layer is built — if no `GITHUB_TOKEN`/`GITHUB_ACCESS_TOKEN` is in the environment it fails immediately with `Failed to resolve GitHub credentials for profile 'default'`, regardless of whether a comment is actually posted. The stack therefore loads the GitHub provider only when `PULL_REQUEST` is set (i.e. CI PR deploy/cleanup). Local `alchemy deploy`/`destroy` runs without `PULL_REQUEST` skip the provider entirely and need no token.
+
+Because the cleanup job destroys the `Comment` resource from state, it also sets `PULL_REQUEST`, so it must pass `GITHUB_TOKEN` too (both the deploy and cleanup jobs do).
 
 ## Local development
 
@@ -105,6 +112,7 @@ Required GitHub secrets:
 | `PLANETSCALE_API_TOKEN` | PlanetScale API token |
 | `PLANETSCALE_ORGANIZATION` | PlanetScale organization slug |
 | `BETTER_AUTH_SECRET` | better-auth secret key |
+| `GITHUB_TOKEN` | Token for posting/destroying PR preview comments (auto-provided by Actions) |
 
 The Cloudflare token must be the raw API token value, not the token ID and not an `Authorization` header value. Store `abc...` in `CLOUDFLARE_API_TOKEN`, not `Bearer abc...`. It must be scoped to the account in `CLOUDFLARE_ACCOUNT_ID` and allow:
 

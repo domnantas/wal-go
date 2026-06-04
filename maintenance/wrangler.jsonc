@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Same name as the alchemy-managed prod worker so the existing
+  // walgo.lt / www.walgo.lt custom domains keep routing to it.
+  // This intentionally replaces the app script with a maintenance page.
+  // Do NOT run `alchemy deploy` until the DB is recovered — alchemy would
+  // revert this and reconcile (re-create) PlanetScale resources.
+  "name": "wal-go-web-prod-qpklntmn3zhnzpcb",
+  "account_id": "452fd9897640ff9c406aaf85f982cedb",
+  "main": "worker.js",
+  "compatibility_date": "2025-06-01",
+  // Static assets (logo). Served directly for matching paths (e.g. /logo.png);
+  // everything else falls through to the worker, which returns the 503 page.
+  "assets": { "directory": "./public" }
+}
