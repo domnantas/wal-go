@@ -1,4 +1,4 @@
-import { Secret, Stack, Stage, Variable } from "alchemy";
+import { RemovalPolicy, Secret, Stack, Stage, Variable } from "alchemy";
 import {
 	providers as cfProviders,
 	Hyperdrive,
@@ -42,6 +42,11 @@ export default Stack(
 			out: "../../packages/db/migrations",
 		});
 
+		// The PlanetScale database is shared across all stages (same name). A
+		// `destroy` on ANY stage — including a preview — would otherwise delete
+		// the shared physical database and take prod data with it. `retain` makes
+		// destroy drop it from state only; the database is never deleted by
+		// automation. Remove it manually in the PlanetScale dashboard if needed.
 		const db = yield* PostgresDatabase("db", {
 			name: "wal-go",
 			clusterSize: "PS_5",
@@ -51,7 +56,7 @@ export default Stack(
 				slug: "eu-central",
 			},
 			migrationsDir: isProd ? schema.out : undefined,
-		});
+		}).pipe(RemovalPolicy.retain());
 
 		const branch = isProd
 			? "main"
@@ -92,7 +97,7 @@ export default Stack(
 					"../../apps/web/package.json",
 					"../../packages/*/src/**",
 					"../../packages/*/package.json",
-					"../../pnpm-lock.yaml",
+					// "../../pnpm-lock.yaml",
 				],
 			},
 			domain: isProd ? ["walgo.lt", "www.walgo.lt"] : undefined,

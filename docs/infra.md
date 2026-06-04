@@ -21,7 +21,7 @@ PR environments are automatically destroyed when the PR is closed.
 
 The stack creates:
 
-1. `PostgresDatabase` — single shared PlanetScale database (`wal-go`, `PS_5` cluster in `eu-central`)
+1. `PostgresDatabase` — single shared PlanetScale database (`wal-go`, `PS_5` cluster in `eu-central`). Marked `RemovalPolicy.retain()` — see [Shared database is destroy-protected](#shared-database-is-destroy-protected) below.
 2. `PostgresBranch` — isolated branch per PR stage; prod uses `main` directly
 3. `PostgresRole` — credentials with `postgres` inherited role; `.origin` wires directly into Hyperdrive
 4. `Hyperdrive` — pools connections; uses the unique logical id `hyperdrive` so it does not collide with the PlanetScale database resource; `dev` override points to `localhost:5432` for `alchemy dev`
@@ -34,6 +34,14 @@ The stack creates:
 `ghProviders()` resolves GitHub credentials **eagerly** when the provider layer is built — if no `GITHUB_TOKEN`/`GITHUB_ACCESS_TOKEN` is in the environment it fails immediately with `Failed to resolve GitHub credentials for profile 'default'`, regardless of whether a comment is actually posted. The stack therefore loads the GitHub provider only when `PULL_REQUEST` is set (i.e. CI PR deploy/cleanup). Local `alchemy deploy`/`destroy` runs without `PULL_REQUEST` skip the provider entirely and need no token.
 
 Because the cleanup job destroys the `Comment` resource from state, it also sets `PULL_REQUEST`, so it must pass `GITHUB_TOKEN` too (both the deploy and cleanup jobs do).
+
+### Shared database is destroy-protected
+
+The `PostgresDatabase` is **one physical database (`wal-go`) shared by every stage** — only the *branch* is per-PR. Each stage's state still holds its own `db` resource handle pointing at that same physical database, all with `removalPolicy: "destroy"` by default. That means `alchemy destroy` on **any** stage — including a preview PR — issues a PlanetScale `DELETE database` and wipes prod data. This actually happened once: a preview-stage destroy deleted the production database.
+
+The fix: the `db` resource is wrapped with `RemovalPolicy.retain()` in `alchemy.run.ts`. `destroy` now removes it from Alchemy state only and never calls the PlanetScale delete API; the database survives. To genuinely delete it, do so manually in the PlanetScale dashboard.
+
+`PostgresBranch` keeps the default `destroy` policy on purpose — preview branches *should* be torn down on PR close; only the shared database is protected.
 
 ## Local development
 
