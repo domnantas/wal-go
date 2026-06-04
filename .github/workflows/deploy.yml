@@ -37,7 +37,7 @@ jobs:
 
       - name: Deploy
         working-directory: packages/infra
-        run: pnpm exec alchemy deploy --yes --force --stage ${{ env.STAGE }}
+        run: pnpm exec alchemy deploy --yes --stage ${{ env.STAGE }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -74,14 +74,29 @@ jobs:
 
       - name: Safety Check
         run: |
-          if [ "${{ env.STAGE }}" = "prod" ]; then
-            echo "ERROR: Cannot destroy prod environment in cleanup job"
-            exit 1
-          fi
+          # Only ever destroy preview stages. Anything that is not pr-<number>
+          # (prod, a branch name, an empty/garbage value) aborts the job.
+          case "${{ env.STAGE }}" in
+            pr-[0-9]*) echo "Destroying preview stage ${{ env.STAGE }}" ;;
+            *) echo "ERROR: refusing to destroy non-preview stage '${{ env.STAGE }}'"; exit 1 ;;
+          esac
 
       - name: Destroy Preview
         working-directory: packages/infra
-        run: pnpm exec alchemy destroy --yes --stage ${{ env.STAGE }}
+        # Retry transient failures (PlanetScale/Cloudflare API blips). destroy is
+        # idempotent, so re-running continues from where it left off. The db is
+        # RemovalPolicy.retain() in alchemy.run.ts, so this only removes the
+        # preview branch + worker — never the shared production database.
+        run: |
+          for attempt in 1 2 3; do
+            echo "::group::alchemy destroy (attempt $attempt)"
+            if pnpm exec alchemy destroy --yes --stage ${{ env.STAGE }}; then
+              echo "::endgroup::"; exit 0
+            fi
+            echo "::endgroup::"
+            echo "destroy attempt $attempt failed"; sleep $((attempt * 10))
+          done
+          echo "destroy failed after 3 attempts"; exit 1
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

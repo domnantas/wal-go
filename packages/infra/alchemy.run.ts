@@ -1,4 +1,4 @@
-import { Secret, Stack, Stage, Variable } from "alchemy";
+import { RemovalPolicy, Secret, Stack, Stage, Variable } from "alchemy";
 import {
 	providers as cfProviders,
 	Hyperdrive,
@@ -42,6 +42,15 @@ export default Stack(
 			out: "../../packages/db/migrations",
 		});
 
+		// The physical PlanetScale database (`wal-go`) is shared by every stage,
+		// and PlanetScale databases carry no ownership tags — so Alchemy treats
+		// the `db` resource as "owned" in EVERY stage. Without this guard a
+		// `destroy` on any stage (including a preview PR) issues a PlanetScale
+		// DELETE database and takes prod data with it (this happened once).
+		// `retain` makes destroy drop the resource from state only; the database
+		// is never deleted by automation. Delete it manually in the dashboard if
+		// ever actually needed. The per-PR `db-branch` below keeps the default
+		// `destroy` policy on purpose — only the shared database is protected.
 		const db = yield* PostgresDatabase("db", {
 			name: "wal-go",
 			clusterSize: "PS_5",
@@ -51,7 +60,7 @@ export default Stack(
 				slug: "eu-central",
 			},
 			migrationsDir: isProd ? schema.out : undefined,
-		});
+		}).pipe(RemovalPolicy.retain());
 
 		const branch = isProd
 			? "main"

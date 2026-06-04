@@ -161,3 +161,47 @@ BETTER_AUTH_SECRET=
 CORS_ORIGIN=
 BETTER_AUTH_URL=
 ```
+
+## Preview lifecycle & manual recovery
+
+### How previews are torn down
+
+When a PR is closed, the `cleanup` job in `deploy.yml` runs `alchemy destroy --stage pr-{N}`. It:
+
+- aborts unless the stage matches `pr-<number>` (Safety Check) — it can never destroy `prod` or a branch stage;
+- retries up to 3 times (destroy is idempotent, so re-runs resume);
+- removes only the preview **branch** and preview **worker**. The shared database is `RemovalPolicy.retain()`, so destroy never deletes it.
+
+### What is safe vs. dangerous
+
+| Action | Effect |
+|---|---|
+| `alchemy destroy --stage pr-{N}` | Safe. Deletes the preview branch + worker. The shared db is retained. |
+| `alchemy destroy --stage prod` | Removes the prod worker/role/hyperdrive (recoverable by re-deploy). **The db is retained** thanks to `RemovalPolicy.retain()`, but never do this on purpose. |
+| Deleting a PlanetScale **branch** (dashboard/API) | Safe. A branch is an isolated copy; `main` is a protected production branch and cannot be deleted without demoting it first. |
+| Deleting the **database** in the PlanetScale dashboard | Destroys production data. The only path that can; never automated. |
+
+Before the `RemovalPolicy.retain()` guard, a manual `alchemy destroy` on a preview deleted the shared production database — because PlanetScale databases carry no ownership tags, so Alchemy treated the same physical `wal-go` db as owned in every stage. The guard is what prevents recurrence; keep it.
+
+### When CI cleanup fails and you must fix things manually
+
+1. **Inspect state** (read-only):
+   ```sh
+   cd packages/infra
+   alchemy state stages WAL-GO              # list stages
+   alchemy state resources WAL-GO pr-123    # resources in a stage
+   alchemy state get WAL-GO pr-123 db-branch
+   ```
+2. **Destroy a stuck preview** (safe — db is retained):
+   ```sh
+   alchemy destroy --yes --stage pr-123
+   ```
+   Needs `CLOUDFLARE_API_TOKEN` (or `alchemy login`) and the PlanetScale vars from `.env`. No `GITHUB_TOKEN` needed unless the stage still has a PR `Comment` resource (set `PULL_REQUEST=123` if so).
+3. **Partial / errored destroy:** just re-run the same `destroy` — it continues from the remaining resources.
+4. **State drift** (you changed something in the cloud by hand): re-import instead of fighting it:
+   ```sh
+   alchemy deploy --adopt --stage pr-123
+   ```
+   `--adopt` takes over pre-existing cloud resources into state.
+5. **Orphaned PlanetScale branches** (preview branch left behind but stage gone from state): delete the branch directly in the PlanetScale dashboard or API. This is safe — deleting a branch is not deleting the database, and `main` is protection-guarded.
+6. **Never** delete the `wal-go` database or demote/delete the `main` branch to "clean up". If the database itself is ever gone, recovery is a PlanetScale support restore, not a redeploy (a redeploy only recreates an empty db).
