@@ -39,3 +39,5 @@
 - [] Analysing uploaded qsos
 - [] Log export?
 - [] i18n
+- [] error tracking with posthog
+- [] marketing emails

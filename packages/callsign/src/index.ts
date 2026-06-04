@@ -17,6 +17,7 @@ export function isBlockedCallsign(callsign: string): boolean {
  * suffix). Checks the normalized base call, so operating suffixes/prefixes like
  * `/P` or `9A/` are stripped before validation. This is the same rule used for
  * account callsigns at sign-up.
+ *
  */
 export function isValidCallsign(callsign: string): boolean {
 	return CALLSIGN_REGEX.test(normalizeCallsign(callsign));
