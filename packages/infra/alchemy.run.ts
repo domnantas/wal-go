@@ -60,7 +60,7 @@ export default Stack(
 				slug: "eu-central",
 			},
 			migrationsDir: isProd ? schema.out : undefined,
-		}).pipe(RemovalPolicy.retain());
+		}).pipe(RemovalPolicy.retain(true));
 
 		const branch = isProd
 			? "main"

@@ -21,7 +21,7 @@ PR environments are automatically destroyed when the PR is closed.
 
 The stack creates:
 
-1. `PostgresDatabase` — single shared PlanetScale database (`wal-go`, `PS_5` cluster in `eu-central`). Marked `RemovalPolicy.retain()` — see [Shared database is destroy-protected](#shared-database-is-destroy-protected) below.
+1. `PostgresDatabase` — single shared PlanetScale database (`wal-go`, `PS_5` cluster in `eu-central`). Marked `RemovalPolicy.retain(true)` — see [Shared database is destroy-protected](#shared-database-is-destroy-protected) below.
 2. `PostgresBranch` — isolated branch per PR stage; prod uses `main` directly
 3. `PostgresRole` — credentials with `postgres` inherited role; `.origin` wires directly into Hyperdrive
 4. `Hyperdrive` — pools connections; uses the unique logical id `hyperdrive` so it does not collide with the PlanetScale database resource; `dev` override points to `localhost:5432` for `alchemy dev`
@@ -39,7 +39,7 @@ Because the cleanup job destroys the `Comment` resource from state, it also sets
 
 The `PostgresDatabase` is **one physical database (`wal-go`) shared by every stage** — only the *branch* is per-PR. Each stage's state still holds its own `db` resource handle pointing at that same physical database, all with `removalPolicy: "destroy"` by default. That means `alchemy destroy` on **any** stage — including a preview PR — issues a PlanetScale `DELETE database` and wipes prod data. This actually happened once: a preview-stage destroy deleted the production database.
 
-The fix: the `db` resource is wrapped with `RemovalPolicy.retain()` in `alchemy.run.ts`. `destroy` now removes it from Alchemy state only and never calls the PlanetScale delete API; the database survives. To genuinely delete it, do so manually in the PlanetScale dashboard.
+The fix: the `db` resource is wrapped with `RemovalPolicy.retain(true)` in `alchemy.run.ts`. `destroy` now removes it from Alchemy state only and never calls the PlanetScale delete API; the database survives. To genuinely delete it, do so manually in the PlanetScale dashboard.
 
 `PostgresBranch` keeps the default `destroy` policy on purpose — preview branches *should* be torn down on PR close; only the shared database is protected.
 
@@ -170,18 +170,18 @@ When a PR is closed, the `cleanup` job in `deploy.yml` runs `alchemy destroy --s
 
 - aborts unless the stage matches `pr-<number>` (Safety Check) — it can never destroy `prod` or a branch stage;
 - retries up to 3 times (destroy is idempotent, so re-runs resume);
-- removes only the preview **branch** and preview **worker**. The shared database is `RemovalPolicy.retain()`, so destroy never deletes it.
+- removes only the preview **branch** and preview **worker**. The shared database is `RemovalPolicy.retain(true)`, so destroy never deletes it.
 
 ### What is safe vs. dangerous
 
 | Action | Effect |
 |---|---|
 | `alchemy destroy --stage pr-{N}` | Safe. Deletes the preview branch + worker. The shared db is retained. |
-| `alchemy destroy --stage prod` | Removes the prod worker/role/hyperdrive (recoverable by re-deploy). **The db is retained** thanks to `RemovalPolicy.retain()`, but never do this on purpose. |
+| `alchemy destroy --stage prod` | Removes the prod worker/role/hyperdrive (recoverable by re-deploy). **The db is retained** thanks to `RemovalPolicy.retain(true)`, but never do this on purpose. |
 | Deleting a PlanetScale **branch** (dashboard/API) | Safe. A branch is an isolated copy; `main` is a protected production branch and cannot be deleted without demoting it first. |
 | Deleting the **database** in the PlanetScale dashboard | Destroys production data. The only path that can; never automated. |
 
-Before the `RemovalPolicy.retain()` guard, a manual `alchemy destroy` on a preview deleted the shared production database — because PlanetScale databases carry no ownership tags, so Alchemy treated the same physical `wal-go` db as owned in every stage. The guard is what prevents recurrence; keep it.
+Before the `RemovalPolicy.retain(true)` guard, a manual `alchemy destroy` on a preview deleted the shared production database — because PlanetScale databases carry no ownership tags, so Alchemy treated the same physical `wal-go` db as owned in every stage. The guard is what prevents recurrence; keep it.
 
 ### When CI cleanup fails and you must fix things manually
 
