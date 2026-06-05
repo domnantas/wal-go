@@ -53,7 +53,7 @@ Set `DISCORD_WEBHOOK_URL` to a Discord channel webhook URL (Server Settings → 
 
 - Getter: `env.DISCORD_WEBHOOK_URL` (`packages/env/src/server.ts`, reads `process.env`, populated on Workers via `nodejs_compat_populate_process_env`).
 - Type: `packages/env/env.d.ts` (`CloudflareEnv.DISCORD_WEBHOOK_URL`).
-- Deploy secret: bound in `packages/infra/alchemy.run.ts` only when present; set in local `apps/web/.env` for dev.
+- Deploy secret: bound in `packages/infra/alchemy.run.ts` only when `process.env.DISCORD_WEBHOOK_URL` is present at deploy time. The CI runner only sees it if the GitHub secret is mapped into the deploy step's `env:` in `.github/workflows/deploy.yml` (`DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}`) — a GitHub repo secret is **not** auto-exposed as an env var. If the mapping is missing the binding is silently skipped and the worker never gets the secret. Set in local `apps/web/.env` for dev.
 
 ## Known limitation
 
