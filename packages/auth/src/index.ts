@@ -26,7 +26,7 @@ export function createAuth(db: Db) {
 			provider: "pg",
 			schema,
 		}),
-		trustedOrigins: [env.CORS_ORIGIN],
+		trustedOrigins: env.CORS_ORIGIN ? [env.CORS_ORIGIN] : [],
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,
@@ -124,6 +124,9 @@ export function createAuth(db: Db) {
 			storage: "database",
 		},
 		secret: env.BETTER_AUTH_SECRET,
+		// Unset on preview → better-auth infers baseURL from the request and
+		// auto-trusts that origin, so each ephemeral preview URL works without
+		// a static env value. Prod pins it via BETTER_AUTH_URL.
 		baseURL: env.BETTER_AUTH_URL,
 		plugins: [
 			tanstackStartCookies(),

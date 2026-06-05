@@ -4,17 +4,15 @@
 
 ### Default primary key
 
-Every new table uses an integer identity primary key:
+Every new table uses an integer identity PK — keeps joins narrow, indexes small, managed by Postgres:
 
 ```ts
 id: integer("id").primaryKey().generatedAlwaysAsIdentity()
 ```
 
-Integer PKs keep joins narrow, indexes small, and are managed by Postgres.
-
 ### Public identifier
 
-When a row needs to be referenced from a URL or external API, add a separate `public_id` column. Do **not** expose the integer PK.
+When a row is referenced from a URL or external API, add a separate `public_id` column — do **not** expose the integer PK:
 
 ```ts
 import { generateNanoId } from "../lib/ids";
@@ -25,11 +23,11 @@ publicId: varchar("public_id", { length: 12 })
   .$defaultFn(() => generateNanoId())
 ```
 
-`generateNanoId()` lives in `@WAL-GO/db/lib/ids` and produces a 12-character URL-safe token from a Crockford-style alphabet (no ambiguous `I`/`l`/`O`/`U`).
+`generateNanoId()` (`@WAL-GO/db/lib/ids`) produces a 12-char URL-safe token from a Crockford-style alphabet (no ambiguous `I`/`l`/`O`/`U`).
 
 ### Auth tables exception
 
-`user`, `session`, `account`, `verification` use `text` IDs supplied by better-auth. Leave them as-is. Tables that reference `user.id` use `text("user_id")`.
+`user`, `session`, `account`, `verification` use `text` IDs supplied by better-auth — leave as-is. Tables referencing `user.id` use `text("user_id")`.
 
 ## Timestamps
 
@@ -41,7 +39,7 @@ updatedAt: timestamp("updated_at")
   .notNull(),
 ```
 
-User-facing event timestamps (e.g. `joined_at`, `starts_at`) take `{ precision: 6, withTimezone: true }`.
+User-facing event timestamps (`joined_at`, `starts_at`) take `{ precision: 6, withTimezone: true }`.
 
 ## Relations
 
@@ -49,45 +47,43 @@ Declare relations in a separate `xRelations = relations(...)` export, mirroring 
 
 ## Connection
 
-Uses the `postgres` (postgres.js) package with the `drizzle-orm/postgres-js` adapter. Compatible with Cloudflare Workers without Node.js polyfills for networking.
+Uses the `postgres` (postgres.js) package with the `drizzle-orm/postgres-js` adapter (Workers-compatible without Node networking polyfills). `createDb(connectionString?)` resolution order (`resolveConnectionString` in `packages/db/src/index.ts`):
 
-`createDb(connectionString?: string)` accepts an optional connection string.
-Resolution order (see `resolveConnectionString` in `packages/db/src/index.ts`):
-1. explicit `connectionString` argument (used by scripts/seeds)
-2. `HYPERDRIVE.connectionString` — **preferred** in deployed Cloudflare Workers, so request traffic is pooled through Hyperdrive
-3. `cloudflareEnv.DATABASE_URL` — direct PlanetScale connection, fallback when no Hyperdrive binding
+1. explicit `connectionString` argument (scripts/seeds)
+2. `HYPERDRIVE.connectionString` — **preferred** in deployed Workers (pooled)
+3. `cloudflareEnv.DATABASE_URL` — direct PlanetScale fallback when no Hyperdrive binding
 4. `process.env.DATABASE_URL` — Node / local `vite dev`
 
-In PlanetScale's `pg_stat_activity`, connections opened via Hyperdrive still show `application_name = postgres.js` — Hyperdrive passes the client's application name through to the origin and does **not** relabel them as `Cloudflare Hyperdrive`. Tell them apart by `usename` (Hyperdrive uses the deployed role's credential) and by their long-lived idle pooling. A genuine direct bypass only happens when the `HYPERDRIVE` binding is missing/empty and the code falls through to step 3.
+In PlanetScale's `pg_stat_activity`, Hyperdrive connections still show `application_name = postgres.js` — tell them apart by `usename` and long-lived idle pooling. A genuine direct bypass only happens when `HYPERDRIVE` is missing/empty and code falls to step 3.
 
 ### Pooling and request lifecycle
 
-`createDb()` builds a fresh `postgres` client (and pool) on every call. **Request-path code must use `getDb()`, never `createDb()` directly.** `createDb()` stays for one-off scripts (e.g. seeds). The original "too many clients already" bug was every request calling `createDb()` and never closing — abandoned pools linger `idle_timeout: 20`s and accumulate.
+`createDb()` builds a fresh `postgres` client (and pool) every call. **Request-path code must use `getDb()`, never `createDb()` directly.** `createDb()` stays for one-off scripts (seeds). The original "too many clients already" bug was every request calling `createDb()` and never closing — abandoned pools linger `idle_timeout: 20`s and accumulate.
 
-`getDb()` returns `{ db, dispose }` and behaves differently per runtime:
+`getDb()` returns `{ db, dispose }` and behaves per runtime:
 
-- **Cloudflare Workers (prod, and `alchemy dev`):** a **fresh client per request**, capped at `max: 1`. Reusing one socket across requests on Workers throws `Cannot perform I/O on behalf of a different request`, so the client is never cached. Hyperdrive (the `HYPERDRIVE` binding) pools the real DB connections server-side, so opening a node-local client per request is cheap. The caller **must** `await dispose()` (which calls `client.end()`) when the request ends, or the per-request client leaks within the isolate.
-- **Node / local `vite dev`:** a **single shared pool** (`max: 10`) cached on `globalThis` per process — this is the connection pooling that prevents exhaustion. `dispose` is a **noop** here; closing the shared pool per request would re-create the original leak. Cached on `globalThis` (not a module variable) so Vite HMR module re-evaluation does not spawn duplicate pools.
+- **Cloudflare Workers (prod, `alchemy dev`):** a **fresh client per request**, `max: 1` — reusing one socket across requests throws `Cannot perform I/O on behalf of a different request`, so it's never cached. Hyperdrive pools the real connections server-side, so a node-local client per request is cheap. The caller **must** `await dispose()` (calls `client.end()`) at request end, or it leaks within the isolate.
+- **Node / `vite dev`:** a **single shared pool** (`max: 10`) cached on `globalThis` per process — this prevents exhaustion. `dispose` is a **noop**; closing the shared pool per request would re-create the leak. Cached on `globalThis` (not a module var) so Vite HMR re-evaluation doesn't spawn duplicate pools.
 
-The runtime is detected via `getCloudflareEnv()` truthiness (the `cloudflare:workers` module only imports inside a Worker), not the connection-string source — `DATABASE_URL` is set in both runtimes.
+Runtime is detected via `getCloudflareEnv()` truthiness (the `cloudflare:workers` module only imports inside a Worker), not the connection-string source.
 
 #### Disposing at request boundaries
 
-Every site that creates a request-scoped db **must** dispose it in a `finally`. Current boundaries:
+Every site that creates a request-scoped db **must** dispose it in a `finally`:
 
 - `apps/web/src/routes/api/rpc/$.ts` — `handle()` disposes the oRPC `createContext` result.
-- `apps/web/src/utils/orpc.ts` — the SSR `createRouterClient` disposes per call via an `interceptor` (each SSR procedure call builds its own context).
+- `apps/web/src/utils/orpc.ts` — the SSR `createRouterClient` disposes per call via an `interceptor`.
 - `apps/web/src/routes/api/auth/$.ts` and `apps/web/src/middleware/auth.ts` — use `createAuthScope()` and dispose in `finally`.
 
-To keep auth and application queries on **one** client per request, `createAuth(db)` takes the db as a parameter (it no longer opens its own). `createContext` creates one db, shares it with `createAuth`, and surfaces `dispose`. `createAuthScope()` (in `@WAL-GO/auth`) bundles `getDb()` + `createAuth()` + `dispose` so request boundaries that only need auth don't depend on `@WAL-GO/db` directly.
+To keep auth and app queries on **one** client per request, `createAuth(db)` takes the db as a parameter. `createContext` creates one db, shares it with `createAuth`, and surfaces `dispose`. `createAuthScope()` (`@WAL-GO/auth`) bundles `getDb()` + `createAuth()` + `dispose` so auth-only boundaries don't depend on `@WAL-GO/db` directly.
 
 ## Migrations
 
-Schema changes always go through generated migrations:
+Schema changes always go through generated migrations — never handwrite SQL:
 
 ```sh
 pnpm db:generate   # produces src/migrations/000X_*.sql
 pnpm db:migrate    # applies pending migrations
 ```
 
-Never handwrite migration SQL.
+See [infra.md](infra.md) for how Alchemy generates/applies migrations on deploy.

@@ -60,7 +60,7 @@ export default Stack(
 				slug: "eu-central",
 			},
 			migrationsDir: isProd ? schema.out : undefined,
-		}).pipe(RemovalPolicy.retain());
+		}).pipe(RemovalPolicy.retain(true));
 
 		const branch = isProd
 			? "main"
@@ -120,9 +120,13 @@ export default Stack(
 				},
 			},
 			env: {
-				CORS_ORIGIN: Variable("CORS_ORIGIN"),
+				...(isProd
+					? {
+							CORS_ORIGIN: Variable("CORS_ORIGIN"),
+							BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
+						}
+					: {}),
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
-				BETTER_AUTH_URL: Variable("BETTER_AUTH_URL"),
 				DATABASE_URL: role.connectionUrl,
 				RESEND_API_KEY: Secret("RESEND_API_KEY"),
 				// Optional: announcements are disabled when the secret is unset, so

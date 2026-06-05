@@ -13,13 +13,13 @@ function required(key: string): string {
 
 export const env = {
 	get CORS_ORIGIN() {
-		return required("CORS_ORIGIN");
+		return process.env.CORS_ORIGIN;
 	},
 	get BETTER_AUTH_SECRET() {
 		return required("BETTER_AUTH_SECRET");
 	},
 	get BETTER_AUTH_URL() {
-		return required("BETTER_AUTH_URL");
+		return process.env.BETTER_AUTH_URL;
 	},
 	get DATABASE_URL() {
 		return process.env.DATABASE_URL;
