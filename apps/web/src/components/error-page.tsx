@@ -1,4 +1,6 @@
 import { Button } from "@WAL-GO/ui/components/button";
+import posthog from "posthog-js";
+import { useEffect } from "react";
 import { DISCORD_INVITE_URL } from "@/lib/constants";
 import { DiscordIcon } from "./discord-icon";
 
@@ -8,6 +10,10 @@ interface ErrorPageProps {
 }
 
 export function ErrorPage({ error, reset }: ErrorPageProps) {
+	useEffect(() => {
+		posthog.captureException(error);
+	}, [error]);
+
 	return (
 		<main className="flex flex-col items-center justify-center gap-6 px-4 py-24 text-center">
 			<span className="font-mono text-muted-foreground text-sm">Klaida</span>

@@ -17,6 +17,15 @@ Environment variables in `apps/web/.env`:
 
 `PostHogIdentify` (`apps/web/src/components/providers.tsx`) watches the better-auth session and calls `posthog.identify()` when a user is authenticated; on sign-out it resets the distinct ID via `posthog.reset()`.
 
+## Error tracking
+
+`capture_exceptions: true` (in `PHProvider`) auto-captures uncaught `window.onerror` exceptions and unhandled promise rejections. That alone misses errors that are swallowed before they reach the window handler, so we capture those explicitly:
+
+- **Router error boundary** — `ErrorPage` (`apps/web/src/components/error-page.tsx`) calls `posthog.captureException(error)` on mount. Render and route-loader errors are caught by TanStack Router's `defaultErrorComponent` and never bubble to `window.onerror`.
+- **TanStack Query** — the `QueryCache` and `MutationCache` `onError` handlers in `apps/web/src/utils/orpc.ts` call `posthog.captureException(error)`. This covers all oRPC query/mutation failures, including the ones whose per-call `onError` only shows a toast. Guarded by `typeof window` since `makeQueryClient` also runs during SSR.
+
+Not yet captured: **server-side** errors. oRPC's server `onError` interceptors (`apps/web/src/routes/api/rpc/$.ts`) only `console.error`. `posthog-js` is client-only — capturing server/SSR errors would require `posthog-node` with a per-request flush on the worker.
+
 ## Tracked events
 
 | Event | File | Description |
