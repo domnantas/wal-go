@@ -584,7 +584,7 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 				// window before the pulse loop takes over. Filter hides the layer
 				// entirely when no square is recently active.
 				"line-opacity": 0.8,
-				"line-width": 2.5,
+				"line-width": 4,
 			},
 		});
 	}
