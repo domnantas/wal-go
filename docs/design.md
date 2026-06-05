@@ -2,38 +2,31 @@
 
 WAL GO separates brand/team colors from interactive UI colors.
 
-## Color Roles
+## Color roles
 
-- `olive`, `rust`, and `golden` are brand and team colors. Use them for the logo, team markers, map overlays, chart segments, and small identity accents.
-- `primary` is the main action color for buttons, links, focusable controls, and selected filters.
-- `destructive` is reserved for dangerous actions and error states.
-- Team labels should not rely on colored text alone. Prefer neutral readable text with a colored dot, border, badge background, or map pattern.
+- `olive`, `rust`, `golden` — brand and team colors. Use for the logo, team markers, map overlays, chart segments, small identity accents.
+- `primary` — main action color for buttons, links, focusable controls, selected filters.
+- `destructive` — dangerous actions and error states.
+- Team labels must not rely on colored text alone. Prefer neutral readable text with a colored dot, border, badge background, or map pattern.
 
-## Dark Mode
+## Dark mode
 
-Brand colors are theme-adaptive CSS variables. This keeps utilities such as `text-olive`, `bg-rust`, and `bg-golden` legible in both light and dark mode.
+Brand colors are theme-adaptive CSS variables, so `text-olive`, `bg-rust`, `bg-golden` stay legible in both modes. Avoid white text on golden or light team colors — use the matching foreground tokens: `text-golden-foreground`, `text-olive-foreground`, `text-rust-foreground`.
 
-Avoid white text on golden or light team colors. Use the matching foreground tokens:
+## Map & competition UI
 
-- `text-golden-foreground`
-- `text-olive-foreground`
-- `text-rust-foreground`
+Map ownership may use team colors but should add a non-color cue where practical (stronger outlines, selected states, labels, future patterned fills).
 
-## Map And Competition UI
+## Shared icons
 
-Map ownership may use team colors, but should also use a non-color cue where practical, such as stronger outlines, selected states, labels, or future patterned fills.
+App-specific icons reused across web surfaces live in `apps/web/src/components`. `DiscordIcon` is shared by the account menu and homepage Discord invite. When a dropdown item uses a rendered link with custom visible content, put the visible icon and text inside the rendered element so the item stays visible and accessible.
 
-## Shared Icons
+## Header
 
-App-specific icons that are reused in multiple web surfaces should live in `apps/web/src/components`. `DiscordIcon` is shared by the account menu and homepage Discord invite.
-When a dropdown item uses a rendered link element with custom visible content, put that visible icon and text inside the rendered element so the menu item remains visible and accessible.
+A single `--header-height` sticky row with a blurred background (`bg-card/50 backdrop-blur-sm`) on the `<header>`. Full-height routes subtract it via `calc(100dvh - var(--header-height))`.
 
-## Header Actions
+Header actions: desktop public header shows the theme toggle beside sign-in; on mobile the public theme toggle lives in the nav dropdown as a `Tema` row to keep the action area compact. Authenticated users manage the theme from the account dropdown on all breakpoints.
 
-Desktop public header actions show the theme toggle beside the sign-in button. On mobile, the public theme toggle lives inside the navigation dropdown as a `Tema` row so the header keeps a compact action area. Authenticated users manage the theme from the account dropdown on all breakpoints.
+## Button rendering
 
-The sticky header is a single `--header-height` row with a blurred background (`bg-card/50 backdrop-blur-sm`) applied directly on the `<header>`. Full-height routes that subtract the header from the viewport use `calc(100dvh - var(--header-height))`.
-
-## Button Rendering
-
-The shared `Button` component wraps Base UI's button primitive. When a `Button` uses `render` with a non-native button element, such as TanStack Router `Link` or an anchor tag, set `nativeButton={false}`. Keep the default native behavior for real button elements and for primitives that render an actual `Button`.
+The shared `Button` wraps Base UI's button primitive. When a `Button` uses `render` with a non-native element (TanStack Router `Link`, an anchor), set `nativeButton={false}`. Keep the default for real button elements and primitives that render an actual `Button`.
