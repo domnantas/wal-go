@@ -179,9 +179,19 @@ const recentSquares = publicProcedure
 		}
 
 		const rows = await context.db
-			.selectDistinct({ squareCode: qso.operatorSquare })
+			.selectDistinctOn([qso.operatorSquare], {
+				squareCode: qso.operatorSquare,
+				team: seasonMembership.team,
+			})
 			.from(qso)
 			.innerJoin(user, eq(user.id, qso.userId))
+			.innerJoin(
+				seasonMembership,
+				and(
+					eq(seasonMembership.userId, qso.userId),
+					eq(seasonMembership.seasonId, qso.seasonId)
+				)
+			)
 			.where(
 				and(
 					eq(qso.seasonId, seasonId),
@@ -191,9 +201,10 @@ const recentSquares = publicProcedure
 						sql`now() - make_interval(hours => ${RECENT_ACTIVITY_HOURS})`
 					)
 				)
-			);
+			)
+			.orderBy(qso.operatorSquare, desc(qso.qsoAt));
 
-		return rows.map((row) => row.squareCode);
+		return rows;
 	});
 
 export const scoringRouter = {

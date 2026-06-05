@@ -137,7 +137,7 @@ function computeControllingTeam(scores: {
 
 function createEnrichedGeoJSON(
 	squaresData: SquaresData,
-	recentSquares: Set<string>
+	recentSquares: Map<string, Team>
 ) {
 	const controlMap = new Map<string, SquareControl>();
 	for (const sq of squaresData) {
@@ -152,6 +152,7 @@ function createEnrichedGeoJSON(
 				...feature.properties,
 				controllingTeam: controlMap.get(feature.properties.wal) ?? null,
 				recentActivity: recentSquares.has(feature.properties.wal),
+				recentTeam: recentSquares.get(feature.properties.wal) ?? null,
 			},
 		})),
 	};
@@ -160,7 +161,7 @@ function createEnrichedGeoJSON(
 function updateSourceWithTeamData(
 	map: import("maplibre-gl").Map,
 	squaresData: SquaresData,
-	recentSquares: Set<string>
+	recentSquares: Map<string, Team>
 ) {
 	const source = map.getSource(WAL_GRID_SOURCE_ID);
 	if (!source || source.type !== "geojson") {
@@ -252,9 +253,11 @@ export function MapView({
 		})
 	);
 
-	const recentSquaresRef = useRef<Set<string>>(new Set());
+	const recentSquaresRef = useRef<Map<string, Team>>(new Map());
 	useEffect(() => {
-		recentSquaresRef.current = new Set(recentSquares ?? []);
+		recentSquaresRef.current = new Map(
+			(recentSquares ?? []).map((row) => [row.squareCode, row.team])
+		);
 	}, [recentSquares]);
 
 	const hasRecentSquares = (recentSquares?.length ?? 0) > 0;
@@ -309,7 +312,7 @@ export function MapView({
 		if (!(map && data)) {
 			return;
 		}
-		updateSourceWithTeamData(map, data, new Set(recentSquares ?? []));
+		updateSourceWithTeamData(map, data, recentSquaresRef.current);
 	}, [recentSquares]);
 
 	// Pulse the recent-activity outline by oscillating its opacity. MapLibre
@@ -566,11 +569,23 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 		});
 	}
 
+	const pulseColorExpression = [
+		"match",
+		["get", "recentTeam"],
+		"yellow",
+		theme.teamFillColors.yellow,
+		"green",
+		theme.teamFillColors.green,
+		"red",
+		theme.teamFillColors.red,
+		theme.pulseColor,
+	] as unknown as import("maplibre-gl").ExpressionSpecification;
+
 	if (map.getLayer(WAL_GRID_PULSE_LINE_LAYER_ID)) {
 		map.setPaintProperty(
 			WAL_GRID_PULSE_LINE_LAYER_ID,
 			"line-color",
-			theme.pulseColor
+			pulseColorExpression
 		);
 	} else {
 		map.addLayer({
@@ -579,7 +594,7 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 			source: WAL_GRID_SOURCE_ID,
 			filter: ["==", ["get", "recentActivity"], true],
 			paint: {
-				"line-color": theme.pulseColor,
+				"line-color": pulseColorExpression,
 				// Static fallback opacity for prefers-reduced-motion and the brief
 				// window before the pulse loop takes over. Filter hides the layer
 				// entirely when no square is recently active.
