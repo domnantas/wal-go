@@ -2,33 +2,14 @@ import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import { orpc } from "@/utils/orpc";
+import {
+	TEAM_BAR_CLASSES,
+	TEAM_DOT_CLASSES,
+	TEAM_LABELS,
+	TEAM_ORDER,
+} from "./teams";
 
-type Team = "yellow" | "green" | "red";
-
-const TEAM_ORDER = [
-	"yellow",
-	"green",
-	"red",
-] as const satisfies readonly Team[];
 const TOTAL_WAL_SQUARES = createWalGridFeatureCollection().features.length;
-
-const TEAM_LABELS: Record<Team, string> = {
-	yellow: "Geltona",
-	green: "Žalia",
-	red: "Raudona",
-};
-
-const TEAM_BAR_CLASSES: Record<Team, string> = {
-	yellow: "bg-golden",
-	green: "bg-olive",
-	red: "bg-rust",
-};
-
-const TEAM_DOT_CLASSES: Record<Team, string> = {
-	yellow: "bg-golden",
-	green: "bg-olive",
-	red: "bg-rust",
-};
 
 interface TeamControlledSquaresBoxProps {
 	seasonId: number | null;

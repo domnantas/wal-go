@@ -61,6 +61,7 @@ const WAL_GRID_SOURCE_ID = "wal-grid";
 const WAL_GRID_FILL_LAYER_ID = "wal-grid-fill";
 const WAL_GRID_LINE_LAYER_ID = "wal-grid-lines";
 const WAL_GRID_SELECTED_LINE_LAYER_ID = "wal-grid-selected-line";
+const WAL_GRID_PULSE_LINE_LAYER_ID = "wal-grid-pulse-line";
 const WAL_GRID_LABEL_LAYER_ID = "wal-grid-labels";
 const WAL_GRID_GEOJSON = createWalGridFeatureCollection();
 const CLICKABLE_WAL_GRID_LAYER_IDS = [
@@ -81,6 +82,7 @@ interface WalGridTheme {
 	labelColor: string;
 	labelHaloColor: string;
 	lineColor: string;
+	pulseColor: string;
 	selectedLineColor: string;
 	teamFillColors: Record<Team, string>;
 	tieFillColor: string;
@@ -96,6 +98,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		labelHaloColor: "rgb(36 23 15)",
 		lineColor: "rgb(237 231 221)",
 		selectedLineColor: "rgb(255 255 255)",
+		pulseColor: "rgb(255 214 110)",
 		tieFillColor: "rgb(121 121 121)",
 		teamFillColors: {
 			yellow: "rgb(224, 188, 72)",
@@ -108,6 +111,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		labelHaloColor: "rgb(247 245 240)",
 		lineColor: "rgb(119 72 38)",
 		selectedLineColor: "rgb(36 23 15)",
+		pulseColor: "rgb(200 120 40)",
 		tieFillColor: "rgb(148 148 148)",
 		teamFillColors: {
 			yellow: "rgb(224, 175, 59)",
@@ -131,7 +135,10 @@ function computeControllingTeam(scores: {
 	return leaders.length === 1 ? leaders[0] : "tie";
 }
 
-function createEnrichedGeoJSON(squaresData: SquaresData) {
+function createEnrichedGeoJSON(
+	squaresData: SquaresData,
+	recentSquares: Set<string>
+) {
 	const controlMap = new Map<string, SquareControl>();
 	for (const sq of squaresData) {
 		controlMap.set(sq.code, computeControllingTeam(sq.scores));
@@ -144,6 +151,7 @@ function createEnrichedGeoJSON(squaresData: SquaresData) {
 			properties: {
 				...feature.properties,
 				controllingTeam: controlMap.get(feature.properties.wal) ?? null,
+				recentActivity: recentSquares.has(feature.properties.wal),
 			},
 		})),
 	};
@@ -151,14 +159,15 @@ function createEnrichedGeoJSON(squaresData: SquaresData) {
 
 function updateSourceWithTeamData(
 	map: import("maplibre-gl").Map,
-	squaresData: SquaresData
+	squaresData: SquaresData,
+	recentSquares: Set<string>
 ) {
 	const source = map.getSource(WAL_GRID_SOURCE_ID);
 	if (!source || source.type !== "geojson") {
 		return;
 	}
 	(source as import("maplibre-gl").GeoJSONSource).setData(
-		createEnrichedGeoJSON(squaresData) as Parameters<
+		createEnrichedGeoJSON(squaresData, recentSquares) as Parameters<
 			import("maplibre-gl").GeoJSONSource["setData"]
 		>[0]
 	);
@@ -236,6 +245,20 @@ export function MapView({
 		squaresDataRef.current = squaresData;
 	}, [squaresData]);
 
+	const { data: recentSquares } = useQuery(
+		orpc.scoring.recentSquares.queryOptions({
+			input: { seasonId: seasonId ?? undefined },
+			refetchInterval: 60_000,
+		})
+	);
+
+	const recentSquaresRef = useRef<Set<string>>(new Set());
+	useEffect(() => {
+		recentSquaresRef.current = new Set(recentSquares ?? []);
+	}, [recentSquares]);
+
+	const hasRecentSquares = (recentSquares?.length ?? 0) > 0;
+
 	useEffect(() => {
 		onSquareSelectRef.current = onSquareSelect;
 	}, [onSquareSelect]);
@@ -260,7 +283,7 @@ export function MapView({
 			updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
 			const data = squaresDataRef.current;
 			if (data) {
-				updateSourceWithTeamData(map, data);
+				updateSourceWithTeamData(map, data, recentSquaresRef.current);
 			}
 		};
 
@@ -277,8 +300,51 @@ export function MapView({
 		if (!(map && squaresData)) {
 			return;
 		}
-		updateSourceWithTeamData(map, squaresData);
+		updateSourceWithTeamData(map, squaresData, recentSquaresRef.current);
 	}, [squaresData]);
+
+	useEffect(() => {
+		const map = mapRef.current;
+		const data = squaresDataRef.current;
+		if (!(map && data)) {
+			return;
+		}
+		updateSourceWithTeamData(map, data, new Set(recentSquares ?? []));
+	}, [recentSquares]);
+
+	// Pulse the recent-activity outline by oscillating its opacity. MapLibre
+	// can't animate paint via CSS, so drive it with requestAnimationFrame — each
+	// setPaintProperty forces a full canvas repaint, so to spare mobile batteries
+	// we only run the loop when squares are actually pulsing and skip it under
+	// prefers-reduced-motion. The static 0.8 layer opacity covers those cases.
+	useEffect(() => {
+		const prefersReducedMotion = window.matchMedia?.(
+			"(prefers-reduced-motion: reduce)"
+		).matches;
+		if (!hasRecentSquares || prefersReducedMotion) {
+			return;
+		}
+
+		const PULSE_PERIOD_MS = 1500;
+		let frame = 0;
+		const animate = (now: number) => {
+			const map = mapRef.current;
+			if (map?.getLayer(WAL_GRID_PULSE_LINE_LAYER_ID)) {
+				const phase = (now % PULSE_PERIOD_MS) / PULSE_PERIOD_MS;
+				// 0 → 1 → 0 breathing curve.
+				const wave = (1 - Math.cos(phase * 2 * Math.PI)) * 0.5;
+				const opacity = 0.3 + 0.65 * wave;
+				map.setPaintProperty(
+					WAL_GRID_PULSE_LINE_LAYER_ID,
+					"line-opacity",
+					opacity
+				);
+			}
+			frame = requestAnimationFrame(animate);
+		};
+		frame = requestAnimationFrame(animate);
+		return () => cancelAnimationFrame(frame);
+	}, [hasRecentSquares]);
 
 	useEffect(() => {
 		const map = mapRef.current;
@@ -377,7 +443,7 @@ export function MapView({
 				updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
 				const data = squaresDataRef.current;
 				if (data) {
-					updateSourceWithTeamData(map, data);
+					updateSourceWithTeamData(map, data, recentSquaresRef.current);
 				}
 			});
 
@@ -496,6 +562,29 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 				"line-color": theme.lineColor,
 				"line-opacity": 0.85,
 				"line-width": 1,
+			},
+		});
+	}
+
+	if (map.getLayer(WAL_GRID_PULSE_LINE_LAYER_ID)) {
+		map.setPaintProperty(
+			WAL_GRID_PULSE_LINE_LAYER_ID,
+			"line-color",
+			theme.pulseColor
+		);
+	} else {
+		map.addLayer({
+			id: WAL_GRID_PULSE_LINE_LAYER_ID,
+			type: "line",
+			source: WAL_GRID_SOURCE_ID,
+			filter: ["==", ["get", "recentActivity"], true],
+			paint: {
+				"line-color": theme.pulseColor,
+				// Static fallback opacity for prefers-reduced-motion and the brief
+				// window before the pulse loop takes over. Filter hides the layer
+				// entirely when no square is recently active.
+				"line-opacity": 0.8,
+				"line-width": 2.5,
 			},
 		});
 	}

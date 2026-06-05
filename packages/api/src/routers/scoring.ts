@@ -1,7 +1,12 @@
 import { user } from "@WAL-GO/db/schema/auth";
-import { squareScore, userSeasonScore } from "@WAL-GO/db/schema/scoring";
+import { qso } from "@WAL-GO/db/schema/qsos";
+import {
+	squareControlHistory,
+	squareScore,
+	userSeasonScore,
+} from "@WAL-GO/db/schema/scoring";
 import { seasonMembership } from "@WAL-GO/db/schema/seasons";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { publicProcedure } from "../index";
@@ -134,8 +139,67 @@ const teamStandings = publicProcedure
 		);
 	});
 
+const activityFeedInput = z.object({
+	seasonId: z.number().int().positive().optional(),
+	limit: z.number().int().positive().max(50).default(30),
+});
+
+const activityFeed = publicProcedure
+	.input(activityFeedInput)
+	.handler(async ({ context, input }) => {
+		const seasonId = await resolveSeasonId(context.db, input.seasonId);
+		if (seasonId === null) {
+			return [];
+		}
+
+		const rows = await context.db
+			.select({
+				id: squareControlHistory.id,
+				squareCode: squareControlHistory.squareCode,
+				before: squareControlHistory.beforeTeam,
+				after: squareControlHistory.afterTeam,
+				at: squareControlHistory.createdAt,
+			})
+			.from(squareControlHistory)
+			.where(eq(squareControlHistory.seasonId, seasonId))
+			.orderBy(desc(squareControlHistory.createdAt))
+			.limit(input.limit);
+
+		return rows;
+	});
+
+const RECENT_ACTIVITY_HOURS = 2;
+
+const recentSquares = publicProcedure
+	.input(scoringInput)
+	.handler(async ({ context, input }) => {
+		const seasonId = await resolveSeasonId(context.db, input.seasonId);
+		if (seasonId === null) {
+			return [];
+		}
+
+		const rows = await context.db
+			.selectDistinct({ squareCode: qso.operatorSquare })
+			.from(qso)
+			.innerJoin(user, eq(user.id, qso.userId))
+			.where(
+				and(
+					eq(qso.seasonId, seasonId),
+					eq(user.banned, false),
+					gte(
+						qso.qsoAt,
+						sql`now() - make_interval(hours => ${RECENT_ACTIVITY_HOURS})`
+					)
+				)
+			);
+
+		return rows.map((row) => row.squareCode);
+	});
+
 export const scoringRouter = {
 	squares,
 	individualStandings,
 	teamStandings,
+	activityFeed,
+	recentSquares,
 };

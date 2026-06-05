@@ -8,6 +8,7 @@ import { useCallback, useState } from "react";
 import walGoLogo from "@/assets/logo_512.png";
 import { DiscordIcon } from "@/components/discord-icon";
 import { MapView } from "@/domains/map/map-view";
+import { ActivityFeedBox } from "@/domains/scoring/activity-feed-box";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { authClient } from "@/lib/auth-client";
@@ -350,6 +351,11 @@ function HomeComponent() {
 							);
 						})}
 					</div>
+					{displayedSeasonId !== null && (
+						<div className="mt-3 rounded-4xl border border-border bg-card p-5">
+							<ActivityFeedBox seasonId={displayedSeasonId} variant="compact" />
+						</div>
+					)}
 				</section>
 			)}
 

@@ -4,6 +4,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DiscordCommunityBox } from "@/domains/map/discord-community-box";
 import { MapView } from "@/domains/map/map-view";
+import { ActivityFeedBox } from "@/domains/scoring/activity-feed-box";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { TeamControlledSquaresBox } from "@/domains/scoring/team-controlled-squares-box";
 import { SeasonSidebarBox } from "@/domains/season/season-sidebar-box";
@@ -119,6 +120,7 @@ function RouteComponent() {
 					upcomingSeason={upcomingSeason}
 				/>
 				<TeamControlledSquaresBox seasonId={displayedSeasonId} />
+				<ActivityFeedBox seasonId={displayedSeasonId} />
 				<div ref={statsBoxRef}>
 					<SelectedSquareStatsBox
 						seasonId={displayedSeasonId}

@@ -1,6 +1,10 @@
 import { user } from "@WAL-GO/db/schema/auth";
 import { qso } from "@WAL-GO/db/schema/qsos";
-import { squareScore, userSeasonScore } from "@WAL-GO/db/schema/scoring";
+import {
+	squareControlHistory,
+	squareScore,
+	userSeasonScore,
+} from "@WAL-GO/db/schema/scoring";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 
 import { computeLeader, type Team } from "./control";
@@ -164,7 +168,7 @@ export async function applyScoreDeltas(
 		);
 
 	const after = await snapshotLeaders(tx, seasonId, affectedSquares);
-	return affectedSquares.flatMap((squareCode) => {
+	const changes = affectedSquares.flatMap((squareCode) => {
 		const beforeLeader = before.get(squareCode) ?? null;
 		const afterLeader = after.get(squareCode) ?? null;
 		if (beforeLeader === afterLeader) {
@@ -172,6 +176,19 @@ export async function applyScoreDeltas(
 		}
 		return [{ squareCode, before: beforeLeader, after: afterLeader }];
 	});
+
+	if (changes.length > 0) {
+		await tx.insert(squareControlHistory).values(
+			changes.map((change) => ({
+				seasonId,
+				squareCode: change.squareCode,
+				beforeTeam: change.before,
+				afterTeam: change.after,
+			}))
+		);
+	}
+
+	return changes;
 }
 
 /**

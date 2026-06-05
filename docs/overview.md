@@ -56,6 +56,10 @@ The root route (`apps/web/src/routes/__root.tsx`) defines global document metada
 
 Unmatched routes render `NotFound` (`components/not-found.tsx`) via `defaultNotFoundComponent` in `router.tsx`: Lithuanian message, home link, Discord button. Uncaught render errors render `ErrorPage` (`components/error-page.tsx`) via `defaultErrorComponent`: error message, retry (`reset()`), Discord link. The Discord URL (`https://discord.gg/RQfcQ29d44`) is hardcoded in both.
 
+## Activity visibility
+
+To keep the game feeling alive without revealing the hidden roster, the map and homepage show two anonymized liveness signals (team + square + time, never a callsign): an **activity feed** of recent square takeovers and a **map pulse** on squares with a contact in the last 2 hours. See [activity-feed.md](activity-feed.md).
+
 ## Related Docs
 
-- [auth.md](auth.md), [seasons.md](seasons.md), [map.md](map.md), [qso-logging.md](qso-logging.md), [scoring.md](scoring.md), [design.md](design.md), [rules.md](rules.md), [admin.md](admin.md), [infra.md](infra.md), [db.md](db.md), [discord-announcements.md](discord-announcements.md), [posthog-analytics.md](posthog-analytics.md)
+- [auth.md](auth.md), [seasons.md](seasons.md), [map.md](map.md), [qso-logging.md](qso-logging.md), [scoring.md](scoring.md), [activity-feed.md](activity-feed.md), [design.md](design.md), [rules.md](rules.md), [admin.md](admin.md), [infra.md](infra.md), [db.md](db.md), [discord-announcements.md](discord-announcements.md), [posthog-analytics.md](posthog-analytics.md)

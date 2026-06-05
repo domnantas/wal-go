@@ -42,6 +42,12 @@ Scoped to the active season. The scoring router exposes two endpoints (`packages
 - **Team standings** (`scoring.teamStandings`) — teams ranked by WAL squares currently controlled (desc); ties broken by total points. Rendered: the map sidebar shows controlled-square stats under the progress box, in fixed order yellow/green/red, each a progress bar; also used on the homepage and in `SeasonResultsBox`. When no season is active, the sidebar can show recently ended results using the same endpoint scoped to the ended season id.
 - **Individual standings** (`scoring.individualStandings`) — operators ranked by total season points (desc): callsign, team color, point total. **API only — no UI yet.** No leaderboard route renders it. Keeping the per-player team mapping hidden is part of the game, so an individual leaderboard is intentionally unbuilt for now.
 
+Two more `publicProcedure`s in the same router power the in-app liveness signals, both
+anonymized (team + square + time only, never a callsign) — see [activity-feed.md](activity-feed.md):
+
+- **`scoring.activityFeed`** — recent takeovers from `square_control_history`.
+- **`scoring.recentSquares`** — square codes with a QSO in the last 2h (`qsoAt`-based), for the map pulse.
+
 ## Implementation
 
 ### Materialized score tables
@@ -52,6 +58,7 @@ Scores are stored, not computed on read (full-season aggregation across tens of 
 |---|---|---|
 | `square_score` | `season_id`, `square_code`, `team`, `points` | Unique on `(season_id, square_code, team)`. One row per active team per square. `points >= 0` check. |
 | `user_season_score` | `season_id`, `user_id`, `points` | Individual leaderboard. Unique on `(season_id, user_id)`. `points >= 0` check. |
+| `square_control_history` | `season_id`, `square_code`, `before_team`, `after_team`, `created_at` | Append-only log of takeovers (ownership changes). Teams nullable (null = uncontrolled). Indexed on `(season_id, created_at)`. Powers the in-app activity feed ([activity-feed.md](activity-feed.md)). Rows written by `applyScoreDeltas` in the same transaction as the score change. |
 
 Both update **in the same transaction** as the QSO insert/delete. Increments use `INSERT ... ON CONFLICT DO UPDATE` on the unique key. A square's owner is **derived on read** (the `team` with `MAX(points)`, checked for strict majority), never stored.
 

@@ -5,6 +5,7 @@ import {
 	integer,
 	pgTable,
 	text,
+	timestamp,
 	uniqueIndex,
 	varchar,
 } from "drizzle-orm/pg-core";
@@ -51,5 +52,25 @@ export const userSeasonScore = pgTable(
 			table.userId
 		),
 		check("user_season_score_points_non_negative", sql`${table.points} >= 0`),
+	]
+);
+
+export const squareControlHistory = pgTable(
+	"square_control_history",
+	{
+		id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+		seasonId: integer("season_id")
+			.notNull()
+			.references(() => season.id, { onDelete: "cascade" }),
+		squareCode: varchar("square_code", { length: 3 }).notNull(),
+		beforeTeam: teamColor("before_team"),
+		afterTeam: teamColor("after_team"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("square_control_history_season_created_idx").on(
+			table.seasonId,
+			table.createdAt
+		),
 	]
 );

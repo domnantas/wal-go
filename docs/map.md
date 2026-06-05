@@ -41,8 +41,24 @@ Valid WAL squares overlay as a generated GeoJSON source. Valid ranges ported fro
 - **Line layer** for boundaries, colored from the theme's primary token.
 - **Symbol layer** for labels (theme foreground + halo). `text-size` interpolates linearly across zoom (stops 5/7/10) — the low stop is required because `interpolate` clamps below its range. `text-allow-overlap` is `false` so MapLibre thins colliding labels at low zoom (mobile sits below zoom 7 with the dynamic fit); no collisions at high zoom so all labels show.
 - **Fill layer** for control, using team colors for clear leaders and gray for tied squares.
+- **Pulse line layer** (`wal-grid-pulse-line`) for recent activity, filtered to features with `recentActivity === true`. Drawn under the selected-square outline.
 
 Square control is scoped to the displayed season: active season while one is active, else the most recently ended season (so the final map state stays visible between seasons).
+
+## Recent-activity pulse
+
+Squares with a radio contact in the last 2 hours pulse to signal live activity. The set of codes comes from `scoring.recentSquares` (keyed on `qsoAt`, banned users excluded — see [activity-feed.md](activity-feed.md)), polled every 60s. `createEnrichedGeoJSON` writes a `recentActivity` boolean onto each feature alongside `controllingTeam`, and the pulse line layer filters on it.
+
+MapLibre can't animate paint via CSS, so a `requestAnimationFrame` loop oscillates the layer's `line-opacity` (0.3 → 0.95) on a `(1 − cos)/2` breathing curve (~1.5s period); `line-width` stays fixed. The loop reads `mapRef` each frame (the map is created in a later effect, so capturing it once at mount would see `null` and never start), and is cancelled on unmount.
+
+### Battery cost
+
+Each `setPaintProperty` forces a full GL canvas repaint, so a naive always-on 60fps loop drains mobile batteries. Mitigations:
+
+- **Gated** — the loop only runs when at least one square is pulsing (`hasRecentSquares`); the effect depends on it, so with no recent activity there is zero ongoing cost. The layer's filter hides it entirely anyway.
+- **`prefers-reduced-motion`** — the loop is skipped; the layer keeps its static `0.8` opacity, which also covers the brief window before the loop starts. (Background tabs are already free — browsers throttle `requestAnimationFrame` there.)
+
+The loop runs at the display's native frame rate while squares are pulsing and the tab is foreground.
 
 ## Square selection
 

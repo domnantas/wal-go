@@ -36,6 +36,8 @@ Wired call sites:
 
 `recomputeSeasonScores` (drift repair) wipes and rebuilds tables directly and is intentionally **not** instrumented.
 
+The same `OwnershipChange[]` is also **persisted** to `square_control_history` inside `applyScoreDeltas` (same transaction), powering the in-app activity feed ([activity-feed.md](activity-feed.md)). Discord delivery stays a separate, post-commit, best-effort side effect.
+
 A single transaction's changes are sent as one webhook message (one line each), split into multiple POSTs only if over Discord's 2000-char limit. A bulk import produces one batched summary, not a flood.
 
 ## Delivery
