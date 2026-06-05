@@ -151,6 +151,8 @@ function ChangePasswordForm({
 		},
 	});
 
+	const [isCurrentPasswordVisible, setIsCurrentPasswordVisible] =
+		useState(false);
 	const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
 	const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
 		useState(false);
@@ -235,22 +237,43 @@ function ChangePasswordForm({
 										</Label>
 
 										{session ? (
-											<Input
-												aria-invalid={isInvalid}
-												autoComplete="current-password"
-												disabled={isPending}
-												id="currentPassword"
-												name="currentPassword"
-												onBlur={field.handleBlur}
-												onChange={(e) =>
-													handleFieldChange(field, e.target.value)
-												}
-												placeholder={
-													localization.settings.currentPasswordPlaceholder
-												}
-												type="password"
-												value={field.state.value}
-											/>
+											<InputGroup>
+												<InputGroupInput
+													aria-invalid={isInvalid}
+													autoComplete="current-password"
+													disabled={isPending}
+													id="currentPassword"
+													name="currentPassword"
+													onBlur={field.handleBlur}
+													onChange={(e) =>
+														handleFieldChange(field, e.target.value)
+													}
+													placeholder={
+														localization.settings.currentPasswordPlaceholder
+													}
+													type={isCurrentPasswordVisible ? "text" : "password"}
+													value={field.state.value}
+												/>
+
+												<InputGroupAddon align="inline-end">
+													<InputGroupButton
+														aria-label={
+															isCurrentPasswordVisible
+																? localization.auth.hidePassword
+																: localization.auth.showPassword
+														}
+														disabled={isPending}
+														onClick={() =>
+															setIsCurrentPasswordVisible(
+																!isCurrentPasswordVisible
+															)
+														}
+														size="icon-xs"
+													>
+														{isCurrentPasswordVisible ? <EyeOff /> : <Eye />}
+													</InputGroupButton>
+												</InputGroupAddon>
+											</InputGroup>
 										) : (
 											<Skeleton>
 												<Input className="invisible" />

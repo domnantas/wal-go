@@ -403,8 +403,9 @@ function HomeComponent() {
 							<em className="text-olive italic">taškas komandai.</em>
 						</h2>
 						<p className="mt-5 text-base text-foreground/75 leading-relaxed">
-							Įkelk Cabrillo failą iš savo loggerio – taškus pagal WAL kvadratus
-							suskaičiuosim mes, o žemėlapis atsinaujins per kelias sekundes.
+							Įkelk log failą iš savo mėgstamo loggerio – taškus pagal WAL
+							kvadratus suskaičiuosim mes, o žemėlapis atsinaujins per kelias
+							sekundes.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-2">
 							{[
@@ -429,7 +430,7 @@ function HomeComponent() {
 					<div className="rounded-4xl border border-border bg-card p-5">
 						<div className="mb-4 flex items-center justify-between border-border border-b pb-3">
 							<span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">
-								log_2026_04_18.cbr
+								log_2026_04_18.adi
 							</span>
 							<span className="font-semibold text-olive text-xs">
 								✓ Apdorota

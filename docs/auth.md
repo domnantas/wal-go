@@ -69,6 +69,12 @@ Fully wired:
 - Template: `ResetPasswordEmail` (`packages/ui/src/components/auth/email/reset-password-email.tsx`).
 - Links expire in 60 minutes. The link lands on `/auth/reset-password?token=<token>`; the UI reads the token and calls Better Auth's `/reset-password`.
 
+## Password visibility toggle
+
+All password inputs have a show/hide eye button (`Eye`/`EyeOff` from `lucide-react`) rendered as an `InputGroupButton` in an inline-end `InputGroupAddon`. Local `useState` per field flips the input `type` between `"text"` and `"password"`. The button uses `localization.auth.showPassword` / `hidePassword` for `aria-label` and `title`.
+
+Covers: sign-in (`sign-in.tsx`), sign-up + confirm (`sign-up.tsx`), change-password current + new + confirm (`settings/security/change-password.tsx`), reset-password + confirm (`reset-password.tsx`). Email fields stay plain `Input`.
+
 ## Rate limiting
 
 Better Auth's built-in rate limiting is enabled with `storage: "database"` so state persists across Workers isolates (in-memory is per-isolate). Stored in the `rate_limit` table (`packages/db/src/schema/auth.ts`). Built-in rules (per IP):

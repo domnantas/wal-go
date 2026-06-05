@@ -16,6 +16,12 @@ import {
 	FieldSeparator,
 } from "@WAL-GO/ui/components/field";
 import { Input } from "@WAL-GO/ui/components/input";
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "@WAL-GO/ui/components/input-group";
 import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { handleFieldChange } from "@WAL-GO/ui/lib/form";
@@ -26,6 +32,8 @@ import {
 	useSignInEmail,
 } from "@better-auth-ui/react";
 import { useForm } from "@tanstack/react-form";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { MagicLinkButton } from "./magic-link-button";
@@ -69,6 +77,8 @@ export function SignIn({
 
 	const hasMagicLink = plugins?.some((p) => p.id === "magicLink") ?? false;
 	const hasPasskey = plugins?.some((p) => p.id === "passkey") ?? false;
+
+	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
 	const { mutate: sendVerificationEmail } = useSendVerificationEmail(
 		authClient,
@@ -205,20 +215,42 @@ export function SignIn({
 													{localization.auth.password}
 												</Label>
 
-												<Input
-													aria-invalid={isInvalid}
-													autoComplete="current-password"
-													disabled={isPending}
-													id="password"
-													name="password"
-													onBlur={field.handleBlur}
-													onChange={(e) =>
-														handleFieldChange(field, e.target.value)
-													}
-													placeholder={localization.auth.passwordPlaceholder}
-													type="password"
-													value={field.state.value}
-												/>
+												<InputGroup>
+													<InputGroupInput
+														aria-invalid={isInvalid}
+														autoComplete="current-password"
+														disabled={isPending}
+														id="password"
+														name="password"
+														onBlur={field.handleBlur}
+														onChange={(e) =>
+															handleFieldChange(field, e.target.value)
+														}
+														placeholder={localization.auth.passwordPlaceholder}
+														type={isPasswordVisible ? "text" : "password"}
+														value={field.state.value}
+													/>
+
+													<InputGroupAddon align="inline-end">
+														<InputGroupButton
+															aria-label={
+																isPasswordVisible
+																	? localization.auth.hidePassword
+																	: localization.auth.showPassword
+															}
+															onClick={() =>
+																setIsPasswordVisible(!isPasswordVisible)
+															}
+															title={
+																isPasswordVisible
+																	? localization.auth.hidePassword
+																	: localization.auth.showPassword
+															}
+														>
+															{isPasswordVisible ? <EyeOff /> : <Eye />}
+														</InputGroupButton>
+													</InputGroupAddon>
+												</InputGroup>
 
 												{isInvalid && (
 													<FieldError errors={field.state.meta.errors} />
