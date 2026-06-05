@@ -93,10 +93,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 			<DialogContent className="sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle>Pridėti QSO</DialogTitle>
-					<DialogDescription>
-						Įveskite ryšį aktyviam sezonui. Korespondento kvadratas
-						neprivalomas.
-					</DialogDescription>
+					<DialogDescription>Įveskite ryšį aktyviame sezone</DialogDescription>
 				</DialogHeader>
 				<QsoForm
 					defaultValues={getDefaultValues()}

@@ -83,12 +83,10 @@ export function EditQsoDialog({
 			>
 				<Pencil />
 			</DialogTrigger>
-			<DialogContent>
+			<DialogContent className="sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle>Redaguoti QSO</DialogTitle>
-					<DialogDescription>
-						Pakeiskite ryšio duomenis. Korespondento kvadratas neprivalomas.
-					</DialogDescription>
+					<DialogDescription>Pakeiskite ryšio duomenis</DialogDescription>
 				</DialogHeader>
 				<QsoForm
 					defaultValues={defaultValues}
