@@ -32,6 +32,7 @@
 - [x] Map visible when logged out as well
 - [x] Remember geolocation setting on map (separate from the add qso)
 - [x] ADIF import
+- [x] error tracking with posthog
 - [] Leaderboard – only visible when season ends
 - [] Spotting/self-spotting feature – send a message to discrod
 - [] Past season views
@@ -39,5 +40,4 @@
 - [] Analysing uploaded qsos
 - [] Log export?
 - [] i18n
-- [] error tracking with posthog
 - [] marketing emails

@@ -42,7 +42,7 @@ Seasons are created/edited/deleted by admins via the Seasons tab ([admin.md](adm
 | Procedure | Type | Description |
 |---|---|---|
 | `seasons.current` | `publicProcedure` query | Active season or `null`. |
-| `seasons.list` | `publicProcedure` query | All seasons with derived status, `starts_at asc`. |
+| `seasons.list` | `publicProcedure` query | All seasons with derived status and `member_count`, `starts_at asc`. |
 | `seasons.myMembership` | `protectedProcedure` query | Current user's membership in the active season, or `null`. |
 | `seasons.join` | `protectedProcedure` mutation | Idempotent join; server selects the team. |
 
@@ -52,7 +52,7 @@ Countdowns are based on `seasons.list` rows with `status: "upcoming"`. They tick
 
 The map sidebar shows timing via `SeasonSidebarBox`:
 
-- Active season → `SeasonProgressBox` (progress bar, time remaining, CTA to `/join-season`).
+- Active season → `SeasonProgressBox` (progress bar, time remaining, member count, CTA to `/join-season`).
 - No active season → some combination of:
   - Upcoming → `SeasonCountdownBox` (live countdown to `starts_at`).
   - Recently ended → `SeasonResultsBox` (final standings).

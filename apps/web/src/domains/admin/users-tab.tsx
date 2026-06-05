@@ -20,10 +20,19 @@ import {
 	TableRow,
 } from "@WAL-GO/ui/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Shield, ShieldOff, Trash2, UserCheck, UserX } from "lucide-react";
+import {
+	Radio,
+	Shield,
+	ShieldOff,
+	Trash2,
+	UserCheck,
+	UserX,
+} from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
+import { UserQsosDialog } from "./user-qsos-dialog";
 
 type Team = "green" | "red" | "yellow";
 
@@ -56,6 +65,10 @@ export function UsersTab() {
 	const { data: users, isPending: isUsersPending } = useQuery(
 		orpc.admin.users.list.queryOptions()
 	);
+	const [qsosUser, setQsosUser] = useState<null | {
+		id: string;
+		name: string;
+	}>(null);
 
 	const invalidate = () =>
 		queryClient.invalidateQueries({
@@ -136,11 +149,19 @@ export function UsersTab() {
 							onDelete={(userId) => deleteUser.mutate({ userId })}
 							onSetRole={(userId, role) => setRole.mutate({ userId, role })}
 							onUnban={(userId) => unban.mutate({ userId })}
+							onViewQsos={() => setQsosUser({ id: u.id, name: u.name })}
 							user={u}
 						/>
 					))}
 				</TableBody>
 			</Table>
+			{qsosUser && (
+				<UserQsosDialog
+					onClose={() => setQsosUser(null)}
+					userId={qsosUser.id}
+					userName={qsosUser.name}
+				/>
+			)}
 		</div>
 	);
 }
@@ -151,12 +172,14 @@ function UserTableRow({
 	onBan,
 	onUnban,
 	onDelete,
+	onViewQsos,
 }: {
 	user: UserData;
 	onSetRole: (userId: string, role: "admin" | "user") => void;
 	onBan: (userId: string) => void;
 	onUnban: (userId: string) => void;
 	onDelete: (userId: string) => void;
+	onViewQsos: () => void;
 }) {
 	const callsignClassName = user.currentTeam
 		? `px-4 font-bold ${CALLSIGN_TEAM_CLASSES[user.currentTeam]}`
@@ -206,6 +229,10 @@ function UserTableRow({
 			</TableCell>
 			<TableCell className="px-4">
 				<div className="flex justify-end gap-2">
+					<Button onClick={onViewQsos} size="sm" variant="ghost">
+						<Radio className="size-4" />
+						QSO
+					</Button>
 					<Button
 						onClick={() =>
 							onSetRole(user.id, user.role === "admin" ? "user" : "admin")

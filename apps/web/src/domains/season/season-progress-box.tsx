@@ -10,6 +10,7 @@ import {
 import { lt } from "date-fns/locale";
 import { useEffect, useRef, useState } from "react";
 import { formatInVilnius } from "@/lib/date";
+import { pluralizeLt } from "@/lib/plural";
 
 function formatTimeLeft(target: Date, now: Date): string {
 	const secondsLeft = differenceInSeconds(target, now);
@@ -42,6 +43,7 @@ interface SeasonProgressBoxProps {
 		name: string;
 		startsAt: Date;
 		endsAt: Date;
+		memberCount: number;
 	};
 	showJoinCta: boolean;
 }
@@ -91,8 +93,16 @@ export function SeasonProgressBox({
 			<p className="mb-0.5 font-bold font-serif text-[18px] text-foreground">
 				{season.name}
 			</p>
-			<p className="mb-3 text-[11px] text-muted-foreground/70">
+			<p className="mb-1 text-[11px] text-muted-foreground/70">
 				{formatInVilnius(season.startsAt)} → {formatInVilnius(season.endsAt)}
+			</p>
+			<p className="mb-3 text-[11px] text-muted-foreground/70">
+				{season.memberCount}{" "}
+				{pluralizeLt(season.memberCount, {
+					one: "dalyvis",
+					few: "dalyviai",
+					many: "dalyvių",
+				})}
 			</p>
 			<div className="mb-1.5 h-1.75 overflow-hidden rounded-lg bg-muted">
 				<div

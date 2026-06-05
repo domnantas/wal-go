@@ -80,6 +80,13 @@ const list = publicProcedure.handler(async ({ context }) => {
 		.select()
 		.from(season)
 		.orderBy(asc(season.startsAt));
+	const memberCountRows = await context.db
+		.select({ seasonId: seasonMembership.seasonId, count: count() })
+		.from(seasonMembership)
+		.groupBy(seasonMembership.seasonId);
+	const memberCounts = new Map(
+		memberCountRows.map((r) => [r.seasonId, r.count])
+	);
 	const now = new Date();
 	return rows.map((row) => ({
 		id: row.id,
@@ -87,6 +94,7 @@ const list = publicProcedure.handler(async ({ context }) => {
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,
 		status: deriveStatus(row.startsAt, row.endsAt, now),
+		memberCount: memberCounts.get(row.id) ?? 0,
 	}));
 });
 

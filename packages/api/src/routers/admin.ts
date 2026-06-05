@@ -12,6 +12,7 @@ import { announceOwnershipChanges } from "../notifications/discord";
 import {
 	applyScoreDeltas,
 	applyUserBanScoreChange,
+	type OwnershipChange,
 	recomputeSeasonScores,
 } from "../scoring/apply-deltas";
 import { computeScoreDrift, EMPTY_SEASON_DRIFT } from "../scoring/drift";
@@ -425,6 +426,29 @@ const listQsos = adminProcedure
 		return rows;
 	});
 
+const listUserQsos = adminProcedure
+	.input(z.object({ userId: z.string() }))
+	.handler(async ({ context, input }) => {
+		const rows = await context.db
+			.select({
+				id: qso.id,
+				qsoAt: qso.qsoAt,
+				contactCallsign: qso.contactCallsign,
+				band: qso.band,
+				mode: qso.mode,
+				operatorSquare: qso.operatorSquare,
+				contactSquare: qso.contactSquare,
+				team: qso.team,
+				seasonId: qso.seasonId,
+				seasonName: season.name,
+			})
+			.from(qso)
+			.innerJoin(season, eq(qso.seasonId, season.id))
+			.where(eq(qso.userId, input.userId))
+			.orderBy(desc(qso.qsoAt), desc(qso.id));
+		return rows;
+	});
+
 const deleteQso = adminProcedure
 	.input(z.object({ id: z.number().int().positive() }))
 	.handler(async ({ context, input }) => {
@@ -454,6 +478,44 @@ const deleteQso = adminProcedure
 				deltas
 			);
 			await tx.delete(qso).where(eq(qso.id, input.id));
+			return ownershipChanges;
+		});
+
+		announceOwnershipChanges(changes);
+	});
+
+const deleteQsos = adminProcedure
+	.input(
+		z.object({ ids: z.array(z.number().int().positive()).min(1).max(500) })
+	)
+	.handler(async ({ context, input }) => {
+		const changes = await context.db.transaction(async (tx) => {
+			const ownershipChanges: OwnershipChange[] = [];
+			for (const id of input.ids) {
+				const existing = await tx
+					.select()
+					.from(qso)
+					.where(eq(qso.id, id))
+					.for("update")
+					.limit(1);
+
+				const qsoRow = existing[0];
+				if (!qsoRow) {
+					continue;
+				}
+
+				const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+				const deltas = await ruleSet.scoreDelete(tx, {
+					contactSquare: qsoRow.contactSquare,
+					operatorSquare: qsoRow.operatorSquare,
+					team: qsoRow.team,
+					userId: qsoRow.userId,
+				});
+				ownershipChanges.push(
+					...(await applyScoreDeltas(tx, qsoRow.seasonId, deltas))
+				);
+				await tx.delete(qso).where(eq(qso.id, id));
+			}
 			return ownershipChanges;
 		});
 
@@ -588,6 +650,7 @@ export const adminRouter = {
 		ban: banUser,
 		unban: unbanUser,
 		delete: deleteUser,
+		qsos: listUserQsos,
 	},
 	seasons: {
 		list: listSeasons,
@@ -607,6 +670,7 @@ export const adminRouter = {
 	qsos: {
 		list: listQsos,
 		delete: deleteQso,
+		deleteMany: deleteQsos,
 	},
 	uploads: {
 		list: listUploads,

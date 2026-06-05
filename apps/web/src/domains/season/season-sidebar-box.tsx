@@ -6,6 +6,7 @@ import { SeasonResultsBox } from "./season-results-box";
 interface SidebarSeason {
 	endsAt: Date;
 	id: number;
+	memberCount: number;
 	name: string;
 	startsAt: Date;
 }

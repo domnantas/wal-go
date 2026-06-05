@@ -27,8 +27,9 @@ Team points and controlled-square counts derive from `square_score`; a square co
 - Toggle role between `user` and `admin`.
 - Ban / unban (ban requires confirmation). Banning keeps QSO rows but removes the user's points from the score tables (unban restores them) — see [scoring.md](scoring.md) § Banned users.
 - Delete with confirmation: first removes the user's points from score tables, then deletes the account (sessions, accounts, QSOs, uploads, memberships, user-season-score rows cascade). Admins can't delete their own account.
+- **QSO** button opens a dialog (`UserQsosDialog`) listing all the user's QSOs across every season (newest first; columns: timestamp, season, contact callsign, band, squares). Same checkbox + select-all + bulk-delete toolbar as the QSOs tab; deletion goes through the shared `admin.qsos.deleteMany` and invalidates the user-QSO list and dashboard.
 
-Via `admin.users.*`.
+Via `admin.users.*` (`admin.users.qsos` lists a single user's QSOs across seasons).
 
 ### Seasons
 
@@ -58,9 +59,10 @@ A row is written to `cabrillo_upload` (which carries a `format` column) inside t
 ### QSOs
 
 - Pick a season from a dropdown to view its QSOs (timestamp, operator callsign, contact callsign, band, mode, squares).
-- Delete a QSO with confirmation — scores recalculated via `scoreDelete`.
+- Delete a single QSO with confirmation — scores recalculated via `scoreDelete`.
+- **Bulk delete**: each row has a checkbox plus a header "select all" (shows indeterminate on partial selection). When any row is selected a toolbar appears with the selected count and a destructive "Ištrinti pažymėtus" action (confirmation). Selection clears after a successful delete. Used to clean up abuse.
 
-Via `admin.qsos.*`.
+Via `admin.qsos.*`. `admin.qsos.deleteMany` takes `{ ids }` (1–500) and, in one transaction, runs `scoreDelete` + `applyScoreDeltas` per row (each row scored against its own season) before deleting, then announces the accumulated ownership changes to Discord. Missing ids are skipped silently.
 
 ## orpc queryOptions API note
 
