@@ -90,7 +90,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 				<Plus />
 				Pridėti QSO
 			</DialogTrigger>
-			<DialogContent>
+			<DialogContent className="sm:max-w-xl">
 				<DialogHeader>
 					<DialogTitle>Pridėti QSO</DialogTitle>
 					<DialogDescription>

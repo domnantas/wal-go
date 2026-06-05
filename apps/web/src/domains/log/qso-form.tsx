@@ -9,7 +9,6 @@ import { Calendar } from "@WAL-GO/ui/components/calendar";
 import { DialogFooter } from "@WAL-GO/ui/components/dialog";
 import {
 	Field,
-	FieldContent,
 	FieldDescription,
 	FieldError,
 	FieldGroup,
@@ -252,117 +251,119 @@ export function QsoForm({
 				form.handleSubmit();
 			}}
 		>
-			<FieldGroup className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-				<form.Field
-					name="contactCallsign"
-					validators={{
-						onBlur: qsoFormSchema.shape.contactCallsign,
-					}}
-				>
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						return (
-							<Field
-								className="sm:col-span-2 md:col-span-1"
-								data-invalid={isInvalid}
-							>
-								<FieldLabel htmlFor="contactCallsign">Šaukinys</FieldLabel>
-								<Input
-									aria-invalid={isInvalid}
-									autoCapitalize="characters"
-									disabled={isPending}
-									id="contactCallsign"
-									name="contactCallsign"
-									onBlur={field.handleBlur}
-									onChange={(event) => {
-										onClearError();
-										handleFieldChange(field, event.target.value.toUpperCase());
-									}}
-									value={field.state.value}
-								/>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
-				<form.Field
-					name="qsoAt"
-					validators={{ onBlur: qsoFormSchema.shape.qsoAt }}
-				>
-					{(field) => {
-						const isInvalid =
-							field.state.meta.isTouched && !field.state.meta.isValid;
-						const selectedDate = toCalendarDate(field.state.value);
-						const timeValue = getTimePart(field.state.value);
-						return (
-							<Field className="sm:col-span-2" data-invalid={isInvalid}>
-								<FieldLabel htmlFor="qsoAt">Data ir laikas</FieldLabel>
-								<div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-									<Popover>
-										<PopoverTrigger
-											render={
-												<button
-													aria-invalid={isInvalid}
-													className={cn(
-														"inline-flex h-9 w-full min-w-0 items-center justify-start gap-1.5 rounded-3xl border border-transparent bg-input/50 px-3 py-1 text-left font-normal text-base outline-none transition-[color,box-shadow,background-color] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0",
-														!selectedDate && "text-muted-foreground"
-													)}
-													data-empty={!selectedDate}
-													disabled={isPending}
-													id="qsoAt"
-													type="button"
-												/>
-											}
-										>
-											<CalendarIcon />
-											<span className="min-w-0 truncate">
-												{selectedDate
-													? format(selectedDate, DATE_BUTTON_FORMAT, {
-															locale: lt,
-														})
-													: "Pasirinkite datą"}
-											</span>
-										</PopoverTrigger>
-										<PopoverContent className="w-auto p-0">
-											<Calendar
-												mode="single"
-												onSelect={(date) => {
-													if (!date) {
-														return;
-													}
-													onClearError();
-													handleFieldChange(
-														field,
-														toDateTimeValue(date, timeValue)
-													);
-												}}
-												selected={selectedDate}
-											/>
-										</PopoverContent>
-									</Popover>
+			<FieldGroup className="grid gap-4 sm:grid-cols-2">
+				<div className="grid gap-4 sm:col-span-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+					<form.Field
+						name="contactCallsign"
+						validators={{
+							onBlur: qsoFormSchema.shape.contactCallsign,
+						}}
+					>
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
+							return (
+								<Field data-invalid={isInvalid}>
+									<FieldLabel htmlFor="contactCallsign">Šaukinys</FieldLabel>
 									<Input
 										aria-invalid={isInvalid}
-										className="appearance-none"
+										autoCapitalize="characters"
 										disabled={isPending}
-										name="qsoAtTime"
+										id="contactCallsign"
+										name="contactCallsign"
 										onBlur={field.handleBlur}
 										onChange={(event) => {
 											onClearError();
 											handleFieldChange(
 												field,
-												withTimePart(field.state.value, event.target.value)
+												event.target.value.toUpperCase()
 											);
 										}}
-										type="time"
-										value={timeValue}
+										value={field.state.value}
 									/>
-								</div>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
-							</Field>
-						);
-					}}
-				</form.Field>
+									{isInvalid && <FieldError errors={field.state.meta.errors} />}
+								</Field>
+							);
+						}}
+					</form.Field>
+					<form.Field
+						name="qsoAt"
+						validators={{ onBlur: qsoFormSchema.shape.qsoAt }}
+					>
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
+							const selectedDate = toCalendarDate(field.state.value);
+							const timeValue = getTimePart(field.state.value);
+							return (
+								<Field data-invalid={isInvalid}>
+									<FieldLabel htmlFor="qsoAt">Data ir laikas</FieldLabel>
+									<div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+										<Popover>
+											<PopoverTrigger
+												render={
+													<button
+														aria-invalid={isInvalid}
+														className={cn(
+															"inline-flex h-9 w-full min-w-0 items-center justify-start gap-1.5 rounded-3xl border border-transparent bg-input/50 px-3 py-1 text-left font-normal text-base outline-none transition-[color,box-shadow,background-color] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0",
+															!selectedDate && "text-muted-foreground"
+														)}
+														data-empty={!selectedDate}
+														disabled={isPending}
+														id="qsoAt"
+														type="button"
+													/>
+												}
+											>
+												<CalendarIcon />
+												<span className="min-w-0 truncate">
+													{selectedDate
+														? format(selectedDate, DATE_BUTTON_FORMAT, {
+																locale: lt,
+															})
+														: "Pasirinkite datą"}
+												</span>
+											</PopoverTrigger>
+											<PopoverContent className="w-auto p-0">
+												<Calendar
+													mode="single"
+													onSelect={(date) => {
+														if (!date) {
+															return;
+														}
+														onClearError();
+														handleFieldChange(
+															field,
+															toDateTimeValue(date, timeValue)
+														);
+													}}
+													selected={selectedDate}
+												/>
+											</PopoverContent>
+										</Popover>
+										<Input
+											aria-invalid={isInvalid}
+											className="appearance-none"
+											disabled={isPending}
+											name="qsoAtTime"
+											onBlur={field.handleBlur}
+											onChange={(event) => {
+												onClearError();
+												handleFieldChange(
+													field,
+													withTimePart(field.state.value, event.target.value)
+												);
+											}}
+											type="time"
+											value={timeValue}
+										/>
+									</div>
+									{isInvalid && <FieldError errors={field.state.meta.errors} />}
+								</Field>
+							);
+						}}
+					</form.Field>
+				</div>
 				<form.Field name="band">
 					{(field) => (
 						<Field>
@@ -485,12 +486,12 @@ export function QsoForm({
 							field.state.meta.isTouched && !field.state.meta.isValid;
 						return (
 							<Field data-invalid={isInvalid}>
-								<FieldContent>
+								<div className="flex items-center justify-between gap-2">
 									<FieldLabel htmlFor="contactSquare">
 										Korespondento kvadratas
 									</FieldLabel>
 									<FieldDescription>Neprivaloma</FieldDescription>
-								</FieldContent>
+								</div>
 								<Input
 									aria-invalid={isInvalid}
 									autoCapitalize="characters"
