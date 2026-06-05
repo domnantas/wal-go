@@ -35,12 +35,12 @@ The rule lives once in `computeLeader` (`packages/api/src/scoring/control.ts`), 
 | Yellow / Green / Red team | Team color |
 | Neutral / tie | Gray (no tint) |
 
-## Leaderboard
+## Standings
 
-Scoped to the active season, two standings:
+Scoped to the active season. The scoring router exposes two endpoints (`packages/api/src/routers/scoring.ts`):
 
-- **Team standings** — teams ranked by WAL squares currently controlled (desc); ties broken by total points. The map sidebar shows controlled-square stats under the progress box, in fixed order yellow/green/red, each a progress bar. When no season is active, the sidebar can show recently ended results using the same endpoint scoped to the ended season id.
-- **Individual standings** — operators ranked by total season points (desc): callsign, team color, point total.
+- **Team standings** (`scoring.teamStandings`) — teams ranked by WAL squares currently controlled (desc); ties broken by total points. Rendered: the map sidebar shows controlled-square stats under the progress box, in fixed order yellow/green/red, each a progress bar; also used on the homepage and in `SeasonResultsBox`. When no season is active, the sidebar can show recently ended results using the same endpoint scoped to the ended season id.
+- **Individual standings** (`scoring.individualStandings`) — operators ranked by total season points (desc): callsign, team color, point total. **API only — no UI yet.** No leaderboard route renders it. Keeping the per-player team mapping hidden is part of the game, so an individual leaderboard is intentionally unbuilt for now.
 
 ## Implementation
 
