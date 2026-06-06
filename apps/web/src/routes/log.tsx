@@ -2,6 +2,13 @@ import type { QsoBand } from "@WAL-GO/api/routers/qsos";
 import { normalizeCallsign } from "@WAL-GO/callsign";
 import { type ParseResult, parseLog } from "@WAL-GO/log-parse";
 import { Button } from "@WAL-GO/ui/components/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@WAL-GO/ui/components/select";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
 	Table,
@@ -72,10 +79,88 @@ interface Qso {
 	qsoAt: Date | string;
 }
 
+interface SeasonListItem {
+	endsAt: Date;
+	id: number;
+	name: string;
+	startsAt: Date;
+	status: "upcoming" | "active" | "ended";
+}
+
+function sortViewableSeasons(a: SeasonListItem, b: SeasonListItem) {
+	if (a.status === "active") {
+		return -1;
+	}
+	if (b.status === "active") {
+		return 1;
+	}
+	return b.startsAt.getTime() - a.startsAt.getTime();
+}
+
+function selectSeasonContext(
+	currentSeason: { id: number; name: string } | null | undefined,
+	seasons: SeasonListItem[] | undefined,
+	participated: SeasonListItem[] | undefined,
+	selectedSeasonId: number | null
+) {
+	const activeSeason =
+		currentSeason ??
+		seasons?.find((season) => season.status === "active") ??
+		null;
+	const upcomingSeason =
+		seasons?.find((season) => season.status === "upcoming") ?? null;
+	const viewableSeasons = [...(participated ?? [])]
+		.filter((season) => season.status !== "upcoming")
+		.sort(sortViewableSeasons);
+	const displaySeason =
+		viewableSeasons.find((season) => season.id === selectedSeasonId) ??
+		viewableSeasons[0] ??
+		null;
+	return {
+		activeSeason,
+		upcomingSeason,
+		viewableSeasons,
+		displaySeason,
+		displaySeasonId: displaySeason?.id,
+		showSeasonSelector: viewableSeasons.length > 1,
+	};
+}
+
+function SeasonSelect({
+	displaySeason,
+	onChange,
+	seasons,
+}: {
+	displaySeason: SeasonListItem;
+	onChange: (seasonId: number) => void;
+	seasons: SeasonListItem[];
+}) {
+	return (
+		<div className="flex flex-wrap items-center gap-3">
+			<Select
+				onValueChange={(value) => onChange(Number(value))}
+				value={String(displaySeason.id)}
+			>
+				<SelectTrigger className="w-56">
+					<SelectValue>{() => displaySeason.name}</SelectValue>
+				</SelectTrigger>
+				<SelectContent>
+					{seasons.map((season) => (
+						<SelectItem key={season.id} value={String(season.id)}>
+							{season.name}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		</div>
+	);
+}
+
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const [page, setPage] = useState(0);
 	const [band, setBand] = useState<QsoBand | undefined>(undefined);
+	const [selectedSeasonId, setSelectedSeasonId] = useState<number | null>(null);
 	const logRef = useRef<HTMLDivElement>(null);
 
 	function handleBandChange(newBand: QsoBand | undefined) {
@@ -83,17 +168,47 @@ function RouteComponent() {
 		setPage(0);
 	}
 
-	const { data: qsoPage, isPending: isQsosPending } = useQuery(
-		orpc.qsos.list.queryOptions({ input: { page, band } })
-	);
-	const { data: stats } = useQuery(orpc.qsos.stats.queryOptions());
+	function handleSeasonChange(seasonId: number) {
+		setSelectedSeasonId(seasonId);
+		setBand(undefined);
+		setPage(0);
+	}
+
 	const { data: currentSeason, isPending: isCurrentSeasonPending } = useQuery(
 		orpc.seasons.current.queryOptions()
 	);
 	const { data: membership, isPending: isMembershipPending } = useQuery(
 		orpc.seasons.myMembership.queryOptions()
 	);
-	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
+	const { data: seasons, isPending: isSeasonsPending } = useQuery(
+		orpc.seasons.list.queryOptions()
+	);
+	const { data: participated, isPending: isParticipatedPending } = useQuery(
+		orpc.seasons.participated.queryOptions()
+	);
+
+	const {
+		activeSeason,
+		upcomingSeason,
+		viewableSeasons,
+		displaySeason,
+		displaySeasonId,
+		showSeasonSelector,
+	} = selectSeasonContext(
+		currentSeason,
+		seasons,
+		participated,
+		selectedSeasonId
+	);
+
+	const { data: qsoPage, isPending: isQsosPending } = useQuery(
+		orpc.qsos.list.queryOptions({
+			input: { page, band, seasonId: displaySeasonId },
+		})
+	);
+	const { data: stats } = useQuery(
+		orpc.qsos.stats.queryOptions({ input: { seasonId: displaySeasonId } })
+	);
 	const items = qsoPage?.items ?? [];
 	const total = qsoPage?.total ?? 0;
 	const bands = qsoPage?.bands ?? [];
@@ -104,18 +219,14 @@ function RouteComponent() {
 		uniqueContactCallsigns: 0,
 	};
 
-	const activeSeason =
-		currentSeason ??
-		seasons?.find((season) => season.status === "active") ??
-		null;
+	const isInitialLoading =
+		isCurrentSeasonPending ||
+		isMembershipPending ||
+		isSeasonsPending ||
+		isParticipatedPending;
 	const canAddQso =
-		!(isCurrentSeasonPending || isMembershipPending) &&
-		!!activeSeason &&
-		!!membership;
-	const showLog =
-		isMembershipPending || !!membership || statValues.totalQsos > 0;
-	const upcomingSeason =
-		seasons?.find((season) => season.status === "upcoming") ?? null;
+		!!activeSeason && !!membership && displaySeason?.status === "active";
+	const showLog = !!displaySeason;
 
 	const handleSeasonTimingComplete = useCallback(() => {
 		queryClient.invalidateQueries({
@@ -129,10 +240,16 @@ function RouteComponent() {
 		});
 	}, [queryClient]);
 
+	if (isInitialLoading) {
+		return (
+			<main className="container mx-auto flex max-w-5xl justify-center px-4 py-16">
+				<Spinner className="size-8" />
+			</main>
+		);
+	}
+
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
-			{canAddQso ? <LogDropzone /> : null}
-
 			{!activeSeason && upcomingSeason ? (
 				<SeasonCountdownCard
 					onComplete={handleSeasonTimingComplete}
@@ -155,30 +272,42 @@ function RouteComponent() {
 				</div>
 			) : null}
 
+			{showSeasonSelector && displaySeason ? (
+				<SeasonSelect
+					displaySeason={displaySeason}
+					onChange={handleSeasonChange}
+					seasons={viewableSeasons}
+				/>
+			) : null}
+
 			{showLog ? (
 				<>
-					<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-						<StatCard
-							icon={<Radio className="size-5" />}
-							label="Iš viso QSO"
-							value={statValues.totalQsos}
-						/>
-						<StatCard
-							icon={<MapPinned className="size-5" />}
-							label="Unikalūs kvadratai"
-							value={statValues.uniqueSquares}
-						/>
-						<StatCard
-							icon={<Star className="size-5" />}
-							label="Surinkti taškai"
-							value={statValues.points}
-						/>
-						<StatCard
-							icon={<Users className="size-5" />}
-							label="Unikalūs korespondentai"
-							value={statValues.uniqueContactCallsigns}
-						/>
-					</div>
+					{stats ? (
+						<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+							<StatCard
+								icon={<Radio className="size-5" />}
+								label="Iš viso QSO"
+								value={statValues.totalQsos}
+							/>
+							<StatCard
+								icon={<MapPinned className="size-5" />}
+								label="Unikalūs kvadratai"
+								value={statValues.uniqueSquares}
+							/>
+							<StatCard
+								icon={<Star className="size-5" />}
+								label="Surinkti taškai"
+								value={statValues.points}
+							/>
+							<StatCard
+								icon={<Users className="size-5" />}
+								label="Unikalūs korespondentai"
+								value={statValues.uniqueContactCallsigns}
+							/>
+						</div>
+					) : null}
+
+					{canAddQso ? <LogDropzone /> : null}
 
 					{isQsosPending ? (
 						<div className="flex justify-center py-10">

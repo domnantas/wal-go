@@ -6,7 +6,7 @@ import {
 	userSeasonScore,
 } from "@WAL-GO/db/schema/scoring";
 import { seasonMembership } from "@WAL-GO/db/schema/seasons";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, countDistinct, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { publicProcedure } from "../index";
@@ -89,10 +89,34 @@ const individualStandings = publicProcedure
 					eq(seasonMembership.seasonId, userSeasonScore.seasonId)
 				)
 			)
-			.where(eq(userSeasonScore.seasonId, seasonId))
+			.where(
+				and(eq(userSeasonScore.seasonId, seasonId), eq(user.banned, false))
+			)
 			.orderBy(desc(userSeasonScore.points));
 
-		return rows;
+		const activityRows = await context.db
+			.select({
+				userId: qso.userId,
+				qsoCount: count(),
+				squaresWorked: countDistinct(qso.operatorSquare),
+			})
+			.from(qso)
+			.innerJoin(user, eq(user.id, qso.userId))
+			.where(and(eq(qso.seasonId, seasonId), eq(user.banned, false)))
+			.groupBy(qso.userId);
+
+		const activityByUser = new Map(
+			activityRows.map((row) => [
+				row.userId,
+				{ qsoCount: row.qsoCount, squaresWorked: row.squaresWorked },
+			])
+		);
+
+		return rows.map((row) => ({
+			...row,
+			qsoCount: activityByUser.get(row.userId)?.qsoCount ?? 0,
+			squaresWorked: activityByUser.get(row.userId)?.squaresWorked ?? 0,
+		}));
 	});
 
 const teamStandings = publicProcedure

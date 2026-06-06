@@ -40,7 +40,7 @@ The rule lives once in `computeLeader` (`packages/api/src/scoring/control.ts`), 
 Scoped to the active season. The scoring router exposes two endpoints (`packages/api/src/routers/scoring.ts`):
 
 - **Team standings** (`scoring.teamStandings`) — teams ranked by WAL squares currently controlled (desc); ties broken by total points. Rendered: the map sidebar shows controlled-square stats under the progress box, in fixed order yellow/green/red, each a progress bar; also used on the homepage and in `SeasonResultsBox`. When no season is active, the sidebar can show recently ended results using the same endpoint scoped to the ended season id.
-- **Individual standings** (`scoring.individualStandings`) — operators ranked by total season points (desc): callsign, team color, point total. **API only — no UI yet.** No leaderboard route renders it. Keeping the per-player team mapping hidden is part of the game, so an individual leaderboard is intentionally unbuilt for now.
+- **Individual standings** (`scoring.individualStandings`) — operators ranked by total season points (desc): callsign, team color, point total, plus `qsoCount` and `squaresWorked` (distinct operator squares). Banned users are excluded from both the points rows and the activity aggregates. Per-player team mapping stays hidden during an active season; it's revealed only for ended seasons on the leaderboard ([leaderboard.md](leaderboard.md)).
 
 Two more `publicProcedure`s in the same router power the in-app liveness signals, both
 anonymized (team + square + time only, never a callsign) — see [activity-feed.md](activity-feed.md):

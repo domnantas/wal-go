@@ -10,10 +10,14 @@ import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { sessionOptions } from "@better-auth-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import confetti from "canvas-confetti";
 import { Info } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { type RefObject, useEffect, useRef, useState } from "react";
+import {
+	fireTeamConfetti,
+	TEAM_LABELS,
+	type Team,
+} from "@/domains/season/team";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
@@ -30,24 +34,10 @@ export const Route = createFileRoute("/join-season")({
 	component: RouteComponent,
 });
 
-type Team = "yellow" | "green" | "red";
-
-const TEAM_LABELS: Record<Team, string> = {
-	yellow: "Geltona",
-	green: "Žalia",
-	red: "Raudona",
-};
-
 const TEAM_CLASSES: Record<Team, string> = {
 	yellow: "bg-golden text-golden-foreground",
 	green: "bg-olive text-olive-foreground",
 	red: "bg-rust text-rust-foreground",
-};
-
-const TEAM_CONFETTI_COLORS: Record<Team, string[]> = {
-	yellow: ["#D4A017", "#F0C040", "#FFE08A", "#FFFACD"],
-	green: ["#3A5A2E", "#5A8A48", "#8AB87C", "#C5E8B0"],
-	red: ["#9B3A2A", "#C45A40", "#E88060", "#FFB4A0"],
 };
 
 // Conic gradient starts at top (0°) clockwise. Pointer sits at 3 o'clock (90°).
@@ -97,26 +87,6 @@ function applyRotation(
 	}
 	node.style.transition = transition;
 	node.style.transform = `rotate(${deg}deg)`;
-}
-
-function fireConfetti(team: Team) {
-	const colors = TEAM_CONFETTI_COLORS[team];
-	confetti({
-		particleCount: 100,
-		spread: 70,
-		origin: { x: 0.3, y: 0.65 },
-		colors,
-		angle: 60,
-		scalar: 1.2,
-	});
-	confetti({
-		particleCount: 100,
-		spread: 70,
-		origin: { x: 0.7, y: 0.65 },
-		colors,
-		angle: 120,
-		scalar: 1.2,
-	});
 }
 
 function RouteComponent() {
@@ -191,7 +161,7 @@ function RouteComponent() {
 					orpc.seasons.myMembership.queryOptions().queryKey,
 					join.data
 				);
-				fireConfetti(team);
+				fireTeamConfetti(team);
 			}
 		}, LANDING_DURATION_MS + 100);
 		return () => clearTimeout(t);

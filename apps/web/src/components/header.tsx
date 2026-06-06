@@ -16,6 +16,7 @@ import {
 	NotebookPen,
 	Paintbrush,
 	Shield,
+	Trophy,
 	UserPlus,
 } from "lucide-react";
 import walGoLogo from "@/assets/logo_512.png";
@@ -36,12 +37,26 @@ export default function Header() {
 		...orpc.seasons.myMembership.queryOptions(),
 		enabled: isAuthenticated,
 	});
+	const { data: seasons } = useQuery({
+		...orpc.seasons.list.queryOptions(),
+		enabled: isAuthenticated,
+	});
 	const showJoinSeason =
 		isAuthenticated && !!currentSeason && !isMembershipPending && !membership;
-	const authLinks = [
+	const hasEndedSeason = !!seasons?.some((season) => season.status === "ended");
+	const baseAuthLinks = [
 		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },
 	] as const;
+	const leaderboardLink = {
+		to: "/leaderboard",
+		label: "Rezultatai",
+		icon: Trophy,
+		exact: false,
+	} as const;
+	const authLinks = hasEndedSeason
+		? ([...baseAuthLinks, leaderboardLink] as const)
+		: baseAuthLinks;
 	const publicLinks = [
 		{ to: "/rules", label: "Taisyklės", icon: BookOpen, exact: false },
 	] as const;

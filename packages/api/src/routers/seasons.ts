@@ -45,7 +45,7 @@ async function pickWeightedTeam(db: Db, seasonId: string): Promise<Team> {
 			return team;
 		}
 	}
-	return TEAMS[TEAMS.length - 1];
+	return TEAMS.at(-1) ?? TEAMS[0];
 }
 
 function deriveStatus(
@@ -95,6 +95,28 @@ const list = publicProcedure.handler(async ({ context }) => {
 		endsAt: row.endsAt,
 		status: deriveStatus(row.startsAt, row.endsAt, now),
 		memberCount: memberCounts.get(row.id) ?? 0,
+	}));
+});
+
+const participated = protectedProcedure.handler(async ({ context }) => {
+	const rows = await context.db
+		.select({
+			id: season.id,
+			name: season.name,
+			startsAt: season.startsAt,
+			endsAt: season.endsAt,
+		})
+		.from(seasonMembership)
+		.innerJoin(season, eq(season.id, seasonMembership.seasonId))
+		.where(eq(seasonMembership.userId, context.session.user.id))
+		.orderBy(asc(season.startsAt));
+	const now = new Date();
+	return rows.map((row) => ({
+		id: row.id,
+		name: row.name,
+		startsAt: row.startsAt,
+		endsAt: row.endsAt,
+		status: deriveStatus(row.startsAt, row.endsAt, now),
 	}));
 });
 
@@ -201,6 +223,7 @@ const join = protectedProcedure.handler(async ({ context }) => {
 export const seasonsRouter = {
 	current,
 	list,
+	participated,
 	myMembership,
 	join,
 };

@@ -1,38 +1,22 @@
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { pluralizeLt } from "@/lib/plural";
 import { orpc } from "@/utils/orpc";
-
-type Team = "yellow" | "green" | "red";
-
-const TEAM_ORDER = [
-	"yellow",
-	"green",
-	"red",
-] as const satisfies readonly Team[];
-
-const TEAM_LABELS: Record<Team, string> = {
-	yellow: "Geltona",
-	green: "Žalia",
-	red: "Raudona",
-};
-
-const TEAM_BAR_CLASSES: Record<Team, string> = {
-	yellow: "bg-golden",
-	green: "bg-olive",
-	red: "bg-rust",
-};
-
-const TEAM_DOT_CLASSES: Record<Team, string> = {
-	yellow: "bg-golden",
-	green: "bg-olive",
-	red: "bg-rust",
-};
+import { TEAM_CONFIG, TEAM_LABELS, TEAMS, type Team } from "../season/team";
 
 const EMPTY_SCORES: Record<Team, number> = {
 	yellow: 0,
 	green: 0,
 	red: 0,
 };
+
+function pointsLabel(score: number) {
+	return `${score} ${pluralizeLt(score, {
+		one: "tašką",
+		few: "taškus",
+		many: "taškų",
+	})}`;
+}
 
 interface SelectedSquareStatsBoxProps {
 	seasonId: number | null;
@@ -59,7 +43,7 @@ export function SelectedSquareStatsBox({
 		(square) => square.code === selectedSquareCode
 	);
 	const scores = selectedSquare?.scores ?? EMPTY_SCORES;
-	const maxScore = Math.max(...TEAM_ORDER.map((team) => scores[team]));
+	const maxScore = Math.max(...TEAMS.map((team) => scores[team]));
 	const progressMax = Math.max(maxScore, 1);
 
 	if (variant === "row") {
@@ -69,7 +53,7 @@ export function SelectedSquareStatsBox({
 					{selectedSquareCode}
 				</p>
 				<div className="flex flex-1 items-stretch gap-3">
-					{TEAM_ORDER.map((team) => {
+					{TEAMS.map((team) => {
 						const score = scores[team];
 						const progress = (score / progressMax) * 100;
 
@@ -81,7 +65,7 @@ export function SelectedSquareStatsBox({
 											aria-hidden="true"
 											className={cn(
 												"size-2 shrink-0 rounded-full",
-												TEAM_DOT_CLASSES[team]
+												TEAM_CONFIG[team].dot
 											)}
 										/>
 										<span className="truncate font-medium text-foreground text-xs">
@@ -93,7 +77,7 @@ export function SelectedSquareStatsBox({
 									</span>
 								</div>
 								<div
-									aria-label={`${TEAM_LABELS[team]} komanda turi ${score} taškų kvadrate ${selectedSquareCode}`}
+									aria-label={`${TEAM_LABELS[team]} komanda turi ${pointsLabel(score)} kvadrate ${selectedSquareCode}`}
 									aria-valuemax={progressMax}
 									aria-valuemin={0}
 									aria-valuenow={score}
@@ -103,7 +87,7 @@ export function SelectedSquareStatsBox({
 									<div
 										className={cn(
 											"h-full rounded-lg transition-[width] duration-500",
-											TEAM_BAR_CLASSES[team]
+											TEAM_CONFIG[team].bar
 										)}
 										style={{ width: `${progress}%` }}
 									/>
@@ -125,7 +109,7 @@ export function SelectedSquareStatsBox({
 				{selectedSquareCode}
 			</p>
 			<div className="flex flex-col gap-3.5">
-				{TEAM_ORDER.map((team) => {
+				{TEAMS.map((team) => {
 					const score = scores[team];
 					const progress = (score / progressMax) * 100;
 
@@ -137,7 +121,7 @@ export function SelectedSquareStatsBox({
 										aria-hidden="true"
 										className={cn(
 											"size-2 shrink-0 rounded-full",
-											TEAM_DOT_CLASSES[team]
+											TEAM_CONFIG[team].dot
 										)}
 									/>
 									<span className="truncate font-medium text-foreground text-xs">
@@ -149,7 +133,7 @@ export function SelectedSquareStatsBox({
 								</span>
 							</div>
 							<div
-								aria-label={`${TEAM_LABELS[team]} komanda turi ${score} taškų kvadrate ${selectedSquareCode}`}
+								aria-label={`${TEAM_LABELS[team]} komanda turi ${pointsLabel(score)} kvadrate ${selectedSquareCode}`}
 								aria-valuemax={progressMax}
 								aria-valuemin={0}
 								aria-valuenow={score}
@@ -159,7 +143,7 @@ export function SelectedSquareStatsBox({
 								<div
 									className={cn(
 										"h-full rounded-lg transition-[width] duration-500",
-										TEAM_BAR_CLASSES[team]
+										TEAM_CONFIG[team].bar
 									)}
 									style={{ width: `${progress}%` }}
 								/>

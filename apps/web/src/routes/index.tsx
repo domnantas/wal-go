@@ -11,6 +11,10 @@ import { MapView } from "@/domains/map/map-view";
 import { ActivityFeedBox } from "@/domains/scoring/activity-feed-box";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
+import { SeasonWinnerHero } from "@/domains/season/season-winner-hero";
+import type { Team } from "@/domains/season/team";
+import { TeamStandingCard } from "@/domains/season/team-standing-card";
+import { useWinnerConfetti } from "@/domains/season/use-winner-confetti";
 import { authClient } from "@/lib/auth-client";
 import { DISCORD_INVITE_URL } from "@/lib/constants";
 import { orpc } from "@/utils/orpc";
@@ -18,8 +22,6 @@ import { orpc } from "@/utils/orpc";
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
 });
-
-const TOTAL_SQUARES = 210;
 
 const HOW_STEPS: ReadonlyArray<{
 	n: number;
@@ -97,12 +99,6 @@ const FAQS: ReadonlyArray<{ q: string; a: React.ReactNode }> = [
 	},
 ];
 
-const TEAM_CONFIG = {
-	yellow: { label: "Geltona", dot: "bg-golden", bar: "bg-golden" },
-	green: { label: "Žalia", dot: "bg-olive", bar: "bg-olive" },
-	red: { label: "Raudona", dot: "bg-rust", bar: "bg-rust" },
-} as const;
-
 const LOG_DEMO_ROWS = [
 	{ time: "14:32", call: "OH3JR", band: "20m", mode: "FT8", square: "K12" },
 	{ time: "14:28", call: "SP9DLY", band: "20m", mode: "FT8", square: "K12" },
@@ -113,6 +109,106 @@ const LOG_DEMO_ROWS = [
 
 function scrollToSection(id: string) {
 	document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+}
+
+function getStandingsEyebrow({
+	isBetweenSeasons,
+	recentlyEndedSeason,
+	season,
+}: {
+	isBetweenSeasons: boolean;
+	recentlyEndedSeason: { name: string } | null;
+	season: { name: string } | null;
+}) {
+	if (isBetweenSeasons && recentlyEndedSeason) {
+		return `Sezono rezultatai · ${recentlyEndedSeason.name}`;
+	}
+	if (season) {
+		return `Tiesiogiai · ${season.name}`;
+	}
+	return "Tiesiogiai";
+}
+
+interface StandingRow {
+	points: number;
+	squaresControlled: number;
+	team: Team;
+}
+
+interface TeamStandingsSectionProps {
+	displayedSeasonId: number | null;
+	eyebrow: string;
+	isAuthenticated: boolean;
+	isBetweenSeasons: boolean;
+	isMapRevealed: boolean;
+	selectedSquareCode: string | null;
+	standings: StandingRow[];
+	winner: StandingRow | undefined;
+}
+
+function TeamStandingsSection({
+	standings,
+	eyebrow,
+	isBetweenSeasons,
+	isAuthenticated,
+	winner,
+	isMapRevealed,
+	selectedSquareCode,
+	displayedSeasonId,
+}: TeamStandingsSectionProps) {
+	if (standings.length === 0) {
+		return null;
+	}
+	return (
+		<section className={cn("mx-auto max-w-6xl px-8 pt-6 pb-20")}>
+			<div className="mb-6 flex flex-wrap items-end justify-between gap-8">
+				<div>
+					<SectionEyebrow>{eyebrow}</SectionEyebrow>
+				</div>
+				{isBetweenSeasons && isAuthenticated && (
+					<Link
+						className="inline-flex items-center gap-1.5 font-medium text-muted-foreground text-sm hover:text-foreground"
+						to="/leaderboard"
+					>
+						Visi rezultatai
+						<ArrowRight className="size-4" />
+					</Link>
+				)}
+			</div>
+			{isBetweenSeasons && winner && (
+				<SeasonWinnerHero
+					className="mb-6"
+					points={winner.points}
+					squaresControlled={winner.squaresControlled}
+					team={winner.team}
+				/>
+			)}
+			{isMapRevealed && selectedSquareCode && (
+				<div className="fade-in slide-in-from-top-2 mx-auto mb-3 max-w-xl animate-in duration-300">
+					<SelectedSquareStatsBox
+						seasonId={displayedSeasonId}
+						selectedSquareCode={selectedSquareCode}
+						variant="row"
+					/>
+				</div>
+			)}
+			<div className="grid gap-3 md:grid-cols-3">
+				{standings.map((s) => (
+					<TeamStandingCard
+						key={s.team}
+						points={s.points}
+						squaresControlled={s.squaresControlled}
+						team={s.team}
+					/>
+				))}
+			</div>
+			{displayedSeasonId !== null && (
+				<div className="mt-3 rounded-4xl border border-border bg-card p-5">
+					<ActivityFeedBox seasonId={displayedSeasonId} variant="compact" />
+				</div>
+			)}
+		</section>
+	);
 }
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
@@ -139,9 +235,6 @@ function HomeComponent() {
 	const { data: session, isPending: isSessionPending } = useSession(authClient);
 	const { data: currentSeason } = useQuery(orpc.seasons.current.queryOptions());
 	const { data: seasons } = useQuery(orpc.seasons.list.queryOptions());
-	const { data: teamStandings } = useQuery(
-		orpc.scoring.teamStandings.queryOptions({ input: {} })
-	);
 
 	const season =
 		currentSeason ??
@@ -152,7 +245,24 @@ function HomeComponent() {
 	const recentlyEndedSeason =
 		seasons?.findLast((seasonRow) => seasonRow.status === "ended") ?? null;
 	const displayedSeasonId = season?.id ?? recentlyEndedSeason?.id ?? null;
+	const isBetweenSeasons = !season && !!recentlyEndedSeason;
+
+	const { data: teamStandings } = useQuery({
+		...orpc.scoring.teamStandings.queryOptions({
+			input: { seasonId: displayedSeasonId ?? undefined },
+		}),
+		enabled: displayedSeasonId !== null,
+	});
 	const standings = teamStandings ?? [];
+	const winner = standings[0];
+
+	useWinnerConfetti(displayedSeasonId, isBetweenSeasons);
+
+	const standingsEyebrow = getStandingsEyebrow({
+		isBetweenSeasons,
+		recentlyEndedSeason,
+		season,
+	});
 	const handleSeasonTimingComplete = useCallback(() => {
 		queryClient.invalidateQueries({
 			queryKey: orpc.seasons.current.queryOptions().queryKey,
@@ -300,64 +410,16 @@ function HomeComponent() {
 			{/* Selected square stats — under the map when revealed */}
 
 			{/* ── Team standings ───────────────────────────────────── */}
-			{standings.length > 0 && (
-				<section className={cn("mx-auto max-w-6xl px-8 pt-6 pb-20")}>
-					<div className="mb-6 flex flex-wrap items-end justify-between gap-8">
-						<div>
-							<SectionEyebrow>
-								{season ? `Tiesiogiai · ${season.name}` : "Tiesiogiai"}
-							</SectionEyebrow>
-						</div>
-					</div>
-					{isMapRevealed && selectedSquareCode && (
-						<div className="fade-in slide-in-from-top-2 mx-auto mb-3 max-w-xl animate-in duration-300">
-							<SelectedSquareStatsBox
-								seasonId={displayedSeasonId}
-								selectedSquareCode={selectedSquareCode}
-								variant="row"
-							/>
-						</div>
-					)}
-					<div className="grid gap-3 md:grid-cols-3">
-						{standings.map((s) => {
-							const config = TEAM_CONFIG[s.team as keyof typeof TEAM_CONFIG];
-							const pct = (s.squaresControlled / TOTAL_SQUARES) * 100;
-							return (
-								<div
-									className="rounded-4xl border border-border bg-card p-5"
-									key={s.team}
-								>
-									<div className="mb-3 flex items-center justify-between">
-										<div className="flex items-center gap-2.5">
-											<span className={`size-3 rounded-full ${config.dot}`} />
-											<span className="font-bold font-serif text-xl">
-												{config.label}
-											</span>
-										</div>
-										<span className="font-mono font-semibold text-sm">
-											{s.squaresControlled}/{TOTAL_SQUARES}
-										</span>
-									</div>
-									<div className="h-1.5 overflow-hidden rounded-full bg-muted">
-										<div
-											className={`h-full ${config.bar}`}
-											style={{ width: `${pct}%` }}
-										/>
-									</div>
-									<div className="mt-3 flex items-center justify-end text-muted-foreground text-xs">
-										<span>{pct.toFixed(1)}% teritorijos</span>
-									</div>
-								</div>
-							);
-						})}
-					</div>
-					{displayedSeasonId !== null && (
-						<div className="mt-3 rounded-4xl border border-border bg-card p-5">
-							<ActivityFeedBox seasonId={displayedSeasonId} variant="compact" />
-						</div>
-					)}
-				</section>
-			)}
+			<TeamStandingsSection
+				displayedSeasonId={displayedSeasonId}
+				eyebrow={standingsEyebrow}
+				isAuthenticated={!!session}
+				isBetweenSeasons={isBetweenSeasons}
+				isMapRevealed={isMapRevealed}
+				selectedSquareCode={selectedSquareCode}
+				standings={standings}
+				winner={winner}
+			/>
 
 			{/* ── How it works ─────────────────────────────────────── */}
 			<section

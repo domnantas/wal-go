@@ -8,6 +8,7 @@ import { ActivityFeedBox } from "@/domains/scoring/activity-feed-box";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
 import { TeamControlledSquaresBox } from "@/domains/scoring/team-controlled-squares-box";
 import { SeasonSidebarBox } from "@/domains/season/season-sidebar-box";
+import { useWinnerConfetti } from "@/domains/season/use-winner-confetti";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
@@ -86,6 +87,9 @@ function RouteComponent() {
 	);
 
 	const displayedSeasonId = activeSeason?.id ?? recentlyEndedSeason?.id ?? null;
+	const isBetweenSeasons = !activeSeason && !!recentlyEndedSeason;
+
+	useWinnerConfetti(displayedSeasonId, isBetweenSeasons);
 
 	const handleSeasonTimingComplete = useCallback(() => {
 		queryClient.invalidateQueries({

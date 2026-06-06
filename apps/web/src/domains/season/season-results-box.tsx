@@ -1,21 +1,15 @@
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { formatInVilnius } from "@/lib/date";
+import { pluralizeLt } from "@/lib/plural";
 import { orpc } from "@/utils/orpc";
-
-type Team = "yellow" | "green" | "red";
-
-const TEAM_LABELS: Record<Team, string> = {
-	yellow: "Geltona",
-	green: "Žalia",
-	red: "Raudona",
-};
-
-const TEAM_RESULT_CLASSES: Record<Team, string> = {
-	yellow: "border-golden/40 bg-golden/15 text-golden",
-	green: "border-olive/40 bg-olive/15 text-olive",
-	red: "border-rust/40 bg-rust/15 text-rust",
-};
+import {
+	POINT_FORMS,
+	SQUARE_FORMS,
+	TEAM_LABELS,
+	TEAM_RESULT_CLASSES,
+	type Team,
+} from "./team";
 
 interface SeasonResultsBoxProps {
 	season: {
@@ -60,7 +54,9 @@ export function SeasonResultsBox({ season }: SeasonResultsBoxProps) {
 						{TEAM_LABELS[winner.team as Team]}
 					</p>
 					<p className="mt-1 text-[11px] text-foreground/70">
-						{winner.squaresControlled} kvadratai · {winner.points} taškai
+						{winner.squaresControlled}{" "}
+						{pluralizeLt(winner.squaresControlled, SQUARE_FORMS)} ·{" "}
+						{winner.points} {pluralizeLt(winner.points, POINT_FORMS)}
 					</p>
 				</div>
 			) : null}
