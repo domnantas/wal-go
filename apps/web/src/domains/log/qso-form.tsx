@@ -35,7 +35,7 @@ import { useForm } from "@tanstack/react-form";
 import { format, getHours, getMinutes, isValid, parse, set } from "date-fns";
 import { lt } from "date-fns/locale";
 import { CalendarIcon, Save } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { z } from "zod";
 
 import { GeolocationSquareButton } from "./geolocation-square-button";
@@ -191,6 +191,7 @@ export function qsoToFormValues(qso: EditableQso): QsoFormState {
 
 export function QsoForm({
 	defaultValues,
+	enableCallsignSpaceNavigation = false,
 	formError,
 	geolocation = false,
 	isPending,
@@ -201,6 +202,7 @@ export function QsoForm({
 	submitLabel,
 }: {
 	defaultValues: QsoFormState;
+	enableCallsignSpaceNavigation?: boolean;
 	formError: null | string;
 	geolocation?: boolean;
 	isPending: boolean;
@@ -210,6 +212,8 @@ export function QsoForm({
 	onSubmit: (payload: QsoFormPayload) => void;
 	submitLabel: string;
 }) {
+	const operatorSquareRef = useRef<HTMLInputElement>(null);
+	const contactSquareRef = useRef<HTMLInputElement>(null);
 	const form = useForm({
 		defaultValues,
 		validators: {
@@ -278,6 +282,18 @@ export function QsoForm({
 												field,
 												event.target.value.toUpperCase()
 											);
+										}}
+										onKeyDown={(event) => {
+											if (!enableCallsignSpaceNavigation || event.key !== " ") {
+												return;
+											}
+											event.preventDefault();
+											const squareInput = form
+												.getFieldValue("operatorSquare")
+												.trim()
+												? contactSquareRef.current
+												: operatorSquareRef.current;
+											squareInput?.focus();
 										}}
 										value={field.state.value}
 									/>
@@ -470,6 +486,7 @@ export function QsoForm({
 										handleFieldChange(field, event.target.value.toUpperCase());
 									}}
 									placeholder="A05"
+									ref={operatorSquareRef}
 									value={field.state.value}
 								/>
 								{isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -505,6 +522,7 @@ export function QsoForm({
 										handleFieldChange(field, event.target.value.toUpperCase());
 									}}
 									placeholder="B12"
+									ref={contactSquareRef}
 									value={field.state.value}
 								/>
 								{isInvalid && <FieldError errors={field.state.meta.errors} />}

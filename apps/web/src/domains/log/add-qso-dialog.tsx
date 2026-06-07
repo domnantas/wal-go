@@ -97,6 +97,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 				</DialogHeader>
 				<QsoForm
 					defaultValues={getDefaultValues()}
+					enableCallsignSpaceNavigation
 					formError={formError}
 					geolocation
 					isPending={createQso.isPending}

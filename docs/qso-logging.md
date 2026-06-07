@@ -19,6 +19,8 @@ Available after joining the active season. Fields:
 
 The backend validates WAL codes are valid Lithuanian cells. Duplicate detection, scoring, and deletion all apply.
 
+In the Add QSO dialog, pressing Space while the callsign field is focused moves focus to **Mano kvadratas** when that field is empty. If it already has a value, focus moves to **Korespondento kvadratas** instead. The space is used only as a navigation shortcut and is not added to the callsign.
+
 ### Geolocation square
 
 The Add QSO dialog has a geolocation toggle next to **Mano kvadratas** (`GeolocationSquareButton`, driven by `useGeolocationSquare`). When enabled, the form derives the operator's square from `navigator.geolocation` + `calculateWal` (`@WAL-GO/grid`). Coordinates outside any valid cell leave the field untouched.
