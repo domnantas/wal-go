@@ -21,6 +21,14 @@ The backend validates WAL codes are valid Lithuanian cells. Duplicate detection,
 
 In the Add QSO dialog, pressing Space while the callsign field is focused moves focus to **Mano kvadratas** when that field is empty. If it already has a value, focus moves to **Korespondento kvadratas** instead. The space is used only as a navigation shortcut and is not added to the callsign.
 
+### Blur validation
+
+Fields validate on blur only if they are **dirty** — i.e. the user has typed into them at least once (`handleFieldBlur` in `@WAL-GO/ui/lib/form`, gating on TanStack Form's sticky `field.state.meta.isDirty`). A pristine field (never edited) does not validate on blur, so tabbing past it, clicking the date picker, toggling the **Neuždaryti lango** switch, or clicking the close button never surfaces a "required" error. Because the dialog is vertically centered (`fixed top-1/2 -translate-y-1/2`), a freshly rendered error would otherwise grow it, re-center it, and shift controls out from under a pending click. A field that was typed into and then cleared stays dirty, so it correctly shows the "required" error on blur. Full validation still runs on submit.
+
+### Keep dialog open
+
+The Add QSO dialog has a **Neuždaryti lango** switch in the footer's bottom left (`QsoForm`, gated on the `onKeepOpenChange` prop so only `AddQsoDialog` shows it). When on, a successful save leaves the dialog open instead of closing it, clears the **Šaukinys** and **Korespondento kvadratas** fields, and refocuses the callsign input — band, mode, date/time, and **Mano kvadratas** carry over for fast back-to-back logging. To make the post-save reset depend on success, `QsoForm` awaits `onSubmit` and skips the reset when it returns `false`; `AddQsoDialog` uses `mutateAsync` and returns `false` on error. The refocus runs from an effect on the `isPending` true→false transition (the callsign input is `disabled` while pending, so focusing it synchronously after submit would no-op). The toggle is persisted in `localStorage` (`qso-keep-open`).
+
 ### Geolocation square
 
 The Add QSO dialog has a geolocation toggle next to **Mano kvadratas** (`GeolocationSquareButton`, driven by `useGeolocationSquare`). When enabled, the form derives the operator's square from `navigator.geolocation` + `calculateWal` (`@WAL-GO/grid`). Coordinates outside any valid cell leave the field untouched.

@@ -25,6 +25,7 @@ import {
 
 const LAST_BAND_KEY = "qso-last-band";
 const LAST_MODE_KEY = "qso-last-mode";
+const KEEP_OPEN_KEY = "qso-keep-open";
 
 function getDefaultValues() {
 	const lastBand = localStorage.getItem(LAST_BAND_KEY);
@@ -47,6 +48,9 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
 	const [open, setOpen] = useState(false);
+	const [keepOpen, setKeepOpen] = useState(
+		() => localStorage.getItem(KEEP_OPEN_KEY) === "true"
+	);
 	const [formError, setFormError] = useState<string | null>(null);
 	const createQso = useMutation(
 		orpc.qsos.create.mutationOptions({
@@ -63,7 +67,9 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 					has_contact_square: variables.contactSquare !== null,
 				});
 				setFormError(null);
-				setOpen(false);
+				if (!keepOpen) {
+					setOpen(false);
+				}
 				toast.success("QSO išsaugotas");
 			},
 			onError: (error) => {
@@ -72,8 +78,13 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 		})
 	);
 
-	function handleSubmit(payload: QsoFormPayload) {
-		createQso.mutate(payload);
+	async function handleSubmit(payload: QsoFormPayload) {
+		try {
+			await createQso.mutateAsync(payload);
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	return (
@@ -101,8 +112,13 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 					formError={formError}
 					geolocation
 					isPending={createQso.isPending}
+					keepOpen={keepOpen}
 					onBandChange={(band) => localStorage.setItem(LAST_BAND_KEY, band)}
 					onClearError={() => setFormError(null)}
+					onKeepOpenChange={(next) => {
+						setKeepOpen(next);
+						localStorage.setItem(KEEP_OPEN_KEY, String(next));
+					}}
 					onModeChange={(mode) => localStorage.setItem(LAST_MODE_KEY, mode)}
 					onSubmit={handleSubmit}
 					submitLabel="Išsaugoti QSO"

@@ -11,3 +11,11 @@ export function handleFieldChange<TValue>(
 		errorSourceMap: {},
 	}));
 }
+
+export function handleFieldBlur(
+	field: Pick<AnyFieldApi, "handleBlur" | "state">
+) {
+	if (field.state.meta.isDirty) {
+		field.handleBlur();
+	}
+}

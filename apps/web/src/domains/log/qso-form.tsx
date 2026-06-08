@@ -15,6 +15,7 @@ import {
 	FieldLabel,
 } from "@WAL-GO/ui/components/field";
 import { Input } from "@WAL-GO/ui/components/input";
+import { Label } from "@WAL-GO/ui/components/label";
 import {
 	Popover,
 	PopoverContent,
@@ -29,13 +30,14 @@ import {
 	SelectValue,
 } from "@WAL-GO/ui/components/select";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
-import { handleFieldChange } from "@WAL-GO/ui/lib/form";
+import { Switch } from "@WAL-GO/ui/components/switch";
+import { handleFieldBlur, handleFieldChange } from "@WAL-GO/ui/lib/form";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { format, getHours, getMinutes, isValid, parse, set } from "date-fns";
 import { lt } from "date-fns/locale";
 import { CalendarIcon, Save } from "lucide-react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { GeolocationSquareButton } from "./geolocation-square-button";
@@ -195,8 +197,10 @@ export function QsoForm({
 	formError,
 	geolocation = false,
 	isPending,
+	keepOpen,
 	onBandChange,
 	onClearError,
+	onKeepOpenChange,
 	onModeChange,
 	onSubmit,
 	submitLabel,
@@ -206,25 +210,36 @@ export function QsoForm({
 	formError: null | string;
 	geolocation?: boolean;
 	isPending: boolean;
+	keepOpen?: boolean;
 	onBandChange?: (band: string) => void;
 	onClearError: () => void;
+	onKeepOpenChange?: (keepOpen: boolean) => void;
 	onModeChange?: (mode: string) => void;
-	onSubmit: (payload: QsoFormPayload) => void;
+	onSubmit: (payload: QsoFormPayload) => unknown;
 	submitLabel: string;
 }) {
+	const contactCallsignRef = useRef<HTMLInputElement>(null);
 	const operatorSquareRef = useRef<HTMLInputElement>(null);
 	const contactSquareRef = useRef<HTMLInputElement>(null);
+	const refocusAfterSubmitRef = useRef(false);
+
+	useEffect(() => {
+		if (!isPending && refocusAfterSubmitRef.current) {
+			refocusAfterSubmitRef.current = false;
+			contactCallsignRef.current?.focus();
+		}
+	}, [isPending]);
 	const form = useForm({
 		defaultValues,
 		validators: {
 			onSubmit: qsoFormSchema,
 		},
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			const qsoAt = toIsoDateTime(value.qsoAt);
 			if (!qsoAt) {
 				return;
 			}
-			onSubmit({
+			const result = await onSubmit({
 				contactCallsign: value.contactCallsign,
 				band: value.band,
 				mode: value.mode,
@@ -235,6 +250,11 @@ export function QsoForm({
 						? normalizeWalSquare(value.contactSquare)
 						: null,
 			});
+			if (keepOpen && result !== false) {
+				form.resetField("contactCallsign");
+				form.resetField("contactSquare");
+				refocusAfterSubmitRef.current = true;
+			}
 		},
 	});
 
@@ -275,7 +295,7 @@ export function QsoForm({
 										disabled={isPending}
 										id="contactCallsign"
 										name="contactCallsign"
-										onBlur={field.handleBlur}
+										onBlur={() => handleFieldBlur(field)}
 										onChange={(event) => {
 											onClearError();
 											handleFieldChange(
@@ -295,6 +315,7 @@ export function QsoForm({
 												: operatorSquareRef.current;
 											squareInput?.focus();
 										}}
+										ref={contactCallsignRef}
 										value={field.state.value}
 									/>
 									{isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -362,7 +383,7 @@ export function QsoForm({
 											className="appearance-none"
 											disabled={isPending}
 											name="qsoAtTime"
-											onBlur={field.handleBlur}
+											onBlur={() => handleFieldBlur(field)}
 											onChange={(event) => {
 												onClearError();
 												handleFieldChange(
@@ -480,7 +501,7 @@ export function QsoForm({
 									id="operatorSquare"
 									maxLength={3}
 									name="operatorSquare"
-									onBlur={field.handleBlur}
+									onBlur={() => handleFieldBlur(field)}
 									onChange={(event) => {
 										onClearError();
 										handleFieldChange(field, event.target.value.toUpperCase());
@@ -516,7 +537,7 @@ export function QsoForm({
 									id="contactSquare"
 									maxLength={3}
 									name="contactSquare"
-									onBlur={field.handleBlur}
+									onBlur={() => handleFieldBlur(field)}
 									onChange={(event) => {
 										onClearError();
 										handleFieldChange(field, event.target.value.toUpperCase());
@@ -532,7 +553,24 @@ export function QsoForm({
 				</form.Field>
 			</FieldGroup>
 			{formError ? <FieldError>{formError}</FieldError> : null}
-			<DialogFooter>
+			<DialogFooter
+				className={onKeepOpenChange ? "sm:justify-between" : undefined}
+			>
+				{onKeepOpenChange ? (
+					<Label
+						className="order-last font-normal text-muted-foreground sm:order-first"
+						htmlFor="keepOpen"
+					>
+						<Switch
+							checked={keepOpen}
+							disabled={isPending}
+							id="keepOpen"
+							onCheckedChange={onKeepOpenChange}
+							size="sm"
+						/>
+						Neuždaryti lango
+					</Label>
+				) : null}
 				<Button disabled={isPending} type="submit">
 					{isPending ? <Spinner /> : <Save />}
 					{submitLabel}
