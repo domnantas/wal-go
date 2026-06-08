@@ -62,6 +62,19 @@ describe("parseCabrillo", () => {
 		});
 	});
 
+	it("ignores serial-number exchanges instead of treating them as squares", () => {
+		const { qsos } = parseCabrillo(
+			`${HEADER}QSO: 7025 CW 2026-06-08 1630 LY4K 599 001 LY6A 599 002\n`
+		);
+		expect(qsos[0]).toMatchObject({
+			operatorCallsign: "LY4K",
+			contactCallsign: "LY6A",
+			operatorSquare: "",
+			contactSquare: "",
+			issues: [],
+		});
+	});
+
 	it("keeps callsigns aligned when the operator square is missing", () => {
 		// No operator square: the RST (599) must not be mistaken for the dxcall.
 		const { qsos } = parseCabrillo(

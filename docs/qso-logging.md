@@ -91,7 +91,7 @@ QSO: <freq> <mo> <date> <time> <mycall> <rst> <mysquare> <dxcall> <rst> <theirsq
 | `dxcall` | Contact callsign |
 | `theirsquare` | Contact's WAL square (optional) |
 
-The exchange is parsed by **anchoring on the two RST reports** (`mycall RST [mysquare] dxcall RST [theirsquare]`), not fixed columns, so an omitted square doesn't shift fields. A missing contact square is empty; a missing operator square leaves `operatorSquare` empty (fixable `invalidSquare`) rather than pulling RST into the callsign slot. Square fields stay raw even when malformed (e.g. `ZZ9`). `malformedLine` is reserved for lines with no recognisable two stations. The `CALLSIGN:` header populates `stationCallsign`; `CONTEST:` is no longer required or rejected.
+The exchange is parsed by **anchoring on the two RST reports** (`mycall RST [mysquare] dxcall RST [theirsquare]`), not fixed columns, so an omitted square doesn't shift fields. A missing contact square is empty; a missing operator square leaves `operatorSquare` empty (fixable `invalidSquare`) rather than pulling RST into the callsign slot. Square fields stay raw even when malformed (e.g. `ZZ9`), **except** a pure-digit exchange (e.g. `001`), which some loggers emit as a serial number instead of a WAL square — it is ignored (empty square), since a real WAL square always has a leading letter. RST anchoring also requires the report to follow a letter-bearing token, so a serial is never mistaken for an RST. `malformedLine` is reserved for lines with no recognisable two stations. The `CALLSIGN:` header populates `stationCallsign`; `CONTEST:` is no longer required or rejected.
 
 #### GRID-LOCATOR fallback
 

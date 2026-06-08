@@ -10,6 +10,16 @@ const TIME_RE = /^\d{4}$/;
 const CALLSIGN_RE = /^[A-Z0-9/]+$/;
 // A signal report (RST), e.g. 59 / 599. Used to anchor the exchange layout.
 const RST_RE = /^\d{2,3}$/;
+// A serial number exchange (e.g. 001). Some loggers send a serial instead of a
+// WAL square — a WAL square always has a leading letter, so a pure-digit
+// exchange is a serial and is ignored.
+const SERIAL_RE = /^\d+$/;
+const HAS_LETTER_RE = /[A-Z]/;
+
+/** Drop a pure-digit serial-number exchange, keeping real WAL squares. */
+function squareOrEmpty(value: string): string {
+	return SERIAL_RE.test(value) ? "" : value;
+}
 
 /** Parse Cabrillo `date` (YYYY-MM-DD) + `time` (HHMM UTC) to an ISO string. */
 export function parseCabrilloDateTime(
@@ -44,8 +54,12 @@ interface ExchangeFields {
  * raw (even when malformed, e.g. `ZZ9`) so the review dialog can fix them.
  */
 function extractExchange(rest: string[]): ExchangeFields {
+	// A real RST always follows a callsign or square (a token with a letter); a
+	// serial-number exchange follows the RST, so it never qualifies as an anchor.
 	const rstPositions = rest.flatMap((token, index) =>
-		RST_RE.test(token) ? [index] : []
+		RST_RE.test(token) && HAS_LETTER_RE.test(rest[index - 1] ?? "")
+			? [index]
+			: []
 	);
 	const r1 = rstPositions[0] ?? -1;
 	const r2 = rstPositions[1] ?? -1;
@@ -56,18 +70,18 @@ function extractExchange(rest: string[]): ExchangeFields {
 		const between = rest.slice(r1 + 1, r2);
 		return {
 			myCallRaw: rest[r1 - 1] ?? "",
-			mySquareRaw: between.length > 1 ? (between[0] ?? "") : "",
+			mySquareRaw: squareOrEmpty(between.length > 1 ? (between[0] ?? "") : ""),
 			dxCallRaw: between.at(-1) ?? "",
-			theirSquareRaw: rest[r2 + 1] ?? "",
+			theirSquareRaw: squareOrEmpty(rest[r2 + 1] ?? ""),
 		};
 	}
 
 	// No usable RST anchors: fall back to the strict positional layout.
 	return {
 		myCallRaw: rest[0] ?? "",
-		mySquareRaw: rest[2] ?? "",
+		mySquareRaw: squareOrEmpty(rest[2] ?? ""),
 		dxCallRaw: rest[3] ?? "",
-		theirSquareRaw: rest[5] ?? "",
+		theirSquareRaw: squareOrEmpty(rest[5] ?? ""),
 	};
 }
 
