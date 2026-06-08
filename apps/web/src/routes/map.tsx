@@ -124,13 +124,13 @@ function RouteComponent() {
 					upcomingSeason={upcomingSeason}
 				/>
 				<TeamControlledSquaresBox seasonId={displayedSeasonId} />
-				<ActivityFeedBox seasonId={displayedSeasonId} />
 				<div ref={statsBoxRef}>
 					<SelectedSquareStatsBox
 						seasonId={displayedSeasonId}
 						selectedSquareCode={selectedSquareCode}
 					/>
 				</div>
+				<ActivityFeedBox seasonId={displayedSeasonId} />
 				<DiscordCommunityBox />
 			</aside>
 		</main>
