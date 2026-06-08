@@ -64,3 +64,52 @@ export function normalizeWalSquare(value: string) {
 export function isValidWalSquare(value: string) {
 	return VALID_WAL_SQUARES.has(normalizeWalSquare(value));
 }
+
+const MAIDENHEAD_RE = /^[A-R]{2}\d{2}[A-X]{2}$/;
+const LETTER_A = "A".charCodeAt(0);
+const MAIDENHEAD_SUBSQUARE_LON_DEGREES = 2 / 24;
+const MAIDENHEAD_SUBSQUARE_LAT_DEGREES = 1 / 24;
+
+/**
+ * Convert a 6-character Maidenhead locator (e.g. `KO24PR`) to the latitude and
+ * longitude at the centre of its subsquare. Returns null for malformed input.
+ */
+export function maidenheadToLatLng(locator: string) {
+	const value = locator.trim().toUpperCase();
+	if (!MAIDENHEAD_RE.test(value)) {
+		return null;
+	}
+
+	const lonField = value.charCodeAt(0) - LETTER_A;
+	const latField = value.charCodeAt(1) - LETTER_A;
+	const lonSquare = Number.parseInt(value.charAt(2), 10);
+	const latSquare = Number.parseInt(value.charAt(3), 10);
+	const lonSubsquare = value.charCodeAt(4) - LETTER_A;
+	const latSubsquare = value.charCodeAt(5) - LETTER_A;
+
+	const longitude =
+		-180 +
+		lonField * 20 +
+		lonSquare * 2 +
+		(lonSubsquare + 0.5) * MAIDENHEAD_SUBSQUARE_LON_DEGREES;
+	const latitude =
+		-90 +
+		latField * 10 +
+		latSquare +
+		(latSubsquare + 0.5) * MAIDENHEAD_SUBSQUARE_LAT_DEGREES;
+
+	return { latitude, longitude };
+}
+
+/**
+ * Map a Maidenhead locator to its WAL square, or null when the locator is
+ * malformed or falls outside the valid WAL grid.
+ */
+export function walFromMaidenhead(locator: string) {
+	const coordinates = maidenheadToLatLng(locator);
+	if (!coordinates) {
+		return null;
+	}
+	const square = calculateWal(coordinates.latitude, coordinates.longitude);
+	return isValidWalSquare(square) ? square : null;
+}

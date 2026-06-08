@@ -1,3 +1,4 @@
+import { walFromMaidenhead } from "@WAL-GO/grid";
 import { parseCabrilloBand } from "./bands";
 import { mapMode } from "./modes";
 import type { DraftQso, SkipReason } from "./types";
@@ -70,7 +71,11 @@ function extractExchange(rest: string[]): ExchangeFields {
 	};
 }
 
-function parseQsoLine(line: string, lineNumber: number): DraftQso {
+function parseQsoLine(
+	line: string,
+	lineNumber: number,
+	fallbackOperatorSquare: string
+): DraftQso {
 	const parts = line.slice(4).trim().split(FIELD_SPLIT_RE);
 	const issues: SkipReason[] = [];
 
@@ -106,6 +111,8 @@ function parseQsoLine(line: string, lineNumber: number): DraftQso {
 		issues.push("invalidCallsign");
 	}
 
+	const operatorSquare = mySquareRaw || fallbackOperatorSquare;
+
 	return {
 		index: lineNumber,
 		raw: line,
@@ -114,7 +121,7 @@ function parseQsoLine(line: string, lineNumber: number): DraftQso {
 		band,
 		mode,
 		qsoAt,
-		operatorSquare: mySquareRaw.toUpperCase(),
+		operatorSquare: operatorSquare.toUpperCase(),
 		contactSquare: theirSquareRaw.toUpperCase(),
 		issues,
 	};
@@ -129,6 +136,7 @@ export function parseCabrillo(content: string): CabrilloResult {
 	const lines = content.split(LINE_SPLIT_RE);
 	const qsos: DraftQso[] = [];
 	let stationCallsign: string | null = null;
+	let fallbackOperatorSquare = "";
 
 	for (const [i, rawLine] of lines.entries()) {
 		const line = (rawLine ?? "").trim();
@@ -140,8 +148,14 @@ export function parseCabrillo(content: string): CabrilloResult {
 			continue;
 		}
 
+		if (upper.startsWith("GRID-LOCATOR:")) {
+			fallbackOperatorSquare =
+				walFromMaidenhead(line.slice("GRID-LOCATOR:".length).trim()) ?? "";
+			continue;
+		}
+
 		if (upper.startsWith("QSO:")) {
-			qsos.push(parseQsoLine(line, i + 1));
+			qsos.push(parseQsoLine(line, i + 1, fallbackOperatorSquare));
 		}
 	}
 

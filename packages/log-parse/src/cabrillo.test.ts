@@ -76,6 +76,25 @@ describe("parseCabrillo", () => {
 		});
 	});
 
+	it("falls back to the GRID-LOCATOR header when a row has no operator square", () => {
+		const { qsos } = parseCabrillo(
+			"START-OF-LOG: 3.0\nCALLSIGN: LY1JA\nGRID-LOCATOR: KO24PR\nQSO: 14222 PH 2026-06-05 1431 LY1JA 59 2E0VSS 59\n"
+		);
+		expect(qsos[0]).toMatchObject({
+			operatorCallsign: "LY1JA",
+			contactCallsign: "2E0VSS",
+			operatorSquare: "K26",
+			issues: [],
+		});
+	});
+
+	it("prefers an explicit per-row operator square over the header locator", () => {
+		const { qsos } = parseCabrillo(
+			"START-OF-LOG: 3.0\nGRID-LOCATOR: KO24PR\nQSO: 14000 CW 2026-06-01 1200 LY2EN 599 A05 LY3AB 599 B12\n"
+		);
+		expect(qsos[0]?.operatorSquare).toBe("A05");
+	});
+
 	it("flags an unmappable band", () => {
 		const { qsos } = parseCabrillo(
 			`${HEADER}QSO: 99999 CW 2026-06-01 1200 LY2EN 599 A05 LY3AB 599 B12\n`

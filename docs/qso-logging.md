@@ -49,7 +49,7 @@ A **two-step** flow — the file is parsed and shown in an editable review dialo
 
 ### `@WAL-GO/log-parse`
 
-A pure, dependency-free package shared by web and API, deliberately **lenient**: squares are returned **raw** (never dropped/nulled) so the dialog can fix them. Each draft:
+A pure package shared by web and API (its only workspace dependency is `@WAL-GO/grid`, for the Cabrillo GRID-LOCATOR fallback below), deliberately **lenient**: squares are returned **raw** (never dropped/nulled) so the dialog can fix them. Each draft:
 
 ```ts
 interface DraftQso {
@@ -84,6 +84,10 @@ QSO: <freq> <mo> <date> <time> <mycall> <rst> <mysquare> <dxcall> <rst> <theirsq
 | `theirsquare` | Contact's WAL square (optional) |
 
 The exchange is parsed by **anchoring on the two RST reports** (`mycall RST [mysquare] dxcall RST [theirsquare]`), not fixed columns, so an omitted square doesn't shift fields. A missing contact square is empty; a missing operator square leaves `operatorSquare` empty (fixable `invalidSquare`) rather than pulling RST into the callsign slot. Square fields stay raw even when malformed (e.g. `ZZ9`). `malformedLine` is reserved for lines with no recognisable two stations. The `CALLSIGN:` header populates `stationCallsign`; `CONTEST:` is no longer required or rejected.
+
+#### GRID-LOCATOR fallback
+
+Some loggers (e.g. N1MM) export no per-row operator square, only a station-wide `GRID-LOCATOR:` header carrying a Maidenhead locator (e.g. `KO24PR`). When present, the header is converted to a WAL square via `walFromMaidenhead` (`@WAL-GO/grid`: Maidenhead → lat/lng → `calculateWal`) and used as the **fallback** operator square for any row whose `mysquare` is empty. An explicit per-row square always wins; an invalid/out-of-grid locator yields no fallback.
 
 ### ADIF field mapping
 

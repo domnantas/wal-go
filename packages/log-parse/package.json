@@ -9,6 +9,9 @@
   "scripts": {
     "test": "vitest run"
   },
+  "dependencies": {
+    "@WAL-GO/grid": "workspace:*"
+  },
   "devDependencies": {
     "@WAL-GO/config": "workspace:*",
     "@WAL-GO/db": "workspace:*",
