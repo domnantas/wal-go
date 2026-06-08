@@ -99,11 +99,15 @@ Records are `<NAME:len[:type]>value` fields ended by `<EOR>`, header ended by `<
 | `BAND` (e.g. `20m`) or `FREQ` (MHz) | Band — `FREQ` preferred when present |
 | `MODE` / `SUBMODE` | Mode (USB/LSB→SSB, RTTY/FT8/FT4/PSK/JT*→DIGI, …) |
 | `QSO_DATE` (YYYYMMDD) + `TIME_ON` (HHMM[SS]) | QSO timestamp (UTC) |
-| `MY_SIG_INFO` | Operator WAL square |
-| `SIG_INFO` | Contact WAL square (empty or `DX` ⇒ none) |
+| `MY_SIG_INFO` | Operator WAL square (falls back to `MY_GRIDSQUARE`) |
+| `SIG_INFO` | Contact WAL square (empty or `DX` ⇒ none; falls back to `GRIDSQUARE`) |
 | `STATION_CALLSIGN` / `OPERATOR` | Station callsign |
 
 `MY_SIG`/`SIG` are expected to be `WAL` but **ignored** — a missing/different value doesn't reject. The header `STATION_CALLSIGN` (or `OPERATOR`) is the per-record operator fallback: a record without its own value inherits it.
+
+#### GRIDSQUARE fallback
+
+Many loggers omit the WAL-specific `MY_SIG_INFO`/`SIG_INFO` but still carry the Maidenhead locator (`MY_GRIDSQUARE` / `GRIDSQUARE`). When the corresponding `*_SIG_INFO` is empty, the grid field is converted to a WAL square via `walFromMaidenhead` (`@WAL-GO/grid`) and used as the square. An explicit `SIG_INFO` always wins; an invalid/out-of-grid locator yields no fallback (square stays empty, fixable in the dialog). This mirrors the Cabrillo `GRID-LOCATOR` fallback, but is **per-record** (ADIF carries grids per QSO) and covers the **contact** square too.
 
 ### Validation tiers
 
@@ -113,7 +117,9 @@ Records are `<NAME:len[:type]>value` fields ended by `<EOR>`, header ended by `<
 | Square validity | Review dialog (live, `@WAL-GO/grid`) | operator square required + valid; contact valid / empty / `DX` |
 | Contextual | `qsos.commitUpload` (authoritative) | `outsideSeason`, `selfContact`, `blockedCallsign`, `exactDuplicate`, `gameDuplicate` |
 
-Structurally-invalid rows (bad band/mode/date) are shown, marked, and excluded — their square inputs are disabled (editing a square can't fix them). Square-only problems are editable. The dialog lists valid and invalid together, sorted by time. Bulk square-fill is not implemented; squares are edited one row at a time.
+Structurally-invalid rows (bad band/mode/date) are shown, marked, and excluded — their square inputs are disabled (editing a square can't fix them). Square-only problems are editable. The dialog lists valid and invalid together, sorted by time.
+
+**Fill-down:** each square input has a small arrow-down button (`FillDownButton`, lucide `ArrowDown`) that copies the row's current value into the same field of **every row below it** (across all pages — operates on the full `rows` array, not just the visible page). Disabled when the field is empty, on the last row, or while committing. This makes a station-wide operator square (the common case) fillable in one click instead of editing 100+ rows. History-based prefill is deliberately **not** used — operators and contacts move, so a past square may be wrong.
 
 Two callsign checks:
 

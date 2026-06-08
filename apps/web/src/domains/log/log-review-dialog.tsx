@@ -24,9 +24,14 @@ import {
 	TableHeader,
 	TableRow,
 } from "@WAL-GO/ui/components/table";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@WAL-GO/ui/components/tooltip";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Upload } from "lucide-react";
+import { ArrowDown, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -281,6 +286,17 @@ export function LogReviewDialog({
 		);
 	}
 
+	function fillDown(
+		index: number,
+		field: "contactSquare" | "operatorSquare",
+		value: string
+	) {
+		const next = value.toUpperCase();
+		setRows((current) =>
+			current.map((row, i) => (i > index ? { ...row, [field]: next } : row))
+		);
+	}
+
 	function handleSubmit() {
 		commitMutation.mutate({
 			content,
@@ -372,45 +388,77 @@ export function LogReviewDialog({
 												{row.draft.mode ? ` / ${row.draft.mode}` : ""}
 											</TableCell>
 											<TableCell className="px-3">
-												<Input
-													aria-invalid={
-														isFixable && !isValidWalSquare(row.operatorSquare)
-													}
-													autoCapitalize="characters"
-													className="h-8 w-20"
-													disabled={isStructural || commitMutation.isPending}
-													maxLength={3}
-													onChange={(event) =>
-														updateSquare(
-															index,
-															"operatorSquare",
-															event.target.value
-														)
-													}
-													placeholder="A05"
-													value={row.operatorSquare}
-												/>
+												<div className="flex items-center gap-1">
+													<Input
+														aria-invalid={
+															isFixable && !isValidWalSquare(row.operatorSquare)
+														}
+														autoCapitalize="characters"
+														className="h-8 w-20"
+														disabled={isStructural || commitMutation.isPending}
+														maxLength={3}
+														onChange={(event) =>
+															updateSquare(
+																index,
+																"operatorSquare",
+																event.target.value
+															)
+														}
+														placeholder="A05"
+														value={row.operatorSquare}
+													/>
+													<FillDownButton
+														disabled={
+															!row.operatorSquare ||
+															index >= rows.length - 1 ||
+															commitMutation.isPending
+														}
+														onClick={() =>
+															fillDown(
+																index,
+																"operatorSquare",
+																row.operatorSquare
+															)
+														}
+													/>
+												</div>
 											</TableCell>
 											<TableCell className="px-3">
-												<Input
-													aria-invalid={
-														isFixable &&
-														!isContactSquareValid(row.contactSquare)
-													}
-													autoCapitalize="characters"
-													className="h-8 w-20"
-													disabled={isStructural || commitMutation.isPending}
-													maxLength={3}
-													onChange={(event) =>
-														updateSquare(
-															index,
-															"contactSquare",
-															event.target.value
-														)
-													}
-													placeholder="B12 / DX"
-													value={row.contactSquare}
-												/>
+												<div className="flex items-center gap-1">
+													<Input
+														aria-invalid={
+															isFixable &&
+															!isContactSquareValid(row.contactSquare)
+														}
+														autoCapitalize="characters"
+														className="h-8 w-20"
+														disabled={isStructural || commitMutation.isPending}
+														maxLength={3}
+														onChange={(event) =>
+															updateSquare(
+																index,
+																"contactSquare",
+																event.target.value
+															)
+														}
+														placeholder="B12 / DX"
+														value={row.contactSquare}
+													/>
+													<FillDownButton
+														disabled={
+															!row.contactSquare ||
+															index >= rows.length - 1 ||
+															commitMutation.isPending
+														}
+														onClick={() =>
+															fillDown(
+																index,
+																"contactSquare",
+																row.contactSquare
+															)
+														}
+													/>
+												</div>
 											</TableCell>
 											<TableCell className="px-3 text-right">
 												<StatusBadge reason={status?.reason ?? null} />
@@ -465,6 +513,33 @@ export function LogReviewDialog({
 				</div>
 			</DialogContent>
 		</Dialog>
+	);
+}
+
+function FillDownButton({
+	disabled,
+	onClick,
+}: {
+	disabled: boolean;
+	onClick: () => void;
+}) {
+	return (
+		<Tooltip>
+			<TooltipTrigger render={<span className="inline-flex" />}>
+				<Button
+					aria-label="Užpildyti žemiau esančias eilutes šiuo kvadratu"
+					className="h-8 w-8 shrink-0"
+					disabled={disabled}
+					onClick={onClick}
+					size="icon-sm"
+					type="button"
+					variant="ghost"
+				>
+					<ArrowDown />
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent>Užpildyti žemiau esančias eilutes</TooltipContent>
+		</Tooltip>
 	);
 }
 

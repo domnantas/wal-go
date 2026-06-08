@@ -78,6 +78,32 @@ describe("parseAdif", () => {
 		expect(qsos[0]?.issues).toEqual([]);
 	});
 
+	it("falls back to MY_GRIDSQUARE/GRIDSQUARE when SIG_INFO is absent", () => {
+		const { qsos } = parseAdif(
+			`${HEADER}<CALL:5>LY3AB <BAND:3>20m <MODE:2>CW <QSO_DATE:8>20260601 <TIME_ON:4>1200 <MY_GRIDSQUARE:6>KO24PR <GRIDSQUARE:6>KO24PR <EOR>\n`
+		);
+		expect(qsos[0]).toMatchObject({
+			operatorSquare: "K26",
+			contactSquare: "K26",
+			issues: [],
+		});
+	});
+
+	it("prefers explicit MY_SIG_INFO/SIG_INFO over the grid fallback", () => {
+		const { qsos } = parseAdif(
+			`${HEADER}<CALL:5>LY3AB <BAND:3>20m <MODE:2>CW <QSO_DATE:8>20260601 <TIME_ON:4>1200 <MY_SIG_INFO:3>A05 <MY_GRIDSQUARE:6>KO24PR <SIG_INFO:3>B12 <GRIDSQUARE:6>KO24PR <EOR>\n`
+		);
+		expect(qsos[0]?.operatorSquare).toBe("A05");
+		expect(qsos[0]?.contactSquare).toBe("B12");
+	});
+
+	it("leaves the square empty when the grid locator is unmappable", () => {
+		const { qsos } = parseAdif(
+			`${HEADER}<CALL:5>LY3AB <BAND:3>20m <MODE:2>CW <QSO_DATE:8>20260601 <TIME_ON:4>1200 <MY_GRIDSQUARE:6>JJ00AA <EOR>\n`
+		);
+		expect(qsos[0]?.operatorSquare).toBe("");
+	});
+
 	it("parses multiple records", () => {
 		const { qsos } = parseAdif(`${HEADER}${record}\n${record}\n`);
 		expect(qsos).toHaveLength(2);

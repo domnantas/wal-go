@@ -1,3 +1,4 @@
+import { walFromMaidenhead } from "@WAL-GO/grid";
 import { parseAdifBand } from "./bands";
 import { mapMode } from "./modes";
 import type { DraftQso, SkipReason } from "./types.ts";
@@ -114,6 +115,12 @@ export function parseAdifDateTime(date: string, time: string): string | null {
 	return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
+/** Convert a Maidenhead locator field to a WAL square, or "" when absent/invalid. */
+function gridFallback(locator: string | undefined): string {
+	const trimmed = (locator ?? "").trim();
+	return trimmed ? (walFromMaidenhead(trimmed) ?? "") : "";
+}
+
 function recordToDraft(
 	record: RawRecord,
 	index: number,
@@ -155,6 +162,16 @@ function recordToDraft(
 		issues.push("invalidCallsign");
 	}
 
+	// MY_SIG/SIG are expected to be "WAL" but are intentionally ignored. When a
+	// square is absent, fall back to the Maidenhead grid (MY_GRIDSQUARE /
+	// GRIDSQUARE) converted to a WAL square.
+	const operatorSquare =
+		(fields.get("my_sig_info") ?? "").trim().toUpperCase() ||
+		gridFallback(fields.get("my_gridsquare"));
+	const contactSquare =
+		(fields.get("sig_info") ?? "").trim().toUpperCase() ||
+		gridFallback(fields.get("gridsquare"));
+
 	return {
 		index,
 		raw: record.raw,
@@ -163,9 +180,8 @@ function recordToDraft(
 		band,
 		mode,
 		qsoAt,
-		// MY_SIG/SIG are expected to be "WAL" but are intentionally ignored.
-		operatorSquare: (fields.get("my_sig_info") ?? "").trim().toUpperCase(),
-		contactSquare: (fields.get("sig_info") ?? "").trim().toUpperCase(),
+		operatorSquare,
+		contactSquare,
 		issues,
 	};
 }
