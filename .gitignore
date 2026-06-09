@@ -49,3 +49,6 @@ coverage
 .cache
 tmp
 temp
+
+# react-email preview build cache
+.react-email

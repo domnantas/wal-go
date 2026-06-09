@@ -20,7 +20,6 @@
     "@better-auth/passkey": "^1.6.5",
     "@fontsource-variable/geist": "^5.2.8",
     "@fontsource-variable/newsreader": "^5.2.10",
-    "@react-email/components": "^1.0.12",
     "@tanstack/react-form": "^1.29.0",
     "@tanstack/react-pacer": "^0.22.0",
     "better-auth": "catalog:",

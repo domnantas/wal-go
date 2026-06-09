@@ -28,20 +28,20 @@ export const defaultColors = {
  *
  * Allows fine-grained control over the appearance of email components.
  */
-export type EmailClassNames = {
+export interface EmailClassNames {
 	body?: string;
-	container?: string;
-	card?: string;
-	logo?: string;
-	title?: string;
-	content?: string;
 	button?: string;
-	description?: string;
-	separator?: string;
-	link?: string;
-	poweredBy?: string;
+	card?: string;
 	codeBlock?: string;
-};
+	container?: string;
+	content?: string;
+	description?: string;
+	link?: string;
+	logo?: string;
+	poweredBy?: string;
+	separator?: string;
+	title?: string;
+}
 
 /**
  * Custom color scheme configuration for email templates.
@@ -49,10 +49,10 @@ export type EmailClassNames = {
  * Supports separate color definitions for light and dark modes.
  * Any color not specified will fall back to the defaultColors values.
  */
-export type EmailColors = {
-	light?: Partial<typeof defaultColors.light>;
+export interface EmailColors {
 	dark?: Partial<typeof defaultColors.dark>;
-};
+	light?: Partial<typeof defaultColors.light>;
+}
 
 /**
  * Props for the EmailStyles component.

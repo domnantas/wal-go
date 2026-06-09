@@ -66,7 +66,7 @@ Fully wired:
 
 - UI routes `/auth/forgot-password` and `/auth/reset-password` (the `Auth` component in `packages/ui`).
 - `sendResetPassword` callback in `emailAndPassword` sends a Lithuanian reset email via Resend.
-- Template: `ResetPasswordEmail` (`packages/ui/src/components/auth/email/reset-password-email.tsx`).
+- Template: `ResetPasswordEmail` (`packages/email/src/reset-password-email.tsx`). Email templates live in the `@WAL-GO/email` package (see [newsletter.md](./newsletter.md) for the preview server); `packages/auth` imports them and does its own Resend send.
 - Links expire in 60 minutes. The link lands on `/auth/reset-password?token=<token>`; the UI reads the token and calls Better Auth's `/reset-password`.
 
 ## Password visibility toggle

@@ -1,0 +1,27 @@
+{
+  "name": "@WAL-GO/email",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.tsx",
+    "./lib/*": "./src/lib/*.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "email": "email dev --dir src --port 3030"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "clsx": "^2.1.1",
+    "react": "^19.2.3",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@WAL-GO/config": "workspace:*",
+    "@react-email/preview-server": "4.3.2",
+    "@types/react": "^19.2.10",
+    "react-email": "^4.3.0",
+    "typescript": "catalog:"
+  }
+}

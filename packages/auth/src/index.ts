@@ -2,9 +2,9 @@ import { BLOCKED_CALLSIGN_REGEX, CALLSIGN_REGEX } from "@WAL-GO/callsign";
 import { type createDb, getDb } from "@WAL-GO/db";
 // biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
 import * as schema from "@WAL-GO/db/schema";
+import { EmailVerificationEmail } from "@WAL-GO/email/email-verification";
+import { ResetPasswordEmail } from "@WAL-GO/email/reset-password-email";
 import { env } from "@WAL-GO/env/server";
-import { EmailVerificationEmail } from "@WAL-GO/ui/components/auth/email/email-verification";
-import { ResetPasswordEmail } from "@WAL-GO/ui/components/auth/email/reset-password-email";
 import { i18n } from "@better-auth/i18n";
 import { render } from "@react-email/components";
 import { betterAuth } from "better-auth";

@@ -14,6 +14,7 @@
     "@WAL-GO/callsign": "workspace:*",
     "@WAL-GO/auth": "workspace:*",
     "@WAL-GO/db": "workspace:*",
+    "@WAL-GO/email": "workspace:*",
     "@WAL-GO/env": "workspace:*",
     "@WAL-GO/grid": "workspace:*",
     "@WAL-GO/log-parse": "workspace:*",
@@ -22,9 +23,12 @@
     "@orpc/server": "catalog:",
     "@orpc/zod": "catalog:",
     "@date-fns/tz": "^1.4.1",
+    "@react-email/components": "^1.0.12",
     "date-fns": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
+    "react": "^19.2.3",
+    "resend": "^6.12.4",
     "zod": "catalog:"
   },
   "devDependencies": {

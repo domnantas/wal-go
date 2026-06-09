@@ -15,13 +15,12 @@ import {
 	Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
-
-import { cn } from "../../../lib/utils";
 import {
 	type EmailClassNames,
 	type EmailColors,
 	EmailStyles,
 } from "./email-styles";
+import { cn } from "./lib/utils";
 
 const emailVerificationEmailLocalization = {
 	VERIFY_YOUR_EMAIL_ADDRESS: "Verify your email address",
