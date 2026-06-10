@@ -30,8 +30,18 @@ export interface SendNewsletterOptions {
 	subject: string;
 }
 
+export interface SendNewsletterTestOptions {
+	/** Newsletter content rendered with a non-destructive unsubscribe link. */
+	content: Omit<NewsletterEmailProps, "unsubscribeUrl">;
+	/** Email address that receives the test message. */
+	email: string;
+	/** Email subject line. */
+	subject: string;
+}
+
 const unsubscribeUrl = (token: string) =>
 	`${APP_URL}/unsubscribe?token=${encodeURIComponent(token)}`;
+const TEST_UNSUBSCRIBE_URL = `${APP_URL}/admin`;
 
 /**
  * Renders the newsletter template to HTML for one recipient, injecting their
@@ -67,6 +77,20 @@ async function sendToRecipient(
 			"List-Unsubscribe": `<${url}>`,
 			"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
 		},
+	});
+}
+
+/** Sends the newsletter draft to one address without bulk-mail headers. */
+export async function sendNewsletterTest({
+	email,
+	subject,
+	content,
+}: SendNewsletterTestOptions): Promise<void> {
+	const html = await renderNewsletter(content, TEST_UNSUBSCRIBE_URL);
+	await sendEmail({
+		to: email,
+		subject,
+		html,
 	});
 }
 

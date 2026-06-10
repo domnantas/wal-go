@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:bare": "turbo dev:bare",
+    "email": "turbo -F @WAL-GO/email email",
     "build": "turbo build",
     "check-types": "turbo check-types",
     "test": "turbo test",

@@ -57,6 +57,7 @@ interface UserData {
 	emailVerified: boolean;
 	id: string;
 	name: string;
+	newsletterSubscribed: boolean;
 	role: string;
 }
 
@@ -136,6 +137,7 @@ export function UsersTab() {
 						<TableHead className="px-4">Šaukinys</TableHead>
 						<TableHead className="px-4">El. paštas</TableHead>
 						<TableHead className="px-4">El. p. patvirtintas</TableHead>
+						<TableHead className="px-4">Naujienlaiškis</TableHead>
 						<TableHead className="px-4">Rolė</TableHead>
 						<TableHead className="px-4">Būsena</TableHead>
 						<TableHead className="px-4 text-right">Veiksmai</TableHead>
@@ -202,6 +204,17 @@ function UserTableRow({
 				) : (
 					<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
 						Nepatvirtintas
+					</span>
+				)}
+			</TableCell>
+			<TableCell className="px-4">
+				{user.newsletterSubscribed ? (
+					<span className="inline-flex items-center rounded-full bg-accent/15 px-2.5 py-0.5 font-medium text-accent text-xs">
+						Prenumeruoja
+					</span>
+				) : (
+					<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 font-medium text-muted-foreground text-xs">
+						Atsisakė
 					</span>
 				)}
 			</TableCell>

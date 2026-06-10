@@ -60,6 +60,7 @@ export function NewsletterTab() {
 	const [sections, setSections] = useState<SectionDraft[]>([]);
 	const [ctaLabel, setCtaLabel] = useState("");
 	const [ctaUrl, setCtaUrl] = useState("");
+	const [testEmail, setTestEmail] = useState("");
 
 	const send = useMutation(
 		orpc.admin.newsletter.send.mutationOptions({
@@ -72,6 +73,15 @@ export function NewsletterTab() {
 				setSections([]);
 				setCtaLabel("");
 				setCtaUrl("");
+			},
+			onError: (error) => toast.error(error.message),
+		})
+	);
+
+	const sendTest = useMutation(
+		orpc.admin.newsletter.sendTest.mutationOptions({
+			onSuccess: (_, variables) => {
+				toast.success(`Bandomasis laiškas išsiųstas adresu ${variables.email}`);
 			},
 			onError: (error) => toast.error(error.message),
 		})
@@ -142,28 +152,39 @@ export function NewsletterTab() {
 		};
 	}, [debouncedContent]);
 
-	const canSend =
-		subject.trim() !== "" && heading.trim() !== "" && !send.isPending;
+	const newsletterInput = {
+		subject: subject.trim(),
+		heading: heading.trim(),
+		label: trimmedOrUndefined(label),
+		intro: trimmedOrUndefined(intro),
+		ctaLabel: trimmedOrUndefined(ctaLabel),
+		ctaUrl: trimmedOrUndefined(ctaUrl),
+		sections: sections
+			.filter(
+				(section) => section.title.trim() !== "" && section.body.trim() !== ""
+			)
+			.map((section) => ({
+				title: section.title.trim(),
+				body: section.body.trim(),
+				url: trimmedOrUndefined(section.url),
+				linkLabel: trimmedOrUndefined(section.linkLabel),
+				imageUrl: trimmedOrUndefined(section.imageUrl),
+			})),
+	};
+	const hasRequiredContent =
+		newsletterInput.subject !== "" && newsletterInput.heading !== "";
+	const canSend = hasRequiredContent && !send.isPending && !sendTest.isPending;
+	const canSendTest =
+		hasRequiredContent && testEmail.trim() !== "" && !sendTest.isPending;
 
 	const handleSend = () => {
-		send.mutate({
-			subject: subject.trim(),
-			heading: heading.trim(),
-			label: trimmedOrUndefined(label),
-			intro: trimmedOrUndefined(intro),
-			ctaLabel: trimmedOrUndefined(ctaLabel),
-			ctaUrl: trimmedOrUndefined(ctaUrl),
-			sections: sections
-				.filter(
-					(section) => section.title.trim() !== "" && section.body.trim() !== ""
-				)
-				.map((section) => ({
-					title: section.title.trim(),
-					body: section.body.trim(),
-					url: trimmedOrUndefined(section.url),
-					linkLabel: trimmedOrUndefined(section.linkLabel),
-					imageUrl: trimmedOrUndefined(section.imageUrl),
-				})),
+		send.mutate(newsletterInput);
+	};
+
+	const handleSendTest = () => {
+		sendTest.mutate({
+			...newsletterInput,
+			email: testEmail.trim(),
 		});
 	};
 
@@ -318,6 +339,35 @@ export function NewsletterTab() {
 								value={ctaUrl}
 							/>
 						</Field>
+					</div>
+
+					<div className="flex flex-col gap-3 rounded-2xl border border-border border-dashed p-4">
+						<div>
+							<h3 className="font-medium text-sm">Bandomasis siuntimas</h3>
+							<p className="mt-1 text-muted-foreground text-xs">
+								Išsiųskite dabartinį juodraštį vienu adresu prieš siųsdami
+								visiems prenumeratoriams.
+							</p>
+						</div>
+						<div className="flex flex-col gap-3 sm:flex-row">
+							<Input
+								aria-label="Bandomojo laiško gavėjo el. paštas"
+								autoComplete="email"
+								onChange={(event) => setTestEmail(event.target.value)}
+								placeholder="vardas@example.com"
+								type="email"
+								value={testEmail}
+							/>
+							<Button
+								disabled={!canSendTest}
+								onClick={handleSendTest}
+								type="button"
+								variant="outline"
+							>
+								{sendTest.isPending ? <Spinner /> : <Send className="size-4" />}
+								Siųsti bandymą
+							</Button>
+						</div>
 					</div>
 
 					<div className="flex justify-end">

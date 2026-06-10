@@ -29,7 +29,7 @@ const emailVerificationEmailLocalization = {
 	LOGO: "Logotipas",
 	CLICK_BUTTON_TO_VERIFY_EMAIL:
 		"Paspauskite žemiau esantį mygtuką, kad patvirtintumėte savo el. pašto adresą {emailAddress} {appName} paskyrai.",
-	VERIFY_EMAIL_ADDRESS: "Patvirtinti el. pašto adresą",
+	VERIFY_EMAIL_ADDRESS: "Patvirtinkite el. pašto adresą",
 	OR_COPY_AND_PASTE_URL:
 		"Arba nukopijuokite ir įklijuokite šią nuorodą į naršyklę:",
 	THIS_LINK_EXPIRES_IN_MINUTES: "Ši nuoroda galioja {expirationMinutes} min.",

@@ -18,11 +18,12 @@ preferences live in **our own database**; we host our own unsubscribe flow.
   Outside the Worker runtime (local node dev) there is no binding, so the send
   is logged and skipped. Lives in `@WAL-GO/email` because both `@WAL-GO/auth`
   and `@WAL-GO/api` use it and `auth` can't depend on `api`.
-- **Sender** — `packages/api/src/notifications/newsletter.ts` (`sendNewsletter`).
-  Loads the opted-in recipients, renders the template **per recipient** with
-  their tokenized unsubscribe URL, and sends via `sendEmail` with one-click
-  `List-Unsubscribe` headers. Sends in small sequential batches; returns the
-  number sent.
+- **Sender** — `packages/api/src/notifications/newsletter.ts`
+  (`sendNewsletter`, `sendNewsletterTest`). Broadcasts load opted-in recipients,
+  render the template **per recipient** with their tokenized unsubscribe URL,
+  and send via `sendEmail` with one-click `List-Unsubscribe` headers. Test sends
+  render once for one supplied address, use a non-destructive footer link, and
+  omit bulk-mail headers.
 - **Subscriptions** — `packages/api/src/notifications/subscriptions.ts` owns all
   DB access: `getSubscribedRecipients`, `getUserSubscription`,
   `setUserSubscription`, `setSubscriptionByToken`, `backfillSubscriptions`,
@@ -90,7 +91,7 @@ the tokenized link).
 ## Preview
 
 ```bash
-pnpm -F @WAL-GO/email email   # opens http://localhost:3030
+pnpm email   # opens http://localhost:3030
 ```
 
 ## Sending
@@ -142,6 +143,12 @@ The `/admin` **Naujienlaiškis** tab
 - `admin.newsletter.send` — validates the form (CTA label/URL together) and
   calls `sendNewsletter`; the confirmation dialog shows the subscriber count and
   the result toast shows how many were sent.
+- `admin.newsletter.sendTest` — validates the same draft plus a recipient email
+  and sends only to that address. The test does not clear the draft and cannot
+  unsubscribe a user through its footer link.
+- The admin **Users** tab shows each user's current newsletter status as
+  `Prenumeruoja` or `Atsisakė`. A missing subscription row is displayed as
+  subscribed, consistent with the self-service settings toggle.
 
 ## Not included
 

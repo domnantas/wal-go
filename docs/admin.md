@@ -23,7 +23,11 @@ Team points and controlled-square counts derive from `square_score`; a square co
 
 ### Users
 
-- List all users (callsign, email, email confirmation, role, banned). Callsigns are colored by active-season team when the user has joined the current season.
+- List all users (callsign, email, email confirmation, newsletter subscription,
+  role, banned). Newsletter status is read from `newsletter_subscription`; a
+  missing row is shown as subscribed, matching the user settings behavior.
+  Callsigns are colored by active-season team when the user has joined the
+  current season.
 - Toggle role between `user` and `admin`.
 - Ban / unban (ban requires confirmation). Banning keeps QSO rows but removes the user's points from the score tables (unban restores them) — see [scoring.md](scoring.md) § Banned users.
 - Delete with confirmation: first removes the user's points from score tables, then deletes the account (sessions, accounts, QSOs, uploads, memberships, user-season-score rows cascade). Admins can't delete their own account.

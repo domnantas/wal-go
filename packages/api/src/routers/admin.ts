@@ -1,4 +1,5 @@
 import { session, user } from "@WAL-GO/db/schema/auth";
+import { newsletterSubscription } from "@WAL-GO/db/schema/newsletter";
 import { qso } from "@WAL-GO/db/schema/qsos";
 import { squareScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
@@ -10,7 +11,10 @@ import { z } from "zod";
 
 import { adminProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
-import { sendNewsletter } from "../notifications/newsletter";
+import {
+	sendNewsletter,
+	sendNewsletterTest,
+} from "../notifications/newsletter";
 import { getAudienceInfo } from "../notifications/subscriptions";
 import {
 	applyScoreDeltas,
@@ -118,12 +122,17 @@ const listUsers = adminProcedure.handler(async ({ context }) => {
 				name: user.name,
 				email: user.email,
 				emailVerified: user.emailVerified,
+				newsletterSubscribed: newsletterSubscription.subscribed,
 				role: user.role,
 				banned: user.banned,
 				banReason: user.banReason,
 				createdAt: user.createdAt,
 			})
 			.from(user)
+			.leftJoin(
+				newsletterSubscription,
+				eq(newsletterSubscription.userId, user.id)
+			)
 			.orderBy(asc(user.createdAt)),
 		context.db
 			.select({ id: season.id })
@@ -134,7 +143,11 @@ const listUsers = adminProcedure.handler(async ({ context }) => {
 
 	const activeSeason = currentSeason[0];
 	if (!activeSeason) {
-		return rows.map((row) => ({ ...row, currentTeam: null }));
+		return rows.map((row) => ({
+			...row,
+			currentTeam: null,
+			newsletterSubscribed: row.newsletterSubscribed ?? true,
+		}));
 	}
 
 	const memberships = await context.db
@@ -151,6 +164,7 @@ const listUsers = adminProcedure.handler(async ({ context }) => {
 	return rows.map((row) => ({
 		...row,
 		currentTeam: teamByUserId.get(row.id) ?? null,
+		newsletterSubscribed: row.newsletterSubscribed ?? true,
 	}));
 });
 
@@ -657,37 +671,61 @@ const newsletterSectionInput = z.object({
 	linkLabel: z.string().trim().min(1).optional(),
 });
 
-const sendNewsletterBroadcast = adminProcedure
+const newsletterContentInput = z.object({
+	subject: z.string().trim().min(1).max(200),
+	label: z.string().trim().max(120).optional(),
+	heading: z.string().trim().min(1).max(200),
+	intro: z.string().trim().max(2000).optional(),
+	sections: z.array(newsletterSectionInput).max(20).optional(),
+	ctaLabel: z.string().trim().max(120).optional(),
+	ctaUrl: z.url().optional(),
+});
+
+const validateNewsletterCta = (
+	input: z.infer<typeof newsletterContentInput>
+) => {
+	if ((input.ctaLabel ? 1 : 0) !== (input.ctaUrl ? 1 : 0)) {
+		throw new ORPCError("BAD_REQUEST", {
+			message: "Mygtuko tekstas ir nuoroda turi būti nurodyti kartu",
+		});
+	}
+};
+
+const newsletterContent = (input: z.infer<typeof newsletterContentInput>) => ({
+	label: input.label,
+	heading: input.heading,
+	intro: input.intro,
+	sections: input.sections,
+	ctaLabel: input.ctaLabel,
+	ctaUrl: input.ctaUrl,
+	preview: input.intro,
+	localization: WALGO_NEWSLETTER_LOCALIZATION,
+});
+
+const sendNewsletterTestMessage = adminProcedure
 	.input(
-		z.object({
-			subject: z.string().trim().min(1).max(200),
-			label: z.string().trim().max(120).optional(),
-			heading: z.string().trim().min(1).max(200),
-			intro: z.string().trim().max(2000).optional(),
-			sections: z.array(newsletterSectionInput).max(20).optional(),
-			ctaLabel: z.string().trim().max(120).optional(),
-			ctaUrl: z.url().optional(),
+		newsletterContentInput.extend({
+			email: z.email(),
 		})
 	)
+	.handler(async ({ input }) => {
+		validateNewsletterCta(input);
+		await sendNewsletterTest({
+			email: input.email,
+			subject: input.subject,
+			content: newsletterContent(input),
+		});
+		return { sent: 1 };
+	});
+
+const sendNewsletterBroadcast = adminProcedure
+	.input(newsletterContentInput)
 	.handler(async ({ context, input }) => {
-		if ((input.ctaLabel ? 1 : 0) !== (input.ctaUrl ? 1 : 0)) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "Mygtuko tekstas ir nuoroda turi būti nurodyti kartu",
-			});
-		}
+		validateNewsletterCta(input);
 		const sent = await sendNewsletter({
 			db: context.db,
 			subject: input.subject,
-			content: {
-				label: input.label,
-				heading: input.heading,
-				intro: input.intro,
-				sections: input.sections,
-				ctaLabel: input.ctaLabel,
-				ctaUrl: input.ctaUrl,
-				preview: input.intro,
-				localization: WALGO_NEWSLETTER_LOCALIZATION,
-			},
+			content: newsletterContent(input),
 		});
 		return { sent };
 	});
@@ -697,6 +735,7 @@ export const adminRouter = {
 	newsletter: {
 		audience: newsletterAudience,
 		send: sendNewsletterBroadcast,
+		sendTest: sendNewsletterTestMessage,
 	},
 	users: {
 		list: listUsers,
