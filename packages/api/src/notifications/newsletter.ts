@@ -17,6 +17,7 @@ import {
 type Db = Awaited<ReturnType<typeof getDb>>;
 
 const APP_URL = "https://walgo.lt";
+const NEWSLETTER_FROM = "WAL GO <admin@walgo.lt>";
 // How many concurrent sends per batch — the CF binding sends one message per
 // call, so we fan out in small batches to stay polite to the quota.
 const SEND_BATCH_SIZE = 20;
@@ -70,6 +71,7 @@ async function sendToRecipient(
 	const url = unsubscribeUrl(await signUnsubscribeToken(recipient.userId));
 	const html = await renderNewsletter(content, url);
 	await sendEmail({
+		from: NEWSLETTER_FROM,
 		to: recipient.email,
 		subject,
 		html,
@@ -88,6 +90,7 @@ export async function sendNewsletterTest({
 }: SendNewsletterTestOptions): Promise<void> {
 	const html = await renderNewsletter(content, TEST_UNSUBSCRIBE_URL);
 	await sendEmail({
+		from: NEWSLETTER_FROM,
 		to: email,
 		subject,
 		html,

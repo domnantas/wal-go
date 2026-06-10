@@ -149,9 +149,10 @@ const sent = await sendNewsletter({
 
 No newsletter-specific env vars. Transport is the Cloudflare `EMAIL` binding,
 declared in `packages/infra/alchemy.run.ts`
-(`SendEmail("EMAIL", { allowedSenderAddresses: ["noreply@walgo.lt"] })`) and
-typed on `CloudflareEnv` in `packages/env/env.d.ts`. Sender is
-`WAL GO <noreply@walgo.lt>`.
+(`SendEmail("EMAIL", { allowedSenderAddresses: ["noreply@walgo.lt", "admin@walgo.lt"] })`)
+and typed on `CloudflareEnv` in `packages/env/env.d.ts`. Newsletter sender is
+`WAL GO <admin@walgo.lt>` (`NEWSLETTER_FROM` in `newsletter.ts`); the
+`sendEmail` default remains `WAL GO <noreply@walgo.lt>`.
 
 Image hosting uses the public R2 bucket `ASSETS_BUCKET` on `assets.walgo.lt`
 (see [Images](#images)). Alchemy creates the R2 custom-domain DNS record in the
