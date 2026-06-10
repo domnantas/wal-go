@@ -72,6 +72,10 @@ unsubscribe flow end to end:
   Lithuanian confirmation page) and **POST** (mailbox-provider one-click per
   RFC 8058), each calling `setSubscriptionBySignedToken(token, false)` — which
   verifies the signature before flipping the flag.
+- The GET confirmation page is a self-contained HTML card styled to match the
+  app design system (warm surface palette mirroring `--brand-*`, serif heading,
+  light/dark via `prefers-color-scheme`, success/error icon variants). It links
+  to `/settings/account` to manage the subscription.
 - The in-app settings toggle writes the same `subscribed` flag, so the link and
   the toggle stay consistent.
 
