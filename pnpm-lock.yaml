@@ -104,6 +104,9 @@ importers:
       '@WAL-GO/callsign':
         specifier: workspace:*
         version: link:../../packages/callsign
+      '@WAL-GO/email':
+        specifier: workspace:*
+        version: link:../../packages/email
       '@WAL-GO/env':
         specifier: workspace:*
         version: link:../../packages/env
@@ -140,6 +143,9 @@ importers:
       '@posthog/react':
         specifier: ^1.9.1
         version: 1.9.1(@types/react@19.2.14)(posthog-js@1.376.5)(react@19.2.5)
+      '@react-email/components':
+        specifier: ^1.0.12
+        version: 1.0.12(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.3(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.48.0)(tsx@4.21.0)(yaml@2.9.0))

@@ -2,7 +2,7 @@ import {
 	NewsletterEmail,
 	WALGO_NEWSLETTER_DEFAULTS,
 	WALGO_NEWSLETTER_LOCALIZATION,
-} from "@WAL-GO/email/newsletter-email";
+} from "@WAL-GO/email";
 import {
 	AlertDialog,
 	AlertDialogAction,

@@ -21,6 +21,7 @@
     "noUncheckedSideEffectImports": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@WAL-GO/email": ["../../packages/email/src/index.ts"],
       "@WAL-GO/ui/*": ["../../packages/ui/src/*"]
     }
   }
