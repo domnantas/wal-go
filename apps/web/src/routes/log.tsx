@@ -21,7 +21,12 @@ import {
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { sessionOptions } from "@better-auth-ui/react";
 import { usePostHog } from "@posthog/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
 	type ColumnDef,
@@ -204,9 +209,10 @@ function RouteComponent() {
 	const { data: qsoPage, isPending: isQsosPending } = useQuery(
 		orpc.qsos.list.queryOptions({
 			input: { page, band, seasonId: displaySeasonId },
+			placeholderData: keepPreviousData,
 		})
 	);
-	const { data: stats } = useQuery(
+	const { data: stats, isPending: isStatsPending } = useQuery(
 		orpc.qsos.stats.queryOptions({ input: { seasonId: displaySeasonId } })
 	);
 	const items = qsoPage?.items ?? [];
@@ -223,7 +229,9 @@ function RouteComponent() {
 		isCurrentSeasonPending ||
 		isMembershipPending ||
 		isSeasonsPending ||
-		isParticipatedPending;
+		isParticipatedPending ||
+		isStatsPending ||
+		isQsosPending;
 	const canAddQso =
 		!!activeSeason && !!membership && displaySeason?.status === "active";
 	const showLog = !!displaySeason;
@@ -282,51 +290,43 @@ function RouteComponent() {
 
 			{showLog ? (
 				<>
-					{stats ? (
-						<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-							<StatCard
-								icon={<Radio className="size-5" />}
-								label="Iš viso QSO"
-								value={statValues.totalQsos}
-							/>
-							<StatCard
-								icon={<MapPinned className="size-5" />}
-								label="Unikalūs kvadratai"
-								value={statValues.uniqueSquares}
-							/>
-							<StatCard
-								icon={<Star className="size-5" />}
-								label="Surinkti taškai"
-								value={statValues.points}
-							/>
-							<StatCard
-								icon={<Users className="size-5" />}
-								label="Unikalūs korespondentai"
-								value={statValues.uniqueContactCallsigns}
-							/>
-						</div>
-					) : null}
+					<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+						<StatCard
+							icon={<Radio className="size-5" />}
+							label="Iš viso QSO"
+							value={statValues.totalQsos}
+						/>
+						<StatCard
+							icon={<MapPinned className="size-5" />}
+							label="Unikalūs kvadratai"
+							value={statValues.uniqueSquares}
+						/>
+						<StatCard
+							icon={<Star className="size-5" />}
+							label="Surinkti taškai"
+							value={statValues.points}
+						/>
+						<StatCard
+							icon={<Users className="size-5" />}
+							label="Unikalūs korespondentai"
+							value={statValues.uniqueContactCallsigns}
+						/>
+					</div>
 
 					{canAddQso ? <LogDropzone /> : null}
 
-					{isQsosPending ? (
-						<div className="flex justify-center py-10">
-							<Spinner className="size-8" />
-						</div>
-					) : (
-						<div ref={logRef}>
-							<QsoLog
-								band={band}
-								bands={bands}
-								canAddQso={canAddQso}
-								items={items}
-								onBandChange={handleBandChange}
-								onPageChange={setPage}
-								page={page}
-								total={total}
-							/>
-						</div>
-					)}
+					<div ref={logRef}>
+						<QsoLog
+							band={band}
+							bands={bands}
+							canAddQso={canAddQso}
+							items={items}
+							onBandChange={handleBandChange}
+							onPageChange={setPage}
+							page={page}
+							total={total}
+						/>
+					</div>
 				</>
 			) : null}
 		</main>

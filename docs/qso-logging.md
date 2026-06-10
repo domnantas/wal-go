@@ -166,6 +166,10 @@ Server-side, fixed page size 20. Current page and band filter are URL search par
 
 Summary cards on `/log` are backed by server-side aggregates (`qsos.stats`), not loaded rows: total QSOs, unique credited operator squares, points from `user_season_score`, unique contact callsigns for the active season.
 
+### Page load
+
+`/log` shows a single centered spinner until **all** of its first-paint queries resolve — the season queries (`current`, `myMembership`, `list`, `participated`) plus `qsos.stats` and the first `qsos.list` page. Folding the stats and QSO queries into this gate prevents the earlier staggered paint where the dropzone appeared first and the stats grid then popped in above it, shifting content down. The QSO list uses `placeholderData: keepPreviousData`, so band/page changes keep the previous rows visible (no spinner) instead of re-triggering the gate.
+
 ### CRUD
 
 | Op | Notes |
