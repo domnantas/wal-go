@@ -7,10 +7,10 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@WAL-GO/ui/components/dialog";
+import { usePostHog } from "@posthog/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { toast } from "sonner";
 

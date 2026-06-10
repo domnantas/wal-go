@@ -9,6 +9,7 @@ declare global {
 		DISCORD_WEBHOOK_URL?: string;
 		HYPERDRIVE?: { connectionString: string };
 		RESEND_API_KEY: string;
+		RESEND_SEGMENT_ID?: string;
 	}
 
 	type Env = CloudflareEnv;

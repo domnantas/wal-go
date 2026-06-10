@@ -8,10 +8,10 @@ import {
 } from "@WAL-GO/ui/components/card";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { sessionOptions } from "@better-auth-ui/react";
+import { usePostHog } from "@posthog/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Info } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import {
 	fireTeamConfetti,

@@ -1,5 +1,5 @@
 import { Button } from "@WAL-GO/ui/components/button";
-import { usePostHog } from "posthog-js/react";
+import { usePostHog } from "@posthog/react";
 import { useEffect, useState } from "react";
 
 const CONSENT_KEY = "wal-go-consent";

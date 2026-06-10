@@ -1,3 +1,36 @@
+// Email clients can't read the app's oklch design tokens, so the brand palette
+// is pinned here as static sRGB hex. Values mirror `--brand-*` from
+// packages/ui/src/styles/globals.css. They stay constant across light/dark
+// because brand identity should look the same in every inbox.
+export const BRAND = {
+	olive: "#41592c",
+	rust: "#a8472d",
+	golden: "#d7a23d",
+	goldenForeground: "#3a2e10",
+	brown: "#3d3027",
+	white: "#ffffff",
+} as const;
+
+// Warm surface palette tuned to the WAL GO logo (cream paper, dark-brown ink).
+// Shared default `colors` so every email reads warmer than the neutral
+// `defaultColors`, while still adapting to dark mode through `EmailStyles`.
+export const WARM_SURFACE: EmailColors = {
+	light: {
+		background: "#faf3f5",
+		card: "#fffdfb",
+		cardForeground: "#311c0f",
+		border: "#ece0d8",
+		mutedForeground: "#8c7b6e",
+	},
+	dark: {
+		background: "#17110c",
+		card: "#221a12",
+		cardForeground: "#f3ebe3",
+		border: "#3a2e24",
+		mutedForeground: "#b3a496",
+	},
+};
+
 export const defaultColors = {
 	light: {
 		background: "#F5F5F5",

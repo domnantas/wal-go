@@ -7,6 +7,7 @@ import {
 import { sessionOptions } from "@better-auth-ui/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { DashboardTab } from "@/domains/admin/dashboard-tab";
+import { NewsletterTab } from "@/domains/admin/newsletter-tab";
 import { QsosTab } from "@/domains/admin/qsos-tab";
 import { SeasonsTab } from "@/domains/admin/seasons-tab";
 import { UploadsTab } from "@/domains/admin/uploads-tab";
@@ -40,6 +41,7 @@ function AdminPage() {
 					<TabsTrigger value="seasons">Sezonai</TabsTrigger>
 					<TabsTrigger value="qsos">QSO</TabsTrigger>
 					<TabsTrigger value="uploads">Įkėlimai</TabsTrigger>
+					<TabsTrigger value="newsletter">Naujienlaiškis</TabsTrigger>
 				</TabsList>
 				<TabsContent value="dashboard">
 					<DashboardTab />
@@ -55,6 +57,9 @@ function AdminPage() {
 				</TabsContent>
 				<TabsContent value="uploads">
 					<UploadsTab />
+				</TabsContent>
+				<TabsContent value="newsletter">
+					<NewsletterTab />
 				</TabsContent>
 			</Tabs>
 		</main>

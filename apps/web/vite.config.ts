@@ -28,6 +28,7 @@ export default defineConfig({
 	},
 	resolve: {
 		tsconfigPaths: true,
+		dedupe: ["react", "react-dom"],
 	},
 	optimizeDeps: {
 		exclude: ["cloudflare:workers"],

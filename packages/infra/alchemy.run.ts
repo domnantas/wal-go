@@ -134,6 +134,9 @@ export default Stack(
 				...(process.env.DISCORD_WEBHOOK_URL
 					? { DISCORD_WEBHOOK_URL: Secret("DISCORD_WEBHOOK_URL") }
 					: {}),
+				...(process.env.RESEND_SEGMENT_ID
+					? { RESEND_SEGMENT_ID: Secret("RESEND_SEGMENT_ID") }
+					: {}),
 				VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: Variable(
 					"VITE_PUBLIC_POSTHOG_PROJECT_TOKEN"
 				),

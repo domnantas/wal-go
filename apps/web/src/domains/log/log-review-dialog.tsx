@@ -30,9 +30,9 @@ import {
 	TooltipTrigger,
 } from "@WAL-GO/ui/components/tooltip";
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { usePostHog } from "@posthog/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ChevronLeft, ChevronRight, Upload } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 

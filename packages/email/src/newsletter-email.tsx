@@ -1,7 +1,6 @@
 import {
 	Body,
 	Button,
-	Column,
 	Container,
 	Head,
 	Heading,
@@ -9,64 +8,55 @@ import {
 	Html,
 	Img,
 	Link,
+	Markdown,
 	Preview,
 	pixelBasedPreset,
-	Row,
 	Section,
 	Tailwind,
 	Text,
 } from "@react-email/components";
 import type { ReactNode } from "react";
 import {
+	BRAND,
 	type EmailClassNames,
 	type EmailColors,
 	EmailStyles,
+	WARM_SURFACE,
 } from "./email-styles";
 import { cn } from "./lib/utils";
 
-// Email clients can't read the app's oklch design tokens, so the brand palette
-// is pinned here as static sRGB hex. Values mirror `--brand-*` from
-// packages/ui/src/styles/globals.css. They stay constant across light/dark
-// because brand identity should look the same in every inbox.
-const BRAND = {
-	olive: "#41592c",
-	rust: "#a8472d",
-	golden: "#d7a23d",
-	goldenForeground: "#3a2e10",
-	brown: "#3d3027",
-	white: "#ffffff",
-} as const;
-
-// Warm surface palette tuned to the WAL GO logo (cream paper, dark-brown ink).
-// Passed as the default `colors` so the newsletter reads warmer than the neutral
-// `defaultColors` shared by the transactional emails, while still adapting to
-// dark mode through `EmailStyles`.
-const WARM_SURFACE: EmailColors = {
-	light: {
-		background: "#faf3f5",
-		card: "#fffdfb",
-		cardForeground: "#311c0f",
-		border: "#ece0d8",
-		mutedForeground: "#8c7b6e",
-	},
-	dark: {
-		background: "#17110c",
-		card: "#221a12",
-		cardForeground: "#f3ebe3",
-		border: "#3a2e24",
-		mutedForeground: "#b3a496",
+// Inline styles for markdown-rendered content (intro + section bodies). Email
+// clients ignore the surrounding Tailwind classes on the generated tags, so the
+// spacing, lists and link accent are pinned here to match the brand.
+const MARKDOWN_STYLES = {
+	p: { margin: "0 0 12px", fontSize: "16px", lineHeight: "28px" },
+	ul: { margin: "0 0 12px", paddingLeft: "24px" },
+	ol: { margin: "0 0 12px", paddingLeft: "24px" },
+	li: { margin: "0 0 4px", fontSize: "16px", lineHeight: "24px" },
+	h1: { margin: "16px 0 8px", fontSize: "20px", fontWeight: 700 },
+	h2: { margin: "16px 0 8px", fontSize: "18px", fontWeight: 700 },
+	h3: { margin: "16px 0 8px", fontSize: "16px", fontWeight: 700 },
+	link: { color: BRAND.rust, textDecoration: "underline" },
+	blockQuote: {
+		margin: "0 0 12px",
+		paddingLeft: "12px",
+		borderLeft: `3px solid ${BRAND.rust}`,
 	},
 };
 
 const newsletterEmailLocalization = {
 	LOGO: "Logo",
-	READ_MORE: "Read more",
+	READ_MORE: "Skaityti daugiau",
 	VIEW_ONLINE: "View online",
 	UNSUBSCRIBE: "Unsubscribe",
 	EMAIL_SENT_BY: "Email sent by {appName}.",
 };
 
 export type NewsletterEmailLocalization = typeof newsletterEmailLocalization;
+
+// Resend replaces this token per-recipient when the email is sent as a
+// Broadcast to an Audience, and hosts the unsubscribe page + tracks status.
+const RESEND_UNSUBSCRIBE_TAG = "{{{RESEND_UNSUBSCRIBE_URL}}}";
 
 export interface NewsletterSection {
 	/** Section body text. */
@@ -110,8 +100,14 @@ export interface NewsletterEmailProps {
 	preview?: string;
 	/** Content blocks rendered in order. */
 	sections?: NewsletterSection[];
-	/** Link recipients use to unsubscribe. Required by anti-spam law. */
-	unsubscribeUrl: string;
+	/**
+	 * Link recipients use to unsubscribe. Required by anti-spam law. Defaults to
+	 * the Resend `{{{RESEND_UNSUBSCRIBE_URL}}}` merge tag, which Resend replaces
+	 * per contact when the email is sent as a Broadcast to an Audience (it then
+	 * hosts the unsubscribe page and tracks status). Override only when not
+	 * sending through a Resend Audience.
+	 */
+	unsubscribeUrl?: string;
 	/** Optional link to view the newsletter in a browser. */
 	viewOnlineUrl?: string;
 }
@@ -166,7 +162,7 @@ export const NewsletterEmail = ({
 	appName,
 	logoURL,
 	preview,
-	unsubscribeUrl,
+	unsubscribeUrl = RESEND_UNSUBSCRIBE_TAG,
 	viewOnlineUrl,
 	colors = WARM_SURFACE,
 	classNames,
@@ -247,14 +243,9 @@ export const NewsletterEmail = ({
 
 							<Section className="px-8 pb-8">
 								{intro && (
-									<Text
-										className={cn(
-											"mt-0 mb-2 font-normal text-base leading-7",
-											classNames?.content
-										)}
-									>
+									<Markdown markdownCustomStyles={MARKDOWN_STYLES}>
 										{intro}
-									</Text>
+									</Markdown>
 								)}
 
 								{sections.map((section, index) => {
@@ -282,55 +273,22 @@ export const NewsletterEmail = ({
 												/>
 											)}
 
-											{section.imageUrl ? (
-												<Row>
-													<Column className="w-[112px] pr-4 align-top">
-														<Img
-															alt={section.title}
-															className="rounded-lg"
-															height={96}
-															src={section.imageUrl}
-															style={{ objectFit: "cover" }}
-															width={96}
-														/>
-													</Column>
-													<Column className="align-top">
-														<Heading
-															as="h2"
-															className="m-0 mb-1 font-bold text-lg"
-														>
-															{section.title}
-														</Heading>
-														<Text
-															className={cn(
-																"m-0 font-normal text-sm leading-6",
-																classNames?.content
-															)}
-														>
-															{section.body}
-														</Text>
-														{link}
-													</Column>
-												</Row>
-											) : (
-												<>
-													<Heading
-														as="h2"
-														className="m-0 mb-2 font-bold text-xl"
-													>
-														{section.title}
-													</Heading>
-													<Text
-														className={cn(
-															"m-0 font-normal text-base leading-7",
-															classNames?.content
-														)}
-													>
-														{section.body}
-													</Text>
-													{link}
-												</>
+											{section.imageUrl && (
+												<Img
+													alt={section.title}
+													className="mb-4 w-full rounded-lg"
+													src={section.imageUrl}
+													style={{ objectFit: "cover" }}
+													width="100%"
+												/>
 											)}
+											<Heading as="h2" className="m-0 mb-2 font-bold text-xl">
+												{section.title}
+											</Heading>
+											<Markdown markdownCustomStyles={MARKDOWN_STYLES}>
+												{section.body}
+											</Markdown>
+											{link}
 										</Section>
 									);
 								})}
@@ -380,6 +338,24 @@ export const NewsletterEmail = ({
 
 NewsletterEmail.localization = newsletterEmailLocalization;
 
+/** Brand defaults shared by the broadcast send path and the admin preview. */
+export const WALGO_NEWSLETTER_DEFAULTS = {
+	appName: "WAL GO",
+	logoURL: {
+		light: "https://walgo.lt/logo_512.png",
+		dark: "https://walgo.lt/logo_512.png",
+	},
+} satisfies Partial<NewsletterEmailProps>;
+
+/** Lithuanian overrides for the template's English static labels. */
+export const WALGO_NEWSLETTER_LOCALIZATION: Partial<NewsletterEmailLocalization> =
+	{
+		READ_MORE: "Skaityti plačiau",
+		VIEW_ONLINE: "Žiūrėti naršyklėje",
+		UNSUBSCRIBE: "Atsisakyti prenumeratos",
+		EMAIL_SENT_BY: "Laišką išsiuntė {appName}.",
+	};
+
 NewsletterEmail.PreviewProps = {
 	appName: "WAL GO",
 	logoURL: {
@@ -406,7 +382,7 @@ NewsletterEmail.PreviewProps = {
 		},
 		{
 			title: "Patobulinimai",
-			body: "Pagreitintas žemėlapio veikimas, patobulinta ryšių paieška ir pridėta statistikos eksporto galimybė.",
+			body: "Šį mėnesį sutvarkėme kelis dalykus:\n\n- Pagreitintas žemėlapio veikimas\n- Patobulinta ryšių paieška\n- Pridėta statistikos eksporto galimybė\n\nLaukiame jūsų atsiliepimų — rašykite **info@walgo.lt**.",
 		},
 	],
 	ctaLabel: "Registruoti ryšį",

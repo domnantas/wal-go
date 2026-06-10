@@ -20,6 +20,7 @@ import {
 } from "@WAL-GO/ui/components/table";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { sessionOptions } from "@better-auth-ui/react";
+import { usePostHog } from "@posthog/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
@@ -41,7 +42,6 @@ import {
 	Upload,
 	Users,
 } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddQsoDialog } from "@/domains/log/add-qso-dialog";

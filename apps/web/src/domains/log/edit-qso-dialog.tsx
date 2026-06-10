@@ -7,9 +7,9 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@WAL-GO/ui/components/dialog";
+import { usePostHog } from "@posthog/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 

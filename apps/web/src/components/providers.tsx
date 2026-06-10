@@ -1,8 +1,8 @@
 import { AuthProvider } from "@WAL-GO/ui/components/auth/auth-provider";
 import { themePlugin, usernamePlugin } from "@better-auth-ui/core/plugins";
+import { PostHogProvider, usePostHog } from "@posthog/react";
 import { useNavigate } from "@tanstack/react-router";
 import posthog from "posthog-js";
-import { PostHogProvider, usePostHog } from "posthog-js/react";
 import { type ReactNode, useEffect } from "react";
 import { useTheme } from "tanstack-theme-kit";
 

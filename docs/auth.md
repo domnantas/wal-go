@@ -58,6 +58,8 @@ Required (`requireEmailVerification: true`). On sign-up, Better Auth sends a ver
 - Local dev: `apps/web/.env` (`RESEND_API_KEY=re_...`).
 - Cloudflare (prod/preview): Alchemy `Secret("RESEND_API_KEY")` in `packages/infra/alchemy.run.ts`; set via `alchemy secret set RESEND_API_KEY` or the Cloudflare dashboard.
 
+Template: `EmailVerificationEmail` (`packages/email/src/email-verification.tsx`). It shares the warm WAL GO styling (`WARM_SURFACE` + `BRAND` from `email-styles`) with the newsletter — centered 128px logo on a rounded card, brown CTA button, rust accent links. See [newsletter.md](./newsletter.md#template).
+
 Keep `requireEmailVerification` in sync between the server config and `AuthProvider` (`apps/web/src/components/providers.tsx`).
 
 ## Password reset
@@ -66,7 +68,7 @@ Fully wired:
 
 - UI routes `/auth/forgot-password` and `/auth/reset-password` (the `Auth` component in `packages/ui`).
 - `sendResetPassword` callback in `emailAndPassword` sends a Lithuanian reset email via Resend.
-- Template: `ResetPasswordEmail` (`packages/email/src/reset-password-email.tsx`). Email templates live in the `@WAL-GO/email` package (see [newsletter.md](./newsletter.md) for the preview server); `packages/auth` imports them and does its own Resend send.
+- Template: `ResetPasswordEmail` (`packages/email/src/reset-password-email.tsx`). Email templates live in the `@WAL-GO/email` package (see [newsletter.md](./newsletter.md) for the preview server); `packages/auth` imports them and does its own Resend send. Shares the warm WAL GO styling (`WARM_SURFACE` + `BRAND`) with the newsletter and verification email.
 - Links expire in 60 minutes. The link lands on `/auth/reset-password?token=<token>`; the UI reads the token and calls Better Auth's `/reset-password`.
 
 ## Password visibility toggle

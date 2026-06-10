@@ -3,12 +3,15 @@ import { qso } from "@WAL-GO/db/schema/qsos";
 import { squareScore } from "@WAL-GO/db/schema/scoring";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { cabrilloUpload } from "@WAL-GO/db/schema/uploads";
+import { WALGO_NEWSLETTER_LOCALIZATION } from "@WAL-GO/email/newsletter-email";
 import { ORPCError } from "@orpc/server";
 import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
+import { getAudienceInfo, syncAllContacts } from "../notifications/contacts";
 import { announceOwnershipChanges } from "../notifications/discord";
+import { sendNewsletter } from "../notifications/newsletter";
 import {
 	applyScoreDeltas,
 	applyUserBanScoreChange,
@@ -642,8 +645,64 @@ const listUploads = adminProcedure.handler(async ({ context }) => {
 	return rows;
 });
 
+const newsletterAudience = adminProcedure.handler(() => getAudienceInfo());
+
+const syncNewsletterContacts = adminProcedure.handler(async () => {
+	const created = await syncAllContacts();
+	return { created };
+});
+
+const newsletterSectionInput = z.object({
+	title: z.string().trim().min(1),
+	body: z.string().trim().min(1),
+	imageUrl: z.url().optional(),
+	url: z.url().optional(),
+	linkLabel: z.string().trim().min(1).optional(),
+});
+
+const sendNewsletterBroadcast = adminProcedure
+	.input(
+		z.object({
+			subject: z.string().trim().min(1).max(200),
+			label: z.string().trim().max(120).optional(),
+			heading: z.string().trim().min(1).max(200),
+			intro: z.string().trim().max(2000).optional(),
+			sections: z.array(newsletterSectionInput).max(20).optional(),
+			ctaLabel: z.string().trim().max(120).optional(),
+			ctaUrl: z.url().optional(),
+			scheduledAt: z.string().trim().min(1).optional(),
+		})
+	)
+	.handler(async ({ input }) => {
+		if ((input.ctaLabel ? 1 : 0) !== (input.ctaUrl ? 1 : 0)) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Mygtuko tekstas ir nuoroda turi būti nurodyti kartu",
+			});
+		}
+		const broadcastId = await sendNewsletter({
+			subject: input.subject,
+			scheduledAt: input.scheduledAt,
+			content: {
+				label: input.label,
+				heading: input.heading,
+				intro: input.intro,
+				sections: input.sections,
+				ctaLabel: input.ctaLabel,
+				ctaUrl: input.ctaUrl,
+				preview: input.intro,
+				localization: WALGO_NEWSLETTER_LOCALIZATION,
+			},
+		});
+		return { broadcastId };
+	});
+
 export const adminRouter = {
 	dashboard: getDashboard,
+	newsletter: {
+		audience: newsletterAudience,
+		syncContacts: syncNewsletterContacts,
+		send: sendNewsletterBroadcast,
+	},
 	users: {
 		list: listUsers,
 		setRole: setUserRole,

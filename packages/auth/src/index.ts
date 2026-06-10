@@ -80,6 +80,30 @@ export function createAuth(db: Db) {
 				enabled: true,
 			},
 		},
+		databaseHooks: {
+			user: {
+				create: {
+					// Add new users to the Resend newsletter segment. Best-effort:
+					// newsletter delivery and unsubscribe are managed by Resend, and a
+					// sync failure must never block sign-up.
+					after: async (createdUser) => {
+						const segmentId = env.RESEND_SEGMENT_ID;
+						if (!segmentId) {
+							return;
+						}
+						try {
+							await resend.contacts.create({
+								email: createdUser.email,
+								firstName: createdUser.name,
+								segments: [{ id: segmentId }],
+							});
+						} catch {
+							// Ignored: contact backfill is reconciled by syncAllContacts.
+						}
+					},
+				},
+			},
+		},
 		emailVerification: {
 			autoSignInAfterVerification: true,
 			sendVerificationEmail: async ({ user, url }) => {
@@ -89,7 +113,7 @@ export function createAuth(db: Db) {
 						email: user.email,
 						appName: "WAL GO (https://walgo.lt)",
 						poweredBy: false,
-						logoUrl: {
+						logoURL: {
 							light: "https://walgo.lt/logo_512.png",
 							dark: "https://walgo.lt/logo_512.png",
 						},

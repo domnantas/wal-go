@@ -16,25 +16,27 @@ import {
 } from "@react-email/components";
 import type { ReactNode } from "react";
 import {
+	BRAND,
 	type EmailClassNames,
 	type EmailColors,
 	EmailStyles,
+	WARM_SURFACE,
 } from "./email-styles";
 import { cn } from "./lib/utils";
 
 const resetPasswordEmailLocalization = {
-	RESET_YOUR_PASSWORD: "Reset your password",
-	LOGO: "Logo",
+	RESET_YOUR_PASSWORD: "Atstatykite savo slaptažodį",
+	LOGO: "Logotipas",
 	CLICK_BUTTON_TO_RESET_PASSWORD:
-		"Click the button below to reset the password for your {appName} account.",
-	RESET_PASSWORD: "Reset password",
-	OR_COPY_AND_PASTE_URL: "Or copy and paste this URL into your browser:",
-	THIS_LINK_EXPIRES_IN_MINUTES:
-		"This link expires in {expirationMinutes} minutes.",
-	EMAIL_SENT_BY: "Email sent by {appName}.",
+		"Paspauskite žemiau esantį mygtuką, kad atstatytumėte savo {appName} paskyros slaptažodį.",
+	RESET_PASSWORD: "Atstatyti slaptažodį",
+	OR_COPY_AND_PASTE_URL:
+		"Arba nukopijuokite ir įklijuokite šią nuorodą į naršyklę:",
+	THIS_LINK_EXPIRES_IN_MINUTES: "Ši nuoroda galioja {expirationMinutes} min.",
+	EMAIL_SENT_BY: "Laišką išsiuntė {appName}.",
 	IF_YOU_DIDNT_REQUEST_THIS_EMAIL:
-		"If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.",
-	POWERED_BY_BETTER_AUTH: "Powered by {betterAuth}",
+		"Jei slaptažodžio atstatymo neprašėte, galite šį laišką tiesiog ignoruoti. Jūsų slaptažodis nebus pakeistas.",
+	POWERED_BY_BETTER_AUTH: "Sukurta su {betterAuth}",
 };
 
 export type ResetPasswordEmailLocalization =
@@ -58,7 +60,7 @@ export const ResetPasswordEmail = ({
 	appName,
 	expirationMinutes = 60,
 	logoURL,
-	colors,
+	colors = WARM_SURFACE,
 	classNames,
 	darkMode = true,
 	poweredBy,
@@ -95,136 +97,146 @@ export const ResetPasswordEmail = ({
 					>
 						<Section
 							className={cn(
-								"rounded-none border border-border bg-card p-8 text-card-foreground",
+								"overflow-hidden rounded-lg border border-border bg-card text-card-foreground",
 								classNames?.card
 							)}
 						>
-							{logoURL &&
-								(typeof logoURL === "string" ? (
-									<Img
-										alt={appName || localization.LOGO}
-										className={cn("mx-auto mb-8", classNames?.logo)}
-										height={48}
-										src={logoURL}
-										width={48}
-									/>
-								) : (
-									<>
+							<Section className="px-8 pt-8 pb-6 text-center">
+								{logoURL &&
+									(typeof logoURL === "string" ? (
 										<Img
 											alt={appName || localization.LOGO}
-											className={cn(
-												"logo-light mx-auto mb-8",
-												classNames?.logo
-											)}
-											height={48}
-											src={logoURL.light}
-											width={48}
+											className={cn("mx-auto mb-6", classNames?.logo)}
+											height={128}
+											src={logoURL}
+											width={128}
 										/>
-										<Img
-											alt={appName || localization.LOGO}
-											className={cn(
-												"logo-dark mx-auto mb-8 hidden",
-												classNames?.logo
-											)}
-											height={48}
-											src={logoURL.dark}
-											width={48}
-										/>
-									</>
-								))}
+									) : (
+										<>
+											<Img
+												alt={appName || localization.LOGO}
+												className={cn(
+													"logo-light mx-auto mb-6",
+													classNames?.logo
+												)}
+												height={128}
+												src={logoURL.light}
+												width={128}
+											/>
+											<Img
+												alt={appName || localization.LOGO}
+												className={cn(
+													"logo-dark mx-auto mb-6 hidden",
+													classNames?.logo
+												)}
+												height={128}
+												src={logoURL.dark}
+												width={128}
+											/>
+										</>
+									))}
 
-							<Heading
-								className={cn(
-									"m-0 mb-5 font-semibold text-2xl",
-									classNames?.title
-								)}
-							>
-								{localization.RESET_YOUR_PASSWORD}
-							</Heading>
-
-							<Text className={cn("font-normal text-sm", classNames?.content)}>
-								{localization.CLICK_BUTTON_TO_RESET_PASSWORD.replace(
-									"{appName}",
-									appName || ""
-								)
-									.replace(/\s{2,}/g, " ")
-									.replace(" .", ".")}
-							</Text>
-
-							<Section className="my-6">
-								<Button
+								<Heading
 									className={cn(
-										"inline-block whitespace-nowrap rounded-none bg-primary px-6 py-2.5 font-medium text-primary-foreground text-sm no-underline",
-										classNames?.button
+										"m-0 text-center font-bold text-3xl",
+										classNames?.title
 									)}
-									href={url}
 								>
-									{localization.RESET_PASSWORD}
-								</Button>
+									{localization.RESET_YOUR_PASSWORD}
+								</Heading>
 							</Section>
 
-							<Text
-								className={cn(
-									"mb-3 text-muted-foreground text-xs",
-									classNames?.description
-								)}
-							>
-								{localization.OR_COPY_AND_PASTE_URL}
-							</Text>
+							<Section className="px-8 pb-8">
+								<Text
+									className={cn(
+										"mt-0 mb-2 font-normal text-base leading-7",
+										classNames?.content
+									)}
+								>
+									{localization.CLICK_BUTTON_TO_RESET_PASSWORD.replace(
+										"{appName}",
+										appName || ""
+									)
+										.replace(/\s{2,}/g, " ")
+										.replace(" .", ".")}
+								</Text>
 
-							<Link
-								className={cn(
-									"break-all text-primary text-xs",
-									classNames?.link
-								)}
-								href={url}
-							>
-								{url}
-							</Link>
+								<Section className="mt-8 mb-2 text-center">
+									<Button
+										className={cn(
+											"box-border inline-block whitespace-nowrap rounded-md px-8 py-3 font-bold text-base no-underline",
+											classNames?.button
+										)}
+										href={url}
+										style={{
+											backgroundColor: BRAND.brown,
+											color: BRAND.white,
+										}}
+									>
+										{localization.RESET_PASSWORD}
+									</Button>
+								</Section>
 
-							<Hr
-								className={cn(
-									"my-6 w-full border border-border border-solid",
-									classNames?.separator
-								)}
-							/>
+								<Hr
+									className={cn(
+										"my-6 w-full border border-border border-solid",
+										classNames?.separator
+									)}
+								/>
 
-							{expirationMinutes || appName ? (
 								<Text
 									className={cn(
 										"mb-3 text-muted-foreground text-xs",
 										classNames?.description
 									)}
 								>
-									{expirationMinutes
-										? localization.THIS_LINK_EXPIRES_IN_MINUTES.replace(
-												"{expirationMinutes}",
-												expirationMinutes.toString()
-											)
-										: null}
-
-									{appName && (
-										<>
-											{expirationMinutes ? " " : ""}
-											{localization.EMAIL_SENT_BY.replace("{appName}", appName)}
-										</>
-									)}
+									{localization.OR_COPY_AND_PASTE_URL}
 								</Text>
-							) : null}
 
-							<Text
-								className={cn(
-									"mt-3 text-muted-foreground text-xs",
-									classNames?.description
+								<Link
+									className={cn("break-all text-xs", classNames?.link)}
+									href={url}
+									style={{ color: BRAND.rust }}
+								>
+									{url}
+								</Link>
+
+								{expirationMinutes && (
+									<Text
+										className={cn(
+											"mt-6 mb-0 text-muted-foreground text-xs",
+											classNames?.description
+										)}
+									>
+										{localization.THIS_LINK_EXPIRES_IN_MINUTES.replace(
+											"{expirationMinutes}",
+											expirationMinutes.toString()
+										)}
+									</Text>
 								)}
-							>
-								{localization.IF_YOU_DIDNT_REQUEST_THIS_EMAIL}
-							</Text>
+
+								<Text
+									className={cn(
+										"mt-3 mb-0 text-muted-foreground text-xs",
+										classNames?.description
+									)}
+								>
+									{localization.IF_YOU_DIDNT_REQUEST_THIS_EMAIL}
+								</Text>
+							</Section>
+						</Section>
+
+						<Section className="px-8 pt-6 text-center">
+							{appName && (
+								<Text className="m-0 text-muted-foreground text-xs">
+									{localization.EMAIL_SENT_BY.replace("{appName}", appName)}
+								</Text>
+							)}
 
 							{poweredBy && (
 								<Text
 									className={cn(
-										"mt-4 mb-0 text-center text-[11px] text-muted-foreground",
+										"mt-2 mb-0 text-[11px] text-muted-foreground",
 										classNames?.poweredBy
 									)}
 								>
@@ -236,11 +248,9 @@ export const ResetPasswordEmail = ({
 											<>
 												{beforeBetterAuth}
 												<Link
-													className={cn(
-														"text-primary underline",
-														classNames?.link
-													)}
+													className={cn("underline", classNames?.link)}
 													href="https://better-auth.com"
+													style={{ color: BRAND.rust }}
 												>
 													better-auth
 												</Link>
