@@ -3,6 +3,7 @@ import { type createDb, getDb } from "@WAL-GO/db";
 // biome-ignore lint/performance/noNamespaceImport: It's ok for schema imports
 import * as schema from "@WAL-GO/db/schema";
 import { EmailVerificationEmail } from "@WAL-GO/email/email-verification";
+import { sendEmail } from "@WAL-GO/email/lib/send";
 import { ResetPasswordEmail } from "@WAL-GO/email/reset-password-email";
 import { env } from "@WAL-GO/env/server";
 import { i18n } from "@better-auth/i18n";
@@ -14,13 +15,10 @@ import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { eq } from "drizzle-orm";
 import { createElement } from "react";
-import { Resend } from "resend";
 
 type Db = Awaited<ReturnType<typeof createDb>>;
 
 export function createAuth(db: Db) {
-	const resend = new Resend(env.RESEND_API_KEY);
-
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: "pg",
@@ -57,8 +55,7 @@ export function createAuth(db: Db) {
 						},
 					})
 				);
-				await resend.emails.send({
-					from: "WAL GO <noreply@walgo.lt>",
+				await sendEmail({
 					to: user.email,
 					subject: "Atkurkite slaptažodį – WAL GO",
 					html,
@@ -83,22 +80,17 @@ export function createAuth(db: Db) {
 		databaseHooks: {
 			user: {
 				create: {
-					// Add new users to the Resend newsletter segment. Best-effort:
-					// newsletter delivery and unsubscribe are managed by Resend, and a
-					// sync failure must never block sign-up.
+					// Opt new users into the newsletter. Best-effort: a failure must
+					// never block sign-up, and the migration backfill reconciles any
+					// missing rows.
 					after: async (createdUser) => {
-						const segmentId = env.RESEND_SEGMENT_ID;
-						if (!segmentId) {
-							return;
-						}
 						try {
-							await resend.contacts.create({
-								email: createdUser.email,
-								firstName: createdUser.name,
-								segments: [{ id: segmentId }],
-							});
+							await db
+								.insert(schema.newsletterSubscription)
+								.values({ userId: createdUser.id })
+								.onConflictDoNothing();
 						} catch {
-							// Ignored: contact backfill is reconciled by syncAllContacts.
+							// Ignored: reconciled by the admin backfill.
 						}
 					},
 				},
@@ -134,8 +126,7 @@ export function createAuth(db: Db) {
 						},
 					})
 				);
-				await resend.emails.send({
-					from: "WAL GO <noreply@walgo.lt>",
+				await sendEmail({
 					to: user.email,
 					subject: "Patvirtinkite el. paštą – WAL GO",
 					html,

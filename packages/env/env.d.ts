@@ -7,9 +7,20 @@ declare global {
 		CORS_ORIGIN?: string;
 		DATABASE_URL?: string;
 		DISCORD_WEBHOOK_URL?: string;
+		// Cloudflare Email Sending `send_email` binding (see infra alchemy.run.ts).
+		// Typed with the builder-form `send` we use; the runtime binding also
+		// accepts a raw `EmailMessage`.
+		EMAIL?: {
+			send(message: {
+				from: string;
+				to: string;
+				subject: string;
+				html?: string;
+				text?: string;
+				headers?: Record<string, string>;
+			}): Promise<unknown>;
+		};
 		HYPERDRIVE?: { connectionString: string };
-		RESEND_API_KEY: string;
-		RESEND_SEGMENT_ID?: string;
 	}
 
 	type Env = CloudflareEnv;

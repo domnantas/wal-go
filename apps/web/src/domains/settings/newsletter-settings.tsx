@@ -30,12 +30,6 @@ export function NewsletterSettings() {
 		})
 	);
 
-	// Hide the toggle entirely when no segment is configured — there is nothing
-	// to subscribe to yet.
-	if (!isPending && subscription && !subscription.configured) {
-		return null;
-	}
-
 	return (
 		<div>
 			<h2 className="mb-3 font-semibold text-sm">Naujienlaiškis</h2>

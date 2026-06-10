@@ -54,9 +54,10 @@ const newsletterEmailLocalization = {
 
 export type NewsletterEmailLocalization = typeof newsletterEmailLocalization;
 
-// Resend replaces this token per-recipient when the email is sent as a
-// Broadcast to an Audience, and hosts the unsubscribe page + tracks status.
-const RESEND_UNSUBSCRIBE_TAG = "{{{RESEND_UNSUBSCRIBE_URL}}}";
+// Inert placeholder for previews only. Real sends always inject a per-recipient
+// signed URL (walgo.lt/unsubscribe?token=…); a bare URL is never shipped, so
+// this stays a no-op `#` rather than a real-looking but broken link.
+const PREVIEW_UNSUBSCRIBE_URL = "#";
 
 export interface NewsletterSection {
 	/** Section body text. */
@@ -101,11 +102,9 @@ export interface NewsletterEmailProps {
 	/** Content blocks rendered in order. */
 	sections?: NewsletterSection[];
 	/**
-	 * Link recipients use to unsubscribe. Required by anti-spam law. Defaults to
-	 * the Resend `{{{RESEND_UNSUBSCRIBE_URL}}}` merge tag, which Resend replaces
-	 * per contact when the email is sent as a Broadcast to an Audience (it then
-	 * hosts the unsubscribe page and tracks status). Override only when not
-	 * sending through a Resend Audience.
+	 * Link recipients use to unsubscribe. Required by anti-spam law. The sender
+	 * passes a per-recipient signed URL (`walgo.lt/unsubscribe?token=…`) that our
+	 * own route verifies; in previews it falls back to an inert `#` placeholder.
 	 */
 	unsubscribeUrl?: string;
 	/** Optional link to view the newsletter in a browser. */
@@ -162,7 +161,7 @@ export const NewsletterEmail = ({
 	appName,
 	logoURL,
 	preview,
-	unsubscribeUrl = RESEND_UNSUBSCRIBE_TAG,
+	unsubscribeUrl = PREVIEW_UNSUBSCRIBE_URL,
 	viewOnlineUrl,
 	colors = WARM_SURFACE,
 	classNames,

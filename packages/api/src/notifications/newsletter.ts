@@ -1,81 +1,110 @@
+import type { getDb } from "@WAL-GO/db";
+import { sendEmail } from "@WAL-GO/email/lib/send";
 import {
 	NewsletterEmail,
 	type NewsletterEmailProps,
 	WALGO_NEWSLETTER_DEFAULTS,
 } from "@WAL-GO/email/newsletter-email";
-import { env } from "@WAL-GO/env/server";
 import { render } from "@react-email/components";
 import { createElement } from "react";
-import { Resend } from "resend";
 
-const FROM = "WAL GO <noreply@walgo.lt>";
+import {
+	getSubscribedRecipients,
+	type Recipient,
+	signUnsubscribeToken,
+} from "./subscriptions";
+
+type Db = Awaited<ReturnType<typeof getDb>>;
+
+const APP_URL = "https://walgo.lt";
+// How many concurrent sends per batch — the CF binding sends one message per
+// call, so we fan out in small batches to stay polite to the quota.
+const SEND_BATCH_SIZE = 20;
 
 export interface SendNewsletterOptions {
-	/**
-	 * Newsletter content. The unsubscribe link is handled by Resend (the
-	 * template defaults to the `{{{RESEND_UNSUBSCRIBE_URL}}}` merge tag), so it
-	 * is omitted here.
-	 */
+	/** Newsletter content (the per-recipient unsubscribe link is added here). */
 	content: Omit<NewsletterEmailProps, "unsubscribeUrl">;
-	/**
-	 * Optional schedule time — ISO 8601 (`2026-08-05T11:52:01Z`) or relative
-	 * (`in 1 hour`). Omit to send immediately.
-	 */
-	scheduledAt?: string;
+	/** Database handle used to load the opted-in recipients. */
+	db: Db;
 	/** Email subject line. */
 	subject: string;
 }
 
+const unsubscribeUrl = (token: string) =>
+	`${APP_URL}/unsubscribe?token=${encodeURIComponent(token)}`;
+
 /**
- * Renders the newsletter template to an HTML string using the WAL GO defaults.
- * The admin preview renders the same template client-side with the same shared
- * defaults (`WALGO_NEWSLETTER_DEFAULTS`), so the preview matches what recipients
- * receive.
+ * Renders the newsletter template to HTML for one recipient, injecting their
+ * personal unsubscribe link. The admin preview renders the same template
+ * client-side with the same shared defaults, so the preview matches what
+ * recipients receive (minus the tokenized link).
  */
 export function renderNewsletter(
-	content: Omit<NewsletterEmailProps, "unsubscribeUrl">
+	content: Omit<NewsletterEmailProps, "unsubscribeUrl">,
+	recipientUnsubscribeUrl: string
 ): Promise<string> {
 	return render(
-		createElement(NewsletterEmail, { ...WALGO_NEWSLETTER_DEFAULTS, ...content })
+		createElement(NewsletterEmail, {
+			...WALGO_NEWSLETTER_DEFAULTS,
+			...content,
+			unsubscribeUrl: recipientUnsubscribeUrl,
+		})
 	);
 }
 
+async function sendToRecipient(
+	recipient: Recipient,
+	subject: string,
+	content: Omit<NewsletterEmailProps, "unsubscribeUrl">
+): Promise<void> {
+	const url = unsubscribeUrl(await signUnsubscribeToken(recipient.userId));
+	const html = await renderNewsletter(content, url);
+	await sendEmail({
+		to: recipient.email,
+		subject,
+		html,
+		headers: {
+			"List-Unsubscribe": `<${url}>`,
+			"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+		},
+	});
+}
+
 /**
- * Renders the newsletter and sends it as a Resend Broadcast to the configured
- * Segment. Resend owns the unsubscribe flow end to end: it replaces the
- * `{{{RESEND_UNSUBSCRIBE_URL}}}` merge tag per contact, hosts the unsubscribe
- * page, sets the one-click `List-Unsubscribe` headers, and skips contacts that
- * have already unsubscribed. Returns the Resend broadcast id.
+ * Renders and sends the newsletter to every opted-in user via the Cloudflare
+ * `EMAIL` binding. Each recipient gets a personal tokenized unsubscribe link
+ * plus the one-click `List-Unsubscribe` headers (Gmail/Yahoo bulk rules). Sends
+ * in small concurrent batches; returns the number successfully sent.
  */
 export async function sendNewsletter({
 	subject,
 	content,
-	scheduledAt,
-}: SendNewsletterOptions): Promise<string> {
-	const segmentId = env.RESEND_SEGMENT_ID;
-	if (!segmentId) {
-		throw new Error(
-			"RESEND_SEGMENT_ID is not set; cannot send the newsletter broadcast"
-		);
+	db,
+}: SendNewsletterOptions): Promise<number> {
+	const recipients = await getSubscribedRecipients(db);
+
+	// Batches run sequentially (recipients within a batch concurrently) so total
+	// concurrency stays capped at SEND_BATCH_SIZE.
+	const counts: number[] = [];
+	for (const batch of chunk(recipients, SEND_BATCH_SIZE)) {
+		counts.push(await sendBatch(batch, subject, content));
 	}
+	return counts.reduce((total, count) => total + count, 0);
+}
 
-	const resend = new Resend(env.RESEND_API_KEY);
+async function sendBatch(
+	batch: Recipient[],
+	subject: string,
+	content: Omit<NewsletterEmailProps, "unsubscribeUrl">
+): Promise<number> {
+	const results = await Promise.allSettled(
+		batch.map((recipient) => sendToRecipient(recipient, subject, content))
+	);
+	return results.filter((result) => result.status === "fulfilled").length;
+}
 
-	const html = await renderNewsletter(content);
-
-	const { data, error } = await resend.broadcasts.create({
-		segmentId,
-		from: FROM,
-		subject,
-		html,
-		previewText: content.preview,
-		send: true,
-		scheduledAt,
-	});
-
-	if (error) {
-		throw new Error(`Failed to send newsletter broadcast: ${error.message}`);
-	}
-
-	return data?.id ?? "";
+function chunk<T>(items: T[], size: number): T[][] {
+	return Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+		items.slice(index * size, index * size + size)
+	);
 }

@@ -28,7 +28,6 @@
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
     "react": "^19.2.3",
-    "resend": "^6.12.4",
     "zod": "catalog:"
   },
   "devDependencies": {

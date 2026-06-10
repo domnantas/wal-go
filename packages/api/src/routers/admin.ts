@@ -9,9 +9,9 @@ import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import { adminProcedure } from "../index";
-import { getAudienceInfo, syncAllContacts } from "../notifications/contacts";
 import { announceOwnershipChanges } from "../notifications/discord";
 import { sendNewsletter } from "../notifications/newsletter";
+import { getAudienceInfo } from "../notifications/subscriptions";
 import {
 	applyScoreDeltas,
 	applyUserBanScoreChange,
@@ -645,12 +645,9 @@ const listUploads = adminProcedure.handler(async ({ context }) => {
 	return rows;
 });
 
-const newsletterAudience = adminProcedure.handler(() => getAudienceInfo());
-
-const syncNewsletterContacts = adminProcedure.handler(async () => {
-	const created = await syncAllContacts();
-	return { created };
-});
+const newsletterAudience = adminProcedure.handler(({ context }) =>
+	getAudienceInfo(context.db)
+);
 
 const newsletterSectionInput = z.object({
 	title: z.string().trim().min(1),
@@ -670,18 +667,17 @@ const sendNewsletterBroadcast = adminProcedure
 			sections: z.array(newsletterSectionInput).max(20).optional(),
 			ctaLabel: z.string().trim().max(120).optional(),
 			ctaUrl: z.url().optional(),
-			scheduledAt: z.string().trim().min(1).optional(),
 		})
 	)
-	.handler(async ({ input }) => {
+	.handler(async ({ context, input }) => {
 		if ((input.ctaLabel ? 1 : 0) !== (input.ctaUrl ? 1 : 0)) {
 			throw new ORPCError("BAD_REQUEST", {
 				message: "Mygtuko tekstas ir nuoroda turi būti nurodyti kartu",
 			});
 		}
-		const broadcastId = await sendNewsletter({
+		const sent = await sendNewsletter({
+			db: context.db,
 			subject: input.subject,
-			scheduledAt: input.scheduledAt,
 			content: {
 				label: input.label,
 				heading: input.heading,
@@ -693,14 +689,13 @@ const sendNewsletterBroadcast = adminProcedure
 				localization: WALGO_NEWSLETTER_LOCALIZATION,
 			},
 		});
-		return { broadcastId };
+		return { sent };
 	});
 
 export const adminRouter = {
 	dashboard: getDashboard,
 	newsletter: {
 		audience: newsletterAudience,
-		syncContacts: syncNewsletterContacts,
 		send: sendNewsletterBroadcast,
 	},
 	users: {

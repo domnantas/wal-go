@@ -11,6 +11,7 @@
     "@WAL-GO/callsign": "workspace:*",
     "@WAL-GO/api": "workspace:*",
     "@WAL-GO/auth": "workspace:*",
+    "@WAL-GO/db": "workspace:*",
     "@WAL-GO/email": "workspace:*",
     "@WAL-GO/env": "workspace:*",
     "@WAL-GO/grid": "workspace:*",

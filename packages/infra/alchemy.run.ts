@@ -2,6 +2,7 @@ import { RemovalPolicy, Secret, Stack, Stage, Variable } from "alchemy";
 import {
 	providers as cfProviders,
 	Hyperdrive,
+	SendEmail,
 	state,
 	Vite,
 } from "alchemy/Cloudflare";
@@ -89,6 +90,10 @@ export default Stack(
 			},
 		});
 
+		const email = yield* SendEmail("EMAIL", {
+			allowedSenderAddresses: ["noreply@walgo.lt", "admin@walgo.lt"],
+		});
+
 		const web = yield* Vite("web", {
 			rootDir: "../../apps/web",
 			memo: {
@@ -108,7 +113,7 @@ export default Stack(
 			compatibility: {
 				flags: ["nodejs_compat", "nodejs_compat_populate_process_env"],
 			},
-			bindings: { HYPERDRIVE: hyperdrive },
+			bindings: { HYPERDRIVE: hyperdrive, EMAIL: email },
 			observability: {
 				enabled: true,
 				logs: {
@@ -128,14 +133,10 @@ export default Stack(
 					: {}),
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
 				DATABASE_URL: role.connectionUrl,
-				RESEND_API_KEY: Secret("RESEND_API_KEY"),
 				// Optional: announcements are disabled when the secret is unset, so
 				// only bind it when present (e.g. preview deploys may omit it).
 				...(process.env.DISCORD_WEBHOOK_URL
 					? { DISCORD_WEBHOOK_URL: Secret("DISCORD_WEBHOOK_URL") }
-					: {}),
-				...(process.env.RESEND_SEGMENT_ID
-					? { RESEND_SEGMENT_ID: Secret("RESEND_SEGMENT_ID") }
 					: {}),
 				VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: Variable(
 					"VITE_PUBLIC_POSTHOG_PROJECT_TOKEN"

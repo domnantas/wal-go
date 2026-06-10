@@ -24,12 +24,6 @@ export const env = {
 	get DATABASE_URL() {
 		return process.env.DATABASE_URL;
 	},
-	get RESEND_API_KEY() {
-		return required("RESEND_API_KEY");
-	},
-	get RESEND_SEGMENT_ID() {
-		return process.env.RESEND_SEGMENT_ID;
-	},
 	get DISCORD_WEBHOOK_URL() {
 		return process.env.DISCORD_WEBHOOK_URL;
 	},

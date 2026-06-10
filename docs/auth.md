@@ -53,10 +53,9 @@ The `admin` Better Auth plugin adds a `role` field (`"user"` | `"admin"`). `/adm
 
 ## Email verification
 
-Required (`requireEmailVerification: true`). On sign-up, Better Auth sends a verification email via Resend (`noreply@walgo.lt`); the user must click the link before signing in. The `sendVerificationEmail` callback lives in `emailVerification` (not `emailAndPassword`) in `packages/auth/src/index.ts`, using `RESEND_API_KEY`, which must be set in:
+Required (`requireEmailVerification: true`). On sign-up, Better Auth sends a verification email through the **Cloudflare Email Sending** binding (`noreply@walgo.lt`); the user must click the link before signing in. The `sendVerificationEmail` callback lives in `emailVerification` (not `emailAndPassword`) in `packages/auth/src/index.ts` and delivers via `sendEmail` from `@WAL-GO/email/lib/send`.
 
-- Local dev: `apps/web/.env` (`RESEND_API_KEY=re_...`).
-- Cloudflare (prod/preview): Alchemy `Secret("RESEND_API_KEY")` in `packages/infra/alchemy.run.ts`; set via `alchemy secret set RESEND_API_KEY` or the Cloudflare dashboard.
+Transport is the `EMAIL` Worker binding (no API key), declared in `packages/infra/alchemy.run.ts` and typed on `CloudflareEnv` in `packages/env/env.d.ts`. The sender domain `walgo.lt` must be onboarded for Cloudflare Email Sending (Beta, Workers Paid). Outside the Worker runtime (local node dev) there is no binding, so emails are logged and not sent — grab the verification/reset link from the server logs.
 
 Template: `EmailVerificationEmail` (`packages/email/src/email-verification.tsx`). It shares the warm WAL GO styling (`WARM_SURFACE` + `BRAND` from `email-styles`) with the newsletter — centered 128px logo on a rounded card, brown CTA button, rust accent links. See [newsletter.md](./newsletter.md#template).
 
@@ -67,8 +66,8 @@ Keep `requireEmailVerification` in sync between the server config and `AuthProvi
 Fully wired:
 
 - UI routes `/auth/forgot-password` and `/auth/reset-password` (the `Auth` component in `packages/ui`).
-- `sendResetPassword` callback in `emailAndPassword` sends a Lithuanian reset email via Resend.
-- Template: `ResetPasswordEmail` (`packages/email/src/reset-password-email.tsx`). Email templates live in the `@WAL-GO/email` package (see [newsletter.md](./newsletter.md) for the preview server); `packages/auth` imports them and does its own Resend send. Shares the warm WAL GO styling (`WARM_SURFACE` + `BRAND`) with the newsletter and verification email.
+- `sendResetPassword` callback in `emailAndPassword` sends a Lithuanian reset email through the `EMAIL` binding (`sendEmail`).
+- Template: `ResetPasswordEmail` (`packages/email/src/reset-password-email.tsx`). Email templates live in the `@WAL-GO/email` package (see [newsletter.md](./newsletter.md) for the preview server); `packages/auth` imports them and sends via `@WAL-GO/email/lib/send`. Shares the warm WAL GO styling (`WARM_SURFACE` + `BRAND`) with the newsletter and verification email.
 - Links expire in 60 minutes. The link lands on `/auth/reset-password?token=<token>`; the UI reads the token and calls Better Auth's `/reset-password`.
 
 ## Password visibility toggle

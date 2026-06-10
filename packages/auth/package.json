@@ -22,7 +22,6 @@
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
-    "resend": "^6.12.4",
     "zod": "catalog:"
   },
   "devDependencies": {

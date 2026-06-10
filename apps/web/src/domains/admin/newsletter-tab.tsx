@@ -20,8 +20,8 @@ import { Label } from "@WAL-GO/ui/components/label";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { Textarea } from "@WAL-GO/ui/components/textarea";
 import { render } from "@react-email/components";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, RefreshCw, Send, Trash2 } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Plus, Send, Trash2 } from "lucide-react";
 import { createElement, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -49,24 +49,8 @@ const trimmedOrUndefined = (value: string) => {
 };
 
 export function NewsletterTab() {
-	const queryClient = useQueryClient();
-	const audienceKey = orpc.admin.newsletter.audience.queryOptions().queryKey;
 	const { data: audience, isPending: isAudiencePending } = useQuery(
 		orpc.admin.newsletter.audience.queryOptions()
-	);
-
-	const syncContacts = useMutation(
-		orpc.admin.newsletter.syncContacts.mutationOptions({
-			onSuccess: ({ created }) => {
-				queryClient.invalidateQueries({ queryKey: audienceKey });
-				toast.success(
-					created > 0
-						? `Pridėta naujų kontaktų: ${created}`
-						: "Visi naudotojai jau yra auditorijoje"
-				);
-			},
-			onError: (error) => toast.error(error.message),
-		})
 	);
 
 	const [subject, setSubject] = useState("");
@@ -79,8 +63,8 @@ export function NewsletterTab() {
 
 	const send = useMutation(
 		orpc.admin.newsletter.send.mutationOptions({
-			onSuccess: () => {
-				toast.success("Naujienlaiškis išsiųstas");
+			onSuccess: ({ sent }) => {
+				toast.success(`Naujienlaiškis išsiųstas (${sent})`);
 				setSubject("");
 				setLabel("");
 				setHeading("");
@@ -186,27 +170,13 @@ export function NewsletterTab() {
 	return (
 		<div className="flex flex-col gap-6">
 			<section className="rounded-4xl border border-border bg-card p-5">
-				<div className="flex items-start justify-between gap-4">
-					<div>
-						<h2 className="font-semibold text-lg">Prenumeratorių auditorija</h2>
-						<p className="mt-1 text-muted-foreground text-sm">
-							Prenumeratą ir atsisakymą tvarko Resend. Sinchronizavimas prideda
-							naudotojus, kurių dar nėra auditorijoje (atsisakiusiųjų neliečia).
-						</p>
-					</div>
-					<Button
-						disabled={syncContacts.isPending}
-						onClick={() => syncContacts.mutate({})}
-						size="sm"
-						variant="outline"
-					>
-						{syncContacts.isPending ? (
-							<Spinner />
-						) : (
-							<RefreshCw className="size-4" />
-						)}
-						Sinchronizuoti
-					</Button>
+				<div>
+					<h2 className="font-semibold text-lg">Prenumeratoriai</h2>
+					<p className="mt-1 text-muted-foreground text-sm">
+						Naujienlaiškį siunčiame el. paštu visiems, kurie jį prenumeruoja.
+						Nauji naudotojai užprenumeruojami automatiškai; atsisakyti galima
+						laiško apačioje arba paskyros nustatymuose.
+					</p>
 				</div>
 
 				<AudienceSummary audience={audience} isPending={isAudiencePending} />
@@ -364,9 +334,9 @@ export function NewsletterTab() {
 								<AlertDialogHeader>
 									<AlertDialogTitle>Siųsti naujienlaiškį?</AlertDialogTitle>
 									<AlertDialogDescription>
-										{audience?.configured
+										{audience
 											? `Laiškas bus išsiųstas ${audience.subscribed} prenumeratoriams. Šio veiksmo atšaukti negalima.`
-											: "Auditorija nenustatyta — siuntimas nepavyks."}
+											: "Įkeliama…"}
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -429,10 +399,8 @@ function useDebounced<T>(value: T, delayMs: number): T {
 }
 
 interface AudienceData {
-	configured: boolean;
 	subscribed: number;
 	total: number;
-	unsubscribed: number;
 }
 
 function AudienceSummary({
@@ -442,7 +410,7 @@ function AudienceSummary({
 	audience: AudienceData | undefined;
 	isPending: boolean;
 }) {
-	if (isPending) {
+	if (isPending || !audience) {
 		return (
 			<div className="flex justify-center py-4">
 				<Spinner className="size-6" />
@@ -450,20 +418,11 @@ function AudienceSummary({
 		);
 	}
 
-	if (!audience?.configured) {
-		return (
-			<p className="mt-4 rounded-2xl bg-muted/40 p-3 text-muted-foreground text-sm">
-				Nenustatytas <code>RESEND_SEGMENT_ID</code>. Sukurkite segmentą Resend
-				ir nustatykite kintamąjį, kad galėtumėte siųsti.
-			</p>
-		);
-	}
-
 	return (
 		<dl className="mt-4 grid grid-cols-3 gap-3 text-center">
-			<Stat label="Iš viso" value={audience.total} />
+			<Stat label="Naudotojų" value={audience.total} />
 			<Stat label="Prenumeruoja" value={audience.subscribed} />
-			<Stat label="Atsisakė" value={audience.unsubscribed} />
+			<Stat label="Atsisakė" value={audience.total - audience.subscribed} />
 		</dl>
 	);
 }
