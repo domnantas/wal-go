@@ -9,6 +9,7 @@ import { ORPCError } from "@orpc/server";
 import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
+import { uploadNewsletterImage } from "../assets/newsletter-images";
 import { adminProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
 import {
@@ -702,6 +703,10 @@ const newsletterContent = (input: z.infer<typeof newsletterContentInput>) => ({
 	localization: WALGO_NEWSLETTER_LOCALIZATION,
 });
 
+const uploadNewsletterImageEndpoint = adminProcedure
+	.input(z.object({ image: z.instanceof(File) }))
+	.handler(({ input }) => uploadNewsletterImage(input.image));
+
 const sendNewsletterTestMessage = adminProcedure
 	.input(
 		newsletterContentInput.extend({
@@ -736,6 +741,7 @@ export const adminRouter = {
 		audience: newsletterAudience,
 		send: sendNewsletterBroadcast,
 		sendTest: sendNewsletterTestMessage,
+		uploadImage: uploadNewsletterImageEndpoint,
 	},
 	users: {
 		list: listUsers,

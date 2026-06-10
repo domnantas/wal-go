@@ -75,6 +75,35 @@ unsubscribe flow end to end:
 - The in-app settings toggle writes the same `subscribed` flag, so the link and
   the toggle stay consistent.
 
+## Images
+
+Newsletter images are **hotlinked by absolute URL**, not embedded — every
+recipient's mail client fetches the image fresh on each open. So an image must
+stay hosted at a stable public URL **forever**; deleting it breaks the picture
+in every already-sent newsletter.
+
+- **Storage** — a public R2 bucket (`walgo-newsletter-assets`), bound to the
+  Worker as `ASSETS_BUCKET` and served from the custom domain
+  **`https://assets.walgo.lt`** (declared in
+  `packages/infra/alchemy.run.ts`; the domain is attached in **prod only**,
+  preview deploys share the binding without a domain). Typed minimally on
+  `CloudflareEnv` in `packages/env/env.d.ts`.
+- **Upload** — `packages/api/src/assets/newsletter-images.ts`
+  (`uploadNewsletterImage`) resolves the binding lazily via `cloudflare:workers`
+  (same pattern as `@WAL-GO/db`/`sendEmail`), validates type
+  (PNG/JPG/WEBP/GIF) and size (≤ 5 MB), writes the object under an **immutable
+  key** (`newsletter/{uuid}.{ext}` — never overwritten or deleted, so old
+  newsletters never break), and returns the `assets.walgo.lt` URL.
+- **Endpoint** — `admin.newsletter.uploadImage` (admin-only) takes a `File`
+  (oRPC handles the multipart upload) and returns the public URL.
+- **Admin UI** — each section's image field (`newsletter-tab.tsx`,
+  `SectionImageField`) uploads the picked file and fills `imageUrl` with the
+  returned URL, showing a thumbnail. A manual URL input remains as a fallback.
+
+The section `imageUrl` renders as a full-width image above the section title;
+the email also accepts Markdown images inside `intro`/`body` (no width cap is
+pinned for those, so prefer `imageUrl`).
+
 ## Template
 
 `NewsletterEmail` follows the brand design from [design.md](./design.md) (warm
@@ -123,6 +152,10 @@ declared in `packages/infra/alchemy.run.ts`
 (`SendEmail("EMAIL", { allowedSenderAddresses: ["noreply@walgo.lt"] })`) and
 typed on `CloudflareEnv` in `packages/env/env.d.ts`. Sender is
 `WAL GO <noreply@walgo.lt>`.
+
+Image hosting uses the public R2 bucket `ASSETS_BUCKET` on `assets.walgo.lt`
+(see [Images](#images)). Alchemy creates the R2 custom-domain DNS record in the
+`walgo.lt` zone; no manual setup beyond the prod deploy.
 
 **Prerequisite:** `walgo.lt` must be onboarded for **Cloudflare Email Sending**
 (Beta, Workers Paid). Until then, sends reach only verified destination

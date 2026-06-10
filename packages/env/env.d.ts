@@ -2,6 +2,15 @@ export {};
 
 declare global {
 	interface CloudflareEnv {
+		// Public R2 bucket for newsletter images (see infra alchemy.run.ts).
+		// Typed with just the `put` we use; the runtime binding is a full R2Bucket.
+		ASSETS_BUCKET?: {
+			put(
+				key: string,
+				value: ArrayBuffer | ArrayBufferView | ReadableStream | string,
+				options?: { httpMetadata?: { contentType?: string } }
+			): Promise<unknown>;
+		};
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL?: string;
 		CORS_ORIGIN?: string;

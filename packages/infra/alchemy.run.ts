@@ -2,6 +2,7 @@ import { RemovalPolicy, Secret, Stack, Stage, Variable } from "alchemy";
 import {
 	providers as cfProviders,
 	Hyperdrive,
+	R2Bucket,
 	SendEmail,
 	state,
 	Vite,
@@ -94,6 +95,16 @@ export default Stack(
 			allowedSenderAddresses: ["noreply@walgo.lt", "admin@walgo.lt"],
 		});
 
+		// Public bucket for newsletter images. Served from a custom domain so the
+		// URLs embedded in already-sent emails stay valid forever (recipients fetch
+		// the image fresh on every open). Keys are immutable, so objects are never
+		// overwritten or deleted. The public domain is attached in prod only;
+		// preview deploys share the same bucket binding without a domain.
+		const newsletterAssets = yield* R2Bucket("newsletter-assets", {
+			name: "walgo-newsletter-assets",
+			domains: isProd ? [{ name: "assets.walgo.lt", enabled: true }] : [],
+		});
+
 		const web = yield* Vite("web", {
 			rootDir: "../../apps/web",
 			memo: {
@@ -113,7 +124,11 @@ export default Stack(
 			compatibility: {
 				flags: ["nodejs_compat", "nodejs_compat_populate_process_env"],
 			},
-			bindings: { HYPERDRIVE: hyperdrive, EMAIL: email },
+			bindings: {
+				HYPERDRIVE: hyperdrive,
+				EMAIL: email,
+				ASSETS_BUCKET: newsletterAssets,
+			},
 			observability: {
 				enabled: true,
 				logs: {

@@ -21,8 +21,8 @@ import { Spinner } from "@WAL-GO/ui/components/spinner";
 import { Textarea } from "@WAL-GO/ui/components/textarea";
 import { render } from "@react-email/components";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Plus, Send, Trash2 } from "lucide-react";
-import { createElement, useEffect, useMemo, useState } from "react";
+import { ImagePlus, Plus, Send, Trash2, X } from "lucide-react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { orpc } from "@/utils/orpc";
@@ -295,22 +295,17 @@ export function NewsletterTab() {
 									value={section.body}
 								/>
 								<MarkdownHint />
-								<div className="grid gap-3 sm:grid-cols-2">
-									<Input
-										onChange={(e) =>
-											updateSection(index, { imageUrl: e.target.value })
-										}
-										placeholder="Paveikslėlio URL (nebūtina)"
-										value={section.imageUrl}
-									/>
-									<Input
-										onChange={(e) =>
-											updateSection(index, { url: e.target.value })
-										}
-										placeholder="Nuorodos URL (nebūtina)"
-										value={section.url}
-									/>
-								</div>
+								<SectionImageField
+									onChange={(imageUrl) => updateSection(index, { imageUrl })}
+									value={section.imageUrl}
+								/>
+								<Input
+									onChange={(e) =>
+										updateSection(index, { url: e.target.value })
+									}
+									placeholder="Nuorodos URL (nebūtina)"
+									value={section.url}
+								/>
 								<Input
 									onChange={(e) =>
 										updateSection(index, { linkLabel: e.target.value })
@@ -482,6 +477,81 @@ function Stat({ label, value }: { label: string; value: number }) {
 		<div className="rounded-2xl bg-muted/40 p-3">
 			<dt className="text-muted-foreground text-xs">{label}</dt>
 			<dd className="mt-1 font-semibold text-2xl tabular-nums">{value}</dd>
+		</div>
+	);
+}
+
+function SectionImageField({
+	value,
+	onChange,
+}: {
+	value: string;
+	onChange: (imageUrl: string) => void;
+}) {
+	const inputRef = useRef<HTMLInputElement>(null);
+	const upload = useMutation(
+		orpc.admin.newsletter.uploadImage.mutationOptions({
+			onSuccess: (url) => onChange(url),
+			onError: (error) => toast.error(error.message),
+		})
+	);
+
+	const handleFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		event.target.value = "";
+		if (file) {
+			upload.mutate({ image: file });
+		}
+	};
+
+	return (
+		<div className="flex flex-col gap-2">
+			<input
+				accept="image/png,image/jpeg,image/webp,image/gif"
+				className="hidden"
+				onChange={handleFile}
+				ref={inputRef}
+				tabIndex={-1}
+				type="file"
+			/>
+			<div className="flex items-center gap-3">
+				{value ? (
+					<img
+						alt="Skilties paveikslėlis"
+						className="size-16 shrink-0 rounded-lg border border-border object-cover"
+						src={value}
+					/>
+				) : null}
+				<Button
+					disabled={upload.isPending}
+					onClick={() => inputRef.current?.click()}
+					size="sm"
+					type="button"
+					variant="outline"
+				>
+					{upload.isPending ? (
+						<Spinner className="size-4" />
+					) : (
+						<ImagePlus className="size-4" />
+					)}
+					{value ? "Pakeisti paveikslėlį" : "Įkelti paveikslėlį"}
+				</Button>
+				{value ? (
+					<Button
+						onClick={() => onChange("")}
+						size="icon-sm"
+						type="button"
+						variant="ghost"
+					>
+						<X className="size-4" />
+					</Button>
+				) : null}
+			</div>
+			<Input
+				onChange={(e) => onChange(e.target.value)}
+				placeholder="Arba paveikslėlio URL (nebūtina)"
+				value={value}
+			/>
 		</div>
 	);
 }
