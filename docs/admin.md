@@ -68,6 +68,12 @@ A row is written to `cabrillo_upload` (which carries a `format` column) inside t
 
 Via `admin.qsos.*`. `admin.qsos.deleteMany` takes `{ ids }` (1–500) and, in one transaction, runs `scoreDelete` + `applyScoreDeltas` per row (each row scored against its own season) before deleting, then announces the accumulated ownership changes to Discord. Missing ids are skipped silently.
 
+### Settings (Nustatymai)
+
+Global runtime settings. Currently a single **maintenance mode** switch
+(`settings.maintenance` / `settings.setMaintenance`) — when on, all non-admin
+visitors are redirected to `/maintenance`. See [maintenance.md](maintenance.md).
+
 ## orpc queryOptions API note
 
 When calling `queryOptions` on a procedure that requires input, wrap it under `input`:

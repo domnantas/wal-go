@@ -41,6 +41,13 @@ updatedAt: timestamp("updated_at")
 
 User-facing event timestamps (`joined_at`, `starts_at`) take `{ precision: 6, withTimezone: true }`.
 
+### Singleton config
+
+`app_config` holds global runtime settings (e.g. maintenance mode) in a single
+row keyed by a fixed id constant (`APP_CONFIG_ID = 1`) instead of
+`generatedAlwaysAsIdentity()`. Writes upsert via `onConflictDoUpdate` on the id;
+a missing row means defaults. See [maintenance.md](maintenance.md).
+
 ## Relations
 
 Declare relations in a separate `xRelations = relations(...)` export, mirroring `schema/auth.ts`. Cyclic imports between schema files are fine — Drizzle resolves relations lazily.

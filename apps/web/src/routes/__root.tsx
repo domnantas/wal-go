@@ -4,12 +4,13 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
+	redirect,
 	Scripts,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "tanstack-theme-kit";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
-import type { orpc } from "@/utils/orpc";
+import { client, type orpc } from "@/utils/orpc";
 import { CookieBanner } from "../components/cookie-banner";
 import Header from "../components/header";
 import { Providers } from "../components/providers";
@@ -30,11 +31,27 @@ export interface RouterAppContext {
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
-	beforeLoad: async ({ context: { queryClient } }) => {
+	beforeLoad: async ({ context: { queryClient }, location }) => {
 		const session = await getUser();
 		// Seed the shared session query so the library `useSession` reads it on the
 		// first (SSR + hydrated) render — no logged-out flash in the header.
 		queryClient.setQueryData(sessionOptions(authClient).queryKey, session);
+
+		// Maintenance gate. Admins keep full access (so they can verify and toggle
+		// it off). /auth stays open so an admin can sign in while it's on.
+		const isAdmin = session?.user?.role === "admin";
+		if (!isAdmin) {
+			const { maintenanceMode } = await client.settings.maintenance();
+			const onMaintenancePage = location.pathname === "/maintenance";
+			const onAuthPage = location.pathname.startsWith("/auth");
+			if (maintenanceMode && !(onMaintenancePage || onAuthPage)) {
+				throw redirect({ to: "/maintenance" });
+			}
+			if (!maintenanceMode && onMaintenancePage) {
+				throw redirect({ to: "/" });
+			}
+		}
+
 		return { session };
 	},
 	loader: ({ context }) => ({ session: context.session }),

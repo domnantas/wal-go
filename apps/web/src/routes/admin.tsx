@@ -10,6 +10,7 @@ import { DashboardTab } from "@/domains/admin/dashboard-tab";
 import { NewsletterTab } from "@/domains/admin/newsletter-tab";
 import { QsosTab } from "@/domains/admin/qsos-tab";
 import { SeasonsTab } from "@/domains/admin/seasons-tab";
+import { SettingsTab } from "@/domains/admin/settings-tab";
 import { UploadsTab } from "@/domains/admin/uploads-tab";
 import { UsersTab } from "@/domains/admin/users-tab";
 import { getUser } from "@/functions/get-user";
@@ -42,6 +43,7 @@ function AdminPage() {
 					<TabsTrigger value="qsos">QSO</TabsTrigger>
 					<TabsTrigger value="uploads">Įkėlimai</TabsTrigger>
 					<TabsTrigger value="newsletter">Naujienlaiškis</TabsTrigger>
+					<TabsTrigger value="settings">Nustatymai</TabsTrigger>
 				</TabsList>
 				<TabsContent value="dashboard">
 					<DashboardTab />
@@ -60,6 +62,9 @@ function AdminPage() {
 				</TabsContent>
 				<TabsContent value="newsletter">
 					<NewsletterTab />
+				</TabsContent>
+				<TabsContent value="settings">
+					<SettingsTab />
 				</TabsContent>
 			</Tabs>
 		</main>

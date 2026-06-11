@@ -1,4 +1,5 @@
 // biome-ignore lint/performance/noBarrelFile: It's ok for schema exports
+export * from "./app-config.ts";
 export * from "./auth.ts";
 export * from "./newsletter.ts";
 export * from "./qsos.ts";

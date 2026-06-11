@@ -6,6 +6,7 @@ import { newsletterRouter } from "./newsletter";
 import { qsosRouter } from "./qsos";
 import { scoringRouter } from "./scoring";
 import { seasonsRouter } from "./seasons";
+import { settingsRouter } from "./settings";
 
 export const appRouter = {
 	healthCheck: publicProcedure.handler(() => "OK"),
@@ -18,6 +19,7 @@ export const appRouter = {
 	qsos: qsosRouter,
 	scoring: scoringRouter,
 	seasons: seasonsRouter,
+	settings: settingsRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

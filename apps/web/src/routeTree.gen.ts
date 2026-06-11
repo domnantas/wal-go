@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as JoinSeasonRouteImport } from './routes/join-season'
@@ -36,6 +37,11 @@ const RulesRoute = RulesRouteImport.update({
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaintenanceRoute = MaintenanceRouteImport.update({
+  id: '/maintenance',
+  path: '/maintenance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/join-season': typeof JoinSeasonRoute
   '/leaderboard': typeof LeaderboardRoute
   '/log': typeof LogRoute
+  '/maintenance': typeof MaintenanceRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/join-season': typeof JoinSeasonRoute
   '/leaderboard': typeof LeaderboardRoute
   '/log': typeof LogRoute
+  '/maintenance': typeof MaintenanceRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/join-season': typeof JoinSeasonRoute
   '/leaderboard': typeof LeaderboardRoute
   '/log': typeof LogRoute
+  '/maintenance': typeof MaintenanceRoute
   '/map': typeof MapRoute
   '/rules': typeof RulesRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/leaderboard'
     | '/log'
+    | '/maintenance'
     | '/map'
     | '/rules'
     | '/unsubscribe'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/leaderboard'
     | '/log'
+    | '/maintenance'
     | '/map'
     | '/rules'
     | '/unsubscribe'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/join-season'
     | '/leaderboard'
     | '/log'
+    | '/maintenance'
     | '/map'
     | '/rules'
     | '/unsubscribe'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   JoinSeasonRoute: typeof JoinSeasonRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LogRoute: typeof LogRoute
+  MaintenanceRoute: typeof MaintenanceRoute
   MapRoute: typeof MapRoute
   RulesRoute: typeof RulesRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/map'
       fullPath: '/map'
       preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maintenance': {
+      id: '/maintenance'
+      path: '/maintenance'
+      fullPath: '/maintenance'
+      preLoaderRoute: typeof MaintenanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinSeasonRoute: JoinSeasonRoute,
   LeaderboardRoute: LeaderboardRoute,
   LogRoute: LogRoute,
+  MaintenanceRoute: MaintenanceRoute,
   MapRoute: MapRoute,
   RulesRoute: RulesRoute,
   UnsubscribeRoute: UnsubscribeRoute,

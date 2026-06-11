@@ -8,7 +8,7 @@ import {
 } from "@WAL-GO/ui/components/dropdown-menu";
 import { useSession } from "@better-auth-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
 	BookOpen,
 	Map as MapIcon,
@@ -26,6 +26,7 @@ import { authClient } from "@/lib/auth-client";
 import { orpc } from "@/utils/orpc";
 
 export default function Header() {
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const { data: session } = useSession(authClient);
 	const isAuthenticated = !!session?.user;
 	const isAdmin = session?.user?.role === "admin";
@@ -63,6 +64,10 @@ export default function Header() {
 	const allLinks = isAuthenticated
 		? ([...authLinks, ...publicLinks] as const)
 		: publicLinks;
+
+	if (pathname === "/maintenance") {
+		return null;
+	}
 
 	return (
 		<header className="sticky top-0 z-50 border-border/60 border-b bg-card/50 backdrop-blur-sm">
