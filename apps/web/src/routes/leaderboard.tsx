@@ -96,7 +96,7 @@ function RouteComponent() {
 		<main className="container mx-auto flex max-w-4xl flex-col gap-8 px-4 py-12">
 			<div className="flex flex-wrap items-end justify-between gap-4">
 				<div>
-					<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.14em]">
+					<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
 						Sezono rezultatai
 					</p>
 					<h1 className="mt-2 font-bold font-serif text-4xl tracking-tight">

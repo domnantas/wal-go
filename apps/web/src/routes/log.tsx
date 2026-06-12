@@ -258,6 +258,24 @@ function RouteComponent() {
 
 	return (
 		<main className="container mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
+			<div className="flex flex-wrap items-end justify-between gap-4">
+				<div>
+					<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
+						{displaySeason ? `Žurnalas · ${displaySeason.name}` : "Žurnalas"}
+					</p>
+					<h1 className="mt-2 font-bold font-serif text-4xl tracking-tight">
+						Stoties žurnalas
+					</h1>
+				</div>
+				{showSeasonSelector && displaySeason ? (
+					<SeasonSelect
+						displaySeason={displaySeason}
+						onChange={handleSeasonChange}
+						seasons={viewableSeasons}
+					/>
+				) : null}
+			</div>
+
 			{!activeSeason && upcomingSeason ? (
 				<SeasonCountdownCard
 					onComplete={handleSeasonTimingComplete}
@@ -280,34 +298,26 @@ function RouteComponent() {
 				</div>
 			) : null}
 
-			{showSeasonSelector && displaySeason ? (
-				<SeasonSelect
-					displaySeason={displaySeason}
-					onChange={handleSeasonChange}
-					seasons={viewableSeasons}
-				/>
-			) : null}
-
 			{showLog ? (
 				<>
 					<div className="grid grid-cols-2 gap-4 md:grid-cols-4">
 						<StatCard
-							icon={<Radio className="size-5" />}
+							icon={<Radio className="size-4" />}
 							label="Iš viso QSO"
 							value={statValues.totalQsos}
 						/>
 						<StatCard
-							icon={<MapPinned className="size-5" />}
+							icon={<MapPinned className="size-4" />}
 							label="Unikalūs kvadratai"
 							value={statValues.uniqueSquares}
 						/>
 						<StatCard
-							icon={<Star className="size-5" />}
+							icon={<Star className="size-4" />}
 							label="Surinkti taškai"
 							value={statValues.points}
 						/>
 						<StatCard
-							icon={<Users className="size-5" />}
+							icon={<Users className="size-4" />}
 							label="Unikalūs korespondentai"
 							value={statValues.uniqueContactCallsigns}
 						/>
@@ -347,15 +357,15 @@ function StatCard({
 	value: number;
 }) {
 	return (
-		<div className="flex flex-col gap-1.5 rounded-4xl border border-border bg-card p-5">
-			<div className="flex items-center justify-between">
-				<span className="font-bold font-serif text-3xl tabular-nums">
-					{value}
+		<div className="rounded-4xl border border-border bg-card p-5">
+			<div className="flex items-center justify-between gap-2">
+				<span className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.14em]">
+					{label}
 				</span>
-				<span className="text-accent">{icon}</span>
+				<span className="text-muted-foreground/60">{icon}</span>
 			</div>
-			<span className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-				{label}
+			<span className="mt-2 block font-bold font-serif text-4xl tabular-nums">
+				{value}
 			</span>
 		</div>
 	);
@@ -857,7 +867,7 @@ function QsoLog({
 		return (
 			<div className="flex flex-col items-center gap-2 rounded-4xl border border-border bg-card px-6 py-16 text-center">
 				<Radio className="size-10 text-muted-foreground" />
-				<h3 className="font-medium text-base">Dar nėra QSO</h3>
+				<h3 className="font-bold font-serif text-xl">Dar nėra QSO</h3>
 				<p className="text-muted-foreground text-sm">
 					Pridėkite pirmą ryšį naudodami formą
 				</p>

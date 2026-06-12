@@ -87,7 +87,7 @@ export function SeasonProgressBox({
 
 	return (
 		<div className="border-border border-b px-5 py-4.5">
-			<p className="mb-2.5 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+			<p className="mb-2.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
 				Sezonas
 			</p>
 			<p className="mb-0.5 font-bold font-serif text-[18px] text-foreground">

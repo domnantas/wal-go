@@ -97,7 +97,7 @@ export function SeasonCountdownCard({
 				className
 			)}
 		>
-			<p className="mb-2 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+			<p className="mb-2 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
 				Kitas sezonas
 			</p>
 			<p className={cn("font-bold font-serif text-foreground", "text-xl")}>

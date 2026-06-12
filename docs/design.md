@@ -15,8 +15,8 @@ All three load via Fontsource imports in `globals.css`.
 Earthy, calm, exploration — "expedition field journal". Motifs used across the homepage:
 
 - **Paper grain** — a fixed full-viewport noise overlay (`body::after` in `globals.css`, `soft-light` blend, ~5% light / ~8% dark). Non-interactive (`pointer-events: none`), applies app-wide.
-- **Radio rings** — `.radio-rings` utility (`globals.css`): concentric `repeating-radial-gradient` circles tinted from `--foreground`. Origin tunable via `--rings-x` / `--rings-y`; combine with a `mask-image` fade. Used behind the Discord/QSL section.
-- **Mono accents / morse** — small `font-mono` uppercase captions (section eyebrows, step labels, footer morse `WAL GO`) add field-log texture. Mark purely decorative ones `aria-hidden`.
+- **Radio rings** — `.radio-rings` utility (`globals.css`): concentric `repeating-radial-gradient` circles tinted from `--foreground`. Origin tunable via `--rings-x` / `--rings-y`; combine with a `mask-image` fade. Used behind the Discord/QSL section and (md+) behind the QSO log demo card.
+- **Graticule** — `.graticule` utility (`globals.css`): faint survey-map square grid with dots at intersections, tinted from `--foreground`, cell size via `--graticule-size` (default 56px). Used behind the how-it-works section with a radial mask fade.- **Mono accents / morse** — small `font-mono` uppercase captions (section eyebrows, step labels, footer morse `WAL GO`) add field-log texture. Mark purely decorative ones `aria-hidden`.
 - **Paper artifacts** — the homepage QSO demo card tilts slightly (`rotate-[0.8deg]`, straightens on hover), uses dashed inner separators, and carries a rubber-stamp style `APDOROTA` mark — rhyming with the QSL card. FAQ answers sit under a dashed separator.
 - **Hero entrance** — logo, h1, and CTA row stagger in via `tw-animate-css` (`animate-in fill-mode-backwards` + `[animation-delay:*]`).
 - **Radio dial footer** — decorative tick ruler with ham band labels (1.8–50 MHz) at the top of the homepage footer.
@@ -38,6 +38,13 @@ QSL paper is physical, so its palette is fixed oklch values via local CSS vars (
 ## Dark mode
 
 Brand colors are theme-adaptive CSS variables, so `text-olive`, `bg-rust`, `bg-golden` stay legible in both modes. Avoid white text on golden or light team colors — use the matching foreground tokens: `text-golden-foreground`, `text-olive-foreground`, `text-rust-foreground`.
+
+## Game UI conventions
+
+- **Box/section eyebrow labels** (map sidebar boxes, log stat cards, page headers) use the mono eyebrow style: `font-mono text-[10px–11px] uppercase tracking-[0.16em] text-muted-foreground` — same language as homepage section eyebrows.
+- **WAL square codes are always mono** (`font-mono`) — stats boxes, badges, tables. Season names stay serif.
+- **Page headers** (`/log`, `/leaderboard`): mono eyebrow (often with `· season name`), then a serif `font-bold tracking-tight` h1; controls (season select) right-aligned in the same row.
+- **Log stat cards**: mono label + faded icon on top row, large serif tabular number below.
 
 ## Map & competition UI
 

@@ -53,7 +53,7 @@ export function ActivityFeedBox({
 				variant === "sidebar" && "border-border border-b px-5 py-4.5"
 			)}
 		>
-			<p className="mb-3 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+			<p className="mb-3 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
 				Aktyvumas
 			</p>
 			{entries.length === 0 ? (

@@ -422,10 +422,14 @@ function HomeComponent() {
 
 			{/* ── How it works ─────────────────────────────────────── */}
 			<section
-				className="border-border border-y bg-foreground/2.5"
+				className="relative border-border border-y bg-foreground/2.5"
 				id="kaip-tai-veikia"
 			>
-				<div className="mx-auto max-w-6xl px-8 py-24">
+				<div
+					aria-hidden="true"
+					className="graticule pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_85%_90%_at_50%_0%,black,transparent_80%)]"
+				/>
+				<div className="relative mx-auto max-w-6xl px-8 py-24">
 					<div className="mx-auto mb-16 max-w-3xl text-center">
 						<SectionEyebrow>Kaip tai veikia</SectionEyebrow>
 						<h2 className="mt-3 font-bold font-serif text-5xl tracking-tight">
@@ -460,88 +464,96 @@ function HomeComponent() {
 			</section>
 
 			{/* ── QSO log strip ────────────────────────────────────── */}
-			<section className="mx-auto max-w-6xl px-8 py-20">
-				<div className="grid items-center gap-12 md:grid-cols-2">
-					<div>
-						<SectionEyebrow>Žurnalas</SectionEyebrow>
-						<h2 className="mt-3 font-bold font-serif text-4xl leading-tight tracking-tight md:text-5xl">
-							Kiekvienas QSO –
-							<br />
-							<em className="text-olive italic">taškas komandai.</em>
-						</h2>
-						<p className="mt-5 text-base text-foreground/75 leading-relaxed">
-							Įkelk log failą iš savo mėgstamo loggerio – taškus pagal WAL
-							kvadratus suskaičiuosim mes, o žemėlapis atsinaujins per kelias
-							sekundes.
-						</p>
-						<div className="mt-6 flex flex-wrap gap-2">
-							{[
-								"N1MM",
-								"QRZ.com",
-								"Log4OM",
-								"Ham Radio Deluxe",
-								"WSJT-X",
-								"DXKeeper",
-								"WRL",
-								"Ir kiti...",
-							].map((t) => (
-								<span
-									className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-muted-foreground text-xs"
-									key={t}
-								>
-									{t}
+			<section className="relative overflow-hidden">
+				<div
+					aria-hidden="true"
+					className="radio-rings pointer-events-none absolute inset-0 opacity-70 [--rings-x:82%] [--rings-y:45%] [mask-image:radial-gradient(ellipse_45%_70%_at_82%_45%,black,transparent_75%)] max-md:hidden"
+				/>
+				<div className="relative mx-auto max-w-6xl px-8 py-20">
+					<div className="grid items-center gap-12 md:grid-cols-2">
+						<div>
+							<SectionEyebrow>Žurnalas</SectionEyebrow>
+							<h2 className="mt-3 font-bold font-serif text-4xl leading-tight tracking-tight md:text-5xl">
+								Kiekvienas QSO –
+								<br />
+								<em className="text-olive italic">taškas komandai.</em>
+							</h2>
+							<p className="mt-5 text-base text-foreground/75 leading-relaxed">
+								Įkelk log failą iš savo mėgstamo loggerio – taškus pagal WAL
+								kvadratus suskaičiuosim mes, o žemėlapis atsinaujins per kelias
+								sekundes.
+							</p>
+							<div className="mt-6 flex flex-wrap gap-2">
+								{[
+									"N1MM",
+									"QRZ.com",
+									"Log4OM",
+									"Ham Radio Deluxe",
+									"WSJT-X",
+									"DXKeeper",
+									"WRL",
+									"Ir kiti...",
+								].map((t) => (
+									<span
+										className="rounded-full border border-border bg-card px-3 py-1.5 font-mono text-muted-foreground text-xs"
+										key={t}
+									>
+										{t}
+									</span>
+								))}
+							</div>
+						</div>
+						<div className="rotate-[0.8deg] rounded-4xl border border-border bg-card p-5 shadow-[0_16px_40px_-24px_rgb(0_0_0/0.4)] transition-transform duration-300 hover:rotate-0">
+							<div className="mb-4 flex items-center justify-between border-border border-b border-dashed pb-3">
+								<span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">
+									log_2026_04_18.adi
 								</span>
-							))}
-						</div>
-					</div>
-					<div className="rotate-[0.8deg] rounded-4xl border border-border bg-card p-5 shadow-[0_16px_40px_-24px_rgb(0_0_0/0.4)] transition-transform duration-300 hover:rotate-0">
-						<div className="mb-4 flex items-center justify-between border-border border-b border-dashed pb-3">
-							<span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">
-								log_2026_04_18.adi
-							</span>
-							<span className="-rotate-3 rounded border-2 border-olive/70 px-2 py-0.5 font-bold font-mono text-[10px] text-olive uppercase tracking-[0.16em]">
-								Apdorota
-							</span>
-						</div>
-						<div className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm">
-							{LOG_DEMO_ROWS.flatMap((r) => [
-								<span
-									className="font-mono text-muted-foreground text-xs"
-									key={`${r.call}-time`}
-								>
-									{r.time}
-								</span>,
-								<span
-									className="font-mono font-semibold"
-									key={`${r.call}-call`}
-								>
-									{r.call}
-								</span>,
-								<span
-									className="rounded-full bg-muted px-2 py-0.5 text-center font-mono text-[10px]"
-									key={`${r.call}-band`}
-								>
-									{r.band}
-								</span>,
-								<span
-									className="rounded-full border border-border px-2 py-0.5 text-center font-mono text-[10px] text-muted-foreground"
-									key={`${r.call}-mode`}
-								>
-									{r.mode}
-								</span>,
-								<span
-									className="rounded-full bg-rust/15 px-2 py-0.5 text-center font-mono font-semibold text-[10px] text-rust"
-									key={`${r.call}-square`}
-								>
-									+1 {r.square}
-								</span>,
-							])}
-						</div>
-						<div className="mt-4 flex items-center justify-between border-border border-t border-dashed pt-3 text-xs">
-							<span className="text-muted-foreground">5 QSO · 2 kvadratai</span>
-							<span className="font-semibold text-rust">
-								+5 taškai komandai
-							</span>
+								<span className="-rotate-3 rounded border-2 border-olive/70 px-2 py-0.5 font-bold font-mono text-[10px] text-olive uppercase tracking-[0.16em]">
+									Apdorota
+								</span>
+							</div>
+							<div className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm">
+								{LOG_DEMO_ROWS.flatMap((r) => [
+									<span
+										className="font-mono text-muted-foreground text-xs"
+										key={`${r.call}-time`}
+									>
+										{r.time}
+									</span>,
+									<span
+										className="font-mono font-semibold"
+										key={`${r.call}-call`}
+									>
+										{r.call}
+									</span>,
+									<span
+										className="rounded-full bg-muted px-2 py-0.5 text-center font-mono text-[10px]"
+										key={`${r.call}-band`}
+									>
+										{r.band}
+									</span>,
+									<span
+										className="rounded-full border border-border px-2 py-0.5 text-center font-mono text-[10px] text-muted-foreground"
+										key={`${r.call}-mode`}
+									>
+										{r.mode}
+									</span>,
+									<span
+										className="rounded-full bg-rust/15 px-2 py-0.5 text-center font-mono font-semibold text-[10px] text-rust"
+										key={`${r.call}-square`}
+									>
+										+1 {r.square}
+									</span>,
+								])}
+							</div>
+							<div className="mt-4 flex items-center justify-between border-border border-t border-dashed pt-3 text-xs">
+								<span className="text-muted-foreground">
+									5 QSO · 2 kvadratai
+								</span>
+								<span className="font-semibold text-rust">
+									+5 taškai komandai
+								</span>
+							</div>
 						</div>
 					</div>
 				</div>

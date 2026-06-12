@@ -29,7 +29,7 @@ export function SeasonWinnerHero({
 				className
 			)}
 		>
-			<p className="font-bold text-[11px] uppercase tracking-[0.12em]">
+			<p className="font-mono text-[11px] uppercase tracking-[0.16em]">
 				Nugalėtojai
 			</p>
 			<p className="mt-2 font-bold font-serif text-5xl">{TEAM_LABELS[team]}</p>

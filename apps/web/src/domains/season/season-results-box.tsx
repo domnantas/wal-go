@@ -31,7 +31,7 @@ export function SeasonResultsBox({ season }: SeasonResultsBoxProps) {
 
 	return (
 		<section className="border-border border-b px-5 py-4.5">
-			<p className="mb-2.5 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+			<p className="mb-2.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
 				Sezono rezultatai
 			</p>
 			<p className="mb-0.5 font-bold font-serif text-[18px] text-foreground">
@@ -47,7 +47,7 @@ export function SeasonResultsBox({ season }: SeasonResultsBoxProps) {
 						TEAM_RESULT_CLASSES[winner.team as Team]
 					)}
 				>
-					<p className="mb-1 font-bold text-[10px] uppercase tracking-[0.08em]">
+					<p className="mb-1 font-mono text-[10px] uppercase tracking-[0.16em]">
 						Nugalėtojai
 					</p>
 					<p className="font-bold font-serif text-2xl">

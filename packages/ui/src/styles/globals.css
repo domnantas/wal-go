@@ -200,6 +200,35 @@
 		);
 	}
 
+	/* Survey-map graticule: faint square grid with dots at intersections */
+	.graticule {
+		--graticule-size: 56px;
+		background-image:
+			linear-gradient(
+				to right,
+				color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+				transparent 1px
+			),
+			linear-gradient(
+				to bottom,
+				color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+				transparent 1px
+			),
+			radial-gradient(
+				circle,
+				color-mix(in oklab, var(--foreground) 16%, transparent) 1px,
+				transparent 1.5px
+			);
+		background-position:
+			0 0,
+			0 0,
+			calc(var(--graticule-size) / -2) calc(var(--graticule-size) / -2);
+		background-size:
+			var(--graticule-size) var(--graticule-size),
+			var(--graticule-size) var(--graticule-size),
+			var(--graticule-size) var(--graticule-size);
+	}
+
 	/* Postage-stamp perforation: punches half-circle notches along the edges.
 	   Layer 1 tiles transparent holes with centers on the border; layer 2 keeps
 	   the content box solid so only the edge ring shows the notches. */

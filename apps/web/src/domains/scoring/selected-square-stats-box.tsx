@@ -39,7 +39,7 @@ function RecentActivity({ seasonId, selectedSquareCode }: RecentActivityProps) {
 
 	return (
 		<div className="mt-3 flex flex-col gap-2 border-border border-t pt-3">
-			<p className="flex items-center gap-1.5 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+			<p className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
 				<span
 					aria-hidden="true"
 					className="size-1.5 animate-pulse rounded-full bg-olive"
@@ -92,7 +92,7 @@ export function SelectedSquareStatsBox({
 		return (
 			<section className="flex flex-col gap-3 rounded-3xl border border-border bg-card px-5 py-3.5">
 				<div className="flex items-center gap-4">
-					<p className="shrink-0 font-bold font-serif text-[18px] text-foreground">
+					<p className="shrink-0 font-bold font-mono text-[18px] text-foreground">
 						{selectedSquareCode}
 					</p>
 					<div className="flex flex-1 items-stretch gap-3">
@@ -150,10 +150,10 @@ export function SelectedSquareStatsBox({
 
 	return (
 		<section className="border-border border-b px-5 py-4.5">
-			<p className="mb-2.5 font-bold text-[10px] text-muted-foreground uppercase tracking-[0.08em]">
+			<p className="mb-2.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
 				Kvadrato statistika
 			</p>
-			<p className="mb-3 font-bold font-serif text-[18px] text-foreground">
+			<p className="mb-3 font-bold font-mono text-[18px] text-foreground">
 				{selectedSquareCode}
 			</p>
 			<div className="flex flex-col gap-3.5">
