@@ -231,10 +231,49 @@ const recentSquares = publicProcedure
 		return rows;
 	});
 
+const recentSquareActivityInput = z.object({
+	seasonId: z.number().int().positive().optional(),
+	squareCode: z.string().min(1),
+});
+
+const recentSquareActivity = publicProcedure
+	.input(recentSquareActivityInput)
+	.handler(async ({ context, input }) => {
+		const seasonId = await resolveSeasonId(context.db, input.seasonId);
+		if (seasonId === null) {
+			return [];
+		}
+
+		const rows = await context.db
+			.select({
+				band: qso.band,
+				mode: qso.mode,
+				qsoCount: count(),
+			})
+			.from(qso)
+			.innerJoin(user, eq(user.id, qso.userId))
+			.where(
+				and(
+					eq(qso.seasonId, seasonId),
+					eq(qso.operatorSquare, input.squareCode),
+					eq(user.banned, false),
+					gte(
+						qso.qsoAt,
+						sql`now() - make_interval(hours => ${RECENT_ACTIVITY_HOURS})`
+					)
+				)
+			)
+			.groupBy(qso.band, qso.mode)
+			.orderBy(desc(count()));
+
+		return rows;
+	});
+
 export const scoringRouter = {
 	squares,
 	individualStandings,
 	teamStandings,
 	activityFeed,
 	recentSquares,
+	recentSquareActivity,
 };

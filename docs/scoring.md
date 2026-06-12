@@ -47,6 +47,7 @@ anonymized (team + square + time only, never a callsign) — see [activity-feed.
 
 - **`scoring.activityFeed`** — recent takeovers from `square_control_history`.
 - **`scoring.recentSquares`** — square codes with a QSO in the last 2h (`qsoAt`-based), for the map pulse.
+- **`scoring.recentSquareActivity`** — for one square, the band/mode combos with a QSO in the last 2h (same window as the pulse), grouped and ordered by QSO count desc. Powers the activity chips in `SelectedSquareStatsBox`.
 
 ## Implementation
 
