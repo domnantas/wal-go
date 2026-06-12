@@ -1,5 +1,9 @@
 @import "@fontsource-variable/geist";
-@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/fraunces/opsz.css";
+@import "@fontsource-variable/fraunces/opsz-italic.css";
+@import "@fontsource/ibm-plex-mono";
+@import "@fontsource/ibm-plex-mono/600.css";
+@import "@fontsource/ibm-plex-mono/700.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -96,7 +100,8 @@
 
 @theme inline {
 	--font-sans: "Geist Variable", system-ui, sans-serif;
-	--font-serif: "Newsreader Variable", "Georgia", serif;
+	--font-serif: "Fraunces Variable", "Georgia", serif;
+	--font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
 	--color-olive: var(--brand-olive);
 	--color-olive-foreground: var(--brand-olive-foreground);
 	--color-rust: var(--brand-rust);
@@ -154,6 +159,21 @@
 		letter-spacing: -0.01em;
 		@apply font-sans bg-background text-foreground;
 	}
+	/* Paper grain over the whole app — keeps the earthy, printed-map feel */
+	body::after {
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		pointer-events: none;
+		content: "";
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+		background-size: 180px 180px;
+		mix-blend-mode: soft-light;
+		opacity: 0.05;
+	}
+	.dark body::after {
+		opacity: 0.08;
+	}
 	html {
 		@apply font-sans;
 	}
@@ -165,5 +185,43 @@
 	button:disabled,
 	[role="button"]:disabled {
 		cursor: default;
+	}
+}
+
+@layer components {
+	/* Concentric radio-wave rings — decorative section backgrounds */
+	.radio-rings {
+		background-image: repeating-radial-gradient(
+			circle at var(--rings-x, 50%) var(--rings-y, 50%),
+			transparent 0,
+			transparent 47px,
+			color-mix(in oklab, var(--foreground) 9%, transparent) 47px,
+			color-mix(in oklab, var(--foreground) 9%, transparent) 48.5px
+		);
+	}
+
+	/* Postage-stamp perforation: punches half-circle notches along the edges.
+	   Layer 1 tiles transparent holes with centers on the border; layer 2 keeps
+	   the content box solid so only the edge ring shows the notches. */
+	.qsl-perforation {
+		--hole: 3.5px;
+		--pitch: 12px;
+		padding: calc(var(--pitch) / 2);
+		mask-image:
+			radial-gradient(
+				circle var(--hole) at calc(var(--pitch) / 2) calc(var(--pitch) / 2),
+				transparent 95%,
+				black
+			),
+			linear-gradient(black, black);
+		mask-repeat: repeat, no-repeat;
+		mask-position:
+			calc(var(--pitch) / -2) calc(var(--pitch) / -2),
+			0 0;
+		mask-clip: border-box, content-box;
+		mask-origin: border-box, content-box;
+		mask-size:
+			var(--pitch) var(--pitch),
+			100% 100%;
 	}
 }

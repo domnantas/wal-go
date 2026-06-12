@@ -33,7 +33,7 @@ Three fixed teams per season: **yellow**, **green**, **red**. Assignment is rand
 
 ## Homepage
 
-Introduces WAL GO, shows live season/team context when available, a hero countdown when the next season is scheduled, the gameplay loop, a Cabrillo demo, FAQ, and a Discord invite.
+Introduces WAL GO, shows live season/team context when available, a hero countdown when the next season is scheduled, the gameplay loop, a Cabrillo demo, FAQ, and a Discord invite styled as a QSL card (`components/discord-qsl-card.tsx`, see [design.md](design.md)).
 
 ### Public map preview
 

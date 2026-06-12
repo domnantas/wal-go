@@ -1,4 +1,4 @@
-import { Button, buttonVariants } from "@WAL-GO/ui/components/button";
+import { Button } from "@WAL-GO/ui/components/button";
 import { cn } from "@WAL-GO/ui/lib/utils";
 import { useSession } from "@better-auth-ui/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Map as MapIcon, Plus, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import walGoLogo from "@/assets/logo_512.png";
-import { DiscordIcon } from "@/components/discord-icon";
+import { DiscordQslCard } from "@/components/discord-qsl-card";
 import { MapView } from "@/domains/map/map-view";
 import { ActivityFeedBox } from "@/domains/scoring/activity-feed-box";
 import { SelectedSquareStatsBox } from "@/domains/scoring/selected-square-stats-box";
@@ -16,7 +16,6 @@ import type { Team } from "@/domains/season/team";
 import { TeamStandingCard } from "@/domains/season/team-standing-card";
 import { useWinnerConfetti } from "@/domains/season/use-winner-confetti";
 import { authClient } from "@/lib/auth-client";
-import { DISCORD_INVITE_URL } from "@/lib/constants";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/")({
@@ -213,7 +212,7 @@ function TeamStandingsSection({
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
 	return (
-		<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.14em]">
+		<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
 			{children}
 		</p>
 	);
@@ -436,18 +435,24 @@ function HomeComponent() {
 					<div className="grid gap-6 md:grid-cols-2">
 						{HOW_STEPS.map((s) => (
 							<div
-								className="rounded-4xl border border-border bg-card p-7"
+								className="group relative overflow-hidden rounded-4xl border border-border bg-card p-7 transition-colors hover:border-foreground/25"
 								key={s.n}
 							>
-								<div className="mb-4 flex items-center gap-3">
-									<span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground font-bold font-mono text-background text-lg leading-none">
-										{s.n}
-									</span>
-									<h3 className="font-bold font-serif text-2xl leading-tight">
-										{s.title}
-									</h3>
-								</div>
-								<p className="text-foreground/75 leading-relaxed">{s.body}</p>
+								<span
+									aria-hidden="true"
+									className="pointer-events-none absolute top-1 right-4 select-none font-bold font-mono text-7xl text-foreground/6"
+								>
+									{String(s.n).padStart(2, "0")}
+								</span>
+								<p className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.18em]">
+									Žingsnis {String(s.n).padStart(2, "0")}
+								</p>
+								<h3 className="mt-2 font-bold font-serif text-2xl leading-tight">
+									{s.title}
+								</h3>
+								<p className="mt-3 text-foreground/75 leading-relaxed">
+									{s.body}
+								</p>
 							</div>
 						))}
 					</div>
@@ -572,29 +577,25 @@ function HomeComponent() {
 				</div>
 			</section>
 
-			{/* ── Discord ──────────────────────────────────────────── */}
-			<section>
-				<div className="mx-auto max-w-4xl px-8 py-24 text-center">
-					<h2 className="font-bold font-serif text-5xl leading-tight tracking-tight md:text-6xl">
-						Prisijunk prie WAL GO
-						<br />
-						<em className="text-rust italic">bendruomenės.</em>
-					</h2>
-					<p className="mx-auto mt-5 max-w-2xl text-base text-foreground/75 leading-relaxed md:text-lg">
-						Aptark taisykles, susirask aktyvius korespondentus, pranešk apie
-						išvykas į WAL kvadratus ir sek naujienas.
-					</p>
-					<div className="mt-8 flex items-center justify-center">
-						<a
-							className={cn(buttonVariants({ size: "lg" }), "px-6")}
-							href={DISCORD_INVITE_URL}
-							rel="noopener noreferrer"
-							target="_blank"
-						>
-							<DiscordIcon className="size-4" />
-							Prisijungti prie Discord
-						</a>
+			{/* ── Discord / QSL ────────────────────────────────────── */}
+			<section className="relative overflow-hidden" id="bendruomene">
+				<div
+					aria-hidden="true"
+					className="radio-rings pointer-events-none absolute inset-0 [--rings-y:115%] [mask-image:radial-gradient(ellipse_75%_85%_at_50%_100%,black,transparent)]"
+				/>
+				<div className="relative mx-auto max-w-4xl px-6 py-24 md:px-8">
+					<div className="text-center">
+						<SectionEyebrow>Bendruomenė</SectionEyebrow>
+						<h2 className="mt-3 font-bold font-serif text-5xl leading-tight tracking-tight md:text-6xl">
+							Patvirtinkim <em className="text-rust italic">ryšį.</em>
+						</h2>
+						<p className="mx-auto mt-5 max-w-2xl text-base text-foreground/75 leading-relaxed md:text-lg">
+							Radijo mėgėjai ryšius patvirtina QSL kortelėmis — štai mūsiškė,
+							skirta tau. Aptark taisykles, susirask aktyvius korespondentus,
+							pranešk apie išvykas į WAL kvadratus ir sek naujienas.
+						</p>
 					</div>
+					<DiscordQslCard />
 				</div>
 			</section>
 
@@ -603,6 +604,15 @@ function HomeComponent() {
 				<div className="mx-auto grid max-w-6xl gap-8 px-8 py-10 text-sm md:grid-cols-4">
 					<div className="space-y-3">
 						<p className="font-bold font-serif text-xl">WAL GO</p>
+						<p
+							aria-hidden="true"
+							className="font-mono text-muted-foreground/60 text-xs tracking-[0.2em]"
+						>
+							·–– ·– ·–·· ––· –––
+						</p>
+						<p className="text-muted-foreground text-xs">
+							Atrask Lietuvą per radijo bangas.
+						</p>
 					</div>
 					<div>
 						<p className="mb-3 font-bold text-xs uppercase tracking-wider">
