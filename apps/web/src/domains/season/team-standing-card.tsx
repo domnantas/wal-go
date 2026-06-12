@@ -18,7 +18,12 @@ export function TeamStandingCard({
 	const config = TEAM_CONFIG[team];
 	const pct = (squaresControlled / TOTAL_SQUARES) * 100;
 	return (
-		<div className="rounded-4xl border border-border bg-card p-5">
+		<div
+			className={cn(
+				"rounded-4xl border border-border bg-card bg-linear-to-br to-50% to-transparent p-5",
+				config.wash
+			)}
+		>
 			<div className="mb-3 flex items-center justify-between">
 				<div className="flex items-center gap-2.5">
 					<span className={cn("size-3 rounded-full", config.dot)} />

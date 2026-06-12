@@ -17,6 +17,10 @@ Earthy, calm, exploration — "expedition field journal". Motifs used across the
 - **Paper grain** — a fixed full-viewport noise overlay (`body::after` in `globals.css`, `soft-light` blend, ~5% light / ~8% dark). Non-interactive (`pointer-events: none`), applies app-wide.
 - **Radio rings** — `.radio-rings` utility (`globals.css`): concentric `repeating-radial-gradient` circles tinted from `--foreground`. Origin tunable via `--rings-x` / `--rings-y`; combine with a `mask-image` fade. Used behind the Discord/QSL section.
 - **Mono accents / morse** — small `font-mono` uppercase captions (section eyebrows, step labels, footer morse `WAL GO`) add field-log texture. Mark purely decorative ones `aria-hidden`.
+- **Paper artifacts** — the homepage QSO demo card tilts slightly (`rotate-[0.8deg]`, straightens on hover), uses dashed inner separators, and carries a rubber-stamp style `APDOROTA` mark — rhyming with the QSL card. FAQ answers sit under a dashed separator.
+- **Hero entrance** — logo, h1, and CTA row stagger in via `tw-animate-css` (`animate-in fill-mode-backwards` + `[animation-delay:*]`).
+- **Radio dial footer** — decorative tick ruler with ham band labels (1.8–50 MHz) at the top of the homepage footer.
+- **Team washes** — `TeamStandingCard` adds a faint team-colored diagonal gradient (`TEAM_CONFIG[team].wash`, e.g. `from-golden/10`) over `bg-card`; used on homepage, map, and leaderboard.
 
 ## Discord QSL card
 

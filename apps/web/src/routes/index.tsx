@@ -342,14 +342,14 @@ function HomeComponent() {
 				>
 					<img
 						alt="WAL GO logo"
-						className="mx-auto mb-3 h-28 w-auto drop-shadow-md md:mb-4 md:h-40"
+						className="fade-in slide-in-from-bottom-3 mx-auto mb-3 h-28 w-auto animate-in fill-mode-backwards drop-shadow-md duration-700 md:mb-4 md:h-40"
 						src={walGoLogo}
 					/>
 
 					{heroSeasonStatus ?? heroSeasonCountdown}
 
 					<h1
-						className="font-bold font-serif leading-[1.02] tracking-tight"
+						className="fade-in slide-in-from-bottom-3 animate-in fill-mode-backwards font-bold font-serif leading-[1.02] tracking-tight duration-700 [animation-delay:150ms]"
 						style={{ fontSize: "clamp(36px, 7vw, 96px)" }}
 					>
 						Atrask <span className="text-golden">Lietuvą</span>
@@ -365,7 +365,7 @@ function HomeComponent() {
 						</em>
 					</h1>
 
-					<div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row md:mt-10">
+					<div className="fade-in slide-in-from-bottom-3 mt-6 flex animate-in flex-col items-center justify-center gap-3 fill-mode-backwards duration-700 [animation-delay:300ms] sm:flex-row md:mt-10">
 						{!isSessionPending && session ? (
 							<Button
 								className="px-6"
@@ -494,13 +494,13 @@ function HomeComponent() {
 							))}
 						</div>
 					</div>
-					<div className="rounded-4xl border border-border bg-card p-5">
-						<div className="mb-4 flex items-center justify-between border-border border-b pb-3">
+					<div className="rotate-[0.8deg] rounded-4xl border border-border bg-card p-5 shadow-[0_16px_40px_-24px_rgb(0_0_0/0.4)] transition-transform duration-300 hover:rotate-0">
+						<div className="mb-4 flex items-center justify-between border-border border-b border-dashed pb-3">
 							<span className="font-mono text-muted-foreground text-xs uppercase tracking-wider">
 								log_2026_04_18.adi
 							</span>
-							<span className="font-semibold text-olive text-xs">
-								✓ Apdorota
+							<span className="-rotate-3 rounded border-2 border-olive/70 px-2 py-0.5 font-bold font-mono text-[10px] text-olive uppercase tracking-[0.16em]">
+								Apdorota
 							</span>
 						</div>
 						<div className="grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-3 gap-y-2.5 text-sm">
@@ -537,7 +537,7 @@ function HomeComponent() {
 								</span>,
 							])}
 						</div>
-						<div className="mt-4 flex items-center justify-between border-border border-t pt-3 text-xs">
+						<div className="mt-4 flex items-center justify-between border-border border-t border-dashed pt-3 text-xs">
 							<span className="text-muted-foreground">5 QSO · 2 kvadratai</span>
 							<span className="font-semibold text-rust">
 								+5 taškai komandai
@@ -559,7 +559,7 @@ function HomeComponent() {
 					<div className="space-y-3">
 						{FAQS.map((f) => (
 							<details
-								className="group rounded-4xl border border-border bg-card"
+								className="group rounded-4xl border border-border bg-card transition-colors hover:border-foreground/25"
 								key={f.q}
 							>
 								<summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-5">
@@ -568,7 +568,7 @@ function HomeComponent() {
 										<Plus className="size-3.5" />
 									</span>
 								</summary>
-								<p className="px-5 pb-5 text-foreground/75 leading-relaxed">
+								<p className="mx-5 border-border border-t border-dashed pt-4 pb-5 text-foreground/75 leading-relaxed">
 									{f.a}
 								</p>
 							</details>
@@ -601,6 +601,20 @@ function HomeComponent() {
 
 			{/* ── Footer ───────────────────────────────────────────── */}
 			<footer className="border-border border-t bg-card/40">
+				{/* Radio dial scale */}
+				<div aria-hidden="true" className="relative">
+					<div className="absolute inset-x-0 top-0 h-1.5 [background-image:repeating-linear-gradient(to_right,var(--border)_0_1px,transparent_1px_9px)]" />
+					<div className="mx-auto flex max-w-6xl justify-between px-8">
+						{["1.8", "3.5", "7", "14", "21", "28", "50 MHz"].map((band) => (
+							<span className="flex flex-col items-center gap-1" key={band}>
+								<span className="h-2.5 w-px bg-muted-foreground/40" />
+								<span className="font-mono text-[9px] text-muted-foreground/60 tracking-wide">
+									{band}
+								</span>
+							</span>
+						))}
+					</div>
+				</div>
 				<div className="mx-auto grid max-w-6xl gap-8 px-8 py-10 text-sm md:grid-cols-4">
 					<div className="space-y-3">
 						<p className="font-bold font-serif text-xl">WAL GO</p>

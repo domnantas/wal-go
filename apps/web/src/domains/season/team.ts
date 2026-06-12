@@ -13,11 +13,26 @@ export const TEAM_LABELS: Record<Team, string> = {
 
 export const TEAM_CONFIG: Record<
 	Team,
-	{ label: string; dot: string; bar: string }
+	{ label: string; dot: string; bar: string; wash: string }
 > = {
-	yellow: { label: "Geltona", dot: "bg-golden", bar: "bg-golden" },
-	green: { label: "Žalia", dot: "bg-olive", bar: "bg-olive" },
-	red: { label: "Raudona", dot: "bg-rust", bar: "bg-rust" },
+	yellow: {
+		label: "Geltona",
+		dot: "bg-golden",
+		bar: "bg-golden",
+		wash: "from-golden/10",
+	},
+	green: {
+		label: "Žalia",
+		dot: "bg-olive",
+		bar: "bg-olive",
+		wash: "from-olive/10",
+	},
+	red: {
+		label: "Raudona",
+		dot: "bg-rust",
+		bar: "bg-rust",
+		wash: "from-rust/10",
+	},
 };
 
 export const TEAM_RESULT_CLASSES: Record<Team, string> = {
