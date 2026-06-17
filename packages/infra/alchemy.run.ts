@@ -15,7 +15,7 @@ import {
 	Vite,
 } from "alchemy/Cloudflare";
 import { providers as drizzleProviders, Schema } from "alchemy/Drizzle";
-import { Comment, providers as ghProviders } from "alchemy/GitHub";
+import { Comment, CommentProvider } from "alchemy/GitHub";
 import { interpolate } from "alchemy/Output";
 import {
 	PostgresBranch,
@@ -36,9 +36,11 @@ export default Stack(
 			cfProviders(),
 			psProviders(),
 			drizzleProviders(),
-			// GitHub provider resolves credentials eagerly. Only load it when we
-			// actually post a PR comment, so local runs and destroys need no token.
-			...(prNumber === undefined ? [] : [ghProviders()])
+			// CommentProvider reads GITHUB_TOKEN lazily at reconcile/delete time,
+			// not at layer init — so it's always safe to include. CI supplies the
+			// token via env; local deploy/destroy without a token never fails at
+			// build (the only GitHub resource used is the PR Comment below).
+			CommentProvider()
 		),
 		state: state(),
 	},
@@ -197,7 +199,7 @@ export default Stack(
 			},
 		});
 
-		if (prNumber !== undefined) {
+		if (prNumber !== undefined && process.env.CI) {
 			yield* Comment("preview-url", {
 				owner: "domnantas",
 				repository: "wal-go",

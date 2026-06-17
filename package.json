@@ -7,8 +7,8 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "turbo dev",
-    "dev:bare": "turbo dev:bare",
+    "dev": "turbo dev:bare",
+    "dev:alchemy": "turbo dev",
     "email": "turbo -F @WAL-GO/email email",
     "build": "turbo build",
     "check-types": "turbo check-types",

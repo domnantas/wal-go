@@ -25,11 +25,11 @@ PR environments are auto-destroyed when the PR closes.
 4. `Hyperdrive` — pools connections; unique logical id `hyperdrive` to avoid colliding with the DB resource; `dev` override → `localhost:5432` for `alchemy dev`.
 5. `Drizzle.Schema` — generates migration SQL via drizzle-kit's programmatic API when `packages/db/src/schema/` changes; output to `packages/db/migrations/`.
 6. `Vite` — deploys the web app as a Worker with `HYPERDRIVE` binding, a direct `DATABASE_URL` secret, and `nodejs_compat_populate_process_env` so Worker vars/secrets reach `process.env`. `memo.include` is `../../apps/**` and `../../packages/**` so any workspace change triggers a rebuild (Alchemy's default only hashes the `packages/infra` cwd).
-7. `GitHub.Comment` — posts a preview-URL comment; only created when `PULL_REQUEST` is set.
+7. `GitHub.Comment` — posts a preview-URL comment; only created in CI on a PR (`PULL_REQUEST` set **and** `CI`).
 
-### GitHub provider is conditional
+### GitHub provider is always `CommentProvider()`
 
-`ghProviders()` resolves GitHub credentials **eagerly** when the provider layer is built — with no `GITHUB_TOKEN`/`GITHUB_ACCESS_TOKEN` it fails immediately (`Failed to resolve GitHub credentials for profile 'default'`), regardless of whether a comment is posted. So the stack loads the GitHub provider only when `PULL_REQUEST` is set (CI PR deploy/cleanup). Local `deploy`/`destroy` without `PULL_REQUEST` skip it and need no token. The cleanup job destroys the `Comment` resource, so it also sets `PULL_REQUEST` and must pass `GITHUB_TOKEN`.
+The stack uses `CommentProvider()` (not the full `providers()`/`ghProviders()`). `ghProviders()` resolves GitHub credentials **eagerly** at layer-build time — with no `GITHUB_TOKEN`/`GITHUB_ACCESS_TOKEN` it fails immediately (`Failed to resolve GitHub credentials for profile 'default'`), even when no comment is posted. `CommentProvider()` instead reads `GITHUB_TOKEN`/`GITHUB_ACCESS_TOKEN` **lazily**, only when a `Comment` is actually reconciled or deleted. So it's always safe to include unconditionally: CI supplies the token via env; local `deploy`/`destroy` without a token never fail at build. The `Comment` resource is the only GitHub resource the stack uses, so `CommentProvider()` alone is enough. The cleanup job destroys the `Comment`, so it passes `GITHUB_TOKEN` + `PULL_REQUEST`.
 
 ### Shared database is destroy-protected
 
@@ -39,18 +39,21 @@ Fix: the `db` resource is wrapped with `RemovalPolicy.retain(true)`. `destroy` n
 
 ## Local development
 
-### `vite dev` (Node.js, pure local)
+### `vite dev` (Node.js, pure local) — default
 
 ```sh
-pnpm dev  # from apps/web
+pnpm dev  # from repo root (runs turbo dev:bare)
 ```
 
-Runs entirely in Node.js using `DATABASE_URL` from `apps/web/.env`. No Cloudflare dependency.
+The default local workflow. Runs entirely in Node.js, no Cloudflare/alchemy dependency. Needs local Postgres at `localhost:5432` (`docker compose up -d`).
+
+Plain `vite dev` runs the SSR handler in the same Node process and does **not** read `.env` on its own (Vite only exposes `VITE_`-prefixed vars to `import.meta.env`, never to `process.env`). So `vite.config.ts` loads every var from `apps/web/.env` into `process.env` when `command === "serve"` — without this, server code (`@WAL-GO/auth`, `@WAL-GO/db`) sees empty `process.env` and throws (`Missing required env var: BETTER_AUTH_SECRET`, no `DATABASE_URL`). All Cloudflare-only paths degrade gracefully when their binding is absent: `getDb()` falls back to `process.env.DATABASE_URL`, `sendEmail()` / Discord / R2 image upload log-and-skip.
 
 ### `alchemy dev` (workerd, Hyperdrive dev override)
 
 ```sh
-cd packages/infra && pnpm dev
+pnpm dev:alchemy  # from repo root
+# or: cd packages/infra && pnpm dev
 ```
 
 Runs the Worker in workerd. Hyperdrive `dev` override connects to local Postgres at `localhost:5432`. Requires a local Postgres instance.
