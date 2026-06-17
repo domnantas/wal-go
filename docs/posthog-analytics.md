@@ -11,6 +11,8 @@ Environment variables in `apps/web/.env`:
 | `VITE_PUBLIC_POSTHOG_PROJECT_TOKEN` | PostHog project API key |
 | `VITE_PUBLIC_POSTHOG_HOST` | Ingestion host (EU: `https://eu.i.posthog.com`) |
 
+Both are optional — `PHProvider` (`apps/web/src/components/providers.tsx`) skips `posthog.init` when the token is unset. For `alchemy dev`/deploys, `packages/infra/alchemy.run.ts` only binds these as Worker vars when `VITE_PUBLIC_POSTHOG_PROJECT_TOKEN` is set in `packages/infra/.env`; leave it unset for PostHog-free local dev.
+
 ## Setup
 
 `PostHogProvider` wraps the app shell in `apps/web/src/routes/__root.tsx`. Requests are proxied through the Vite dev server at `/ingest` to avoid CORS and ad blockers (see `server.proxy` in `apps/web/vite.config.ts`).

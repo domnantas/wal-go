@@ -55,7 +55,7 @@ The `admin` Better Auth plugin adds a `role` field (`"user"` | `"admin"`). `/adm
 
 Required (`requireEmailVerification: true`). On sign-up, Better Auth sends a verification email through the **Cloudflare Email Sending** binding (`noreply@walgo.lt`); the user must click the link before signing in. The `sendVerificationEmail` callback lives in `emailVerification` (not `emailAndPassword`) in `packages/auth/src/index.ts` and delivers via `sendEmail` from `@WAL-GO/email/lib/send`.
 
-Transport is the `EMAIL` Worker binding (no API key), declared in `packages/infra/alchemy.run.ts` and typed on `CloudflareEnv` in `packages/env/env.d.ts`. The sender domain `walgo.lt` must be onboarded for Cloudflare Email Sending (Beta, Workers Paid). Outside the Worker runtime (local node dev) there is no binding, so emails are logged and not sent — grab the verification/reset link from the server logs.
+Transport is the `EMAIL` Worker binding (no API key), declared in `packages/infra/alchemy.run.ts` and typed on `CloudflareEnv` in `packages/env/env.d.ts`. The sender domain `walgo.lt` must be onboarded for Cloudflare Email Sending (Beta, Workers Paid). Outside the Worker runtime (local node dev) there is no binding, so emails are logged and not sent — `sendEmail` extracts every `href` from the rendered HTML and logs them alongside the recipient/subject, so the verification/reset link can be copied straight from the server logs.
 
 Template: `EmailVerificationEmail` (`packages/email/src/email-verification.tsx`). It shares the warm WAL GO styling (`WARM_SURFACE` + `BRAND` from `email-styles`) with the newsletter — centered 128px logo on a rounded card, brown CTA button, rust accent links. See [newsletter.md](./newsletter.md#template).
 

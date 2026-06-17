@@ -1,8 +1,6 @@
 packages:
   - apps/*
   - packages/*
-patchedDependencies:
-  alchemy@2.0.0-beta.44: patches/alchemy@2.0.0-beta.44.patch
 catalog:
   dotenv: ^17.2.2
   zod: ^4.1.13

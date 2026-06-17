@@ -16,8 +16,10 @@ preferences live in **our own database**; we host our own unsubscribe flow.
   `cloudflare:workers` import (mirroring `@WAL-GO/db`) and calls the native
   builder-form `env.EMAIL.send({ from, to, subject, html, text, headers })`.
   Outside the Worker runtime (local node dev) there is no binding, so the send
-  is logged and skipped. Lives in `@WAL-GO/email` because both `@WAL-GO/auth`
-  and `@WAL-GO/api` use it and `auth` can't depend on `api`.
+  is logged and skipped — the log includes every `href` found in the HTML so
+  links (e.g. unsubscribe) can be grabbed from the console. Lives in
+  `@WAL-GO/email` because both `@WAL-GO/auth` and `@WAL-GO/api` use it and
+  `auth` can't depend on `api`.
 - **Sender** — `packages/api/src/notifications/newsletter.ts`
   (`sendNewsletter`, `sendNewsletterTest`). Broadcasts load opted-in recipients,
   render the template **per recipient** with their tokenized unsubscribe URL,

@@ -55,6 +55,10 @@ cd packages/infra && pnpm dev
 
 Runs the Worker in workerd. Hyperdrive `dev` override connects to local Postgres at `localhost:5432`. Requires a local Postgres instance.
 
+In Alchemy's dev mode (`AlchemyContext.dev`), the stack skips PlanetScale entirely — no `PostgresDatabase`/`PostgresBranch`/`PostgresRole` are created, so `alchemy dev` never provisions a throwaway PlanetScale branch. `role.origin`/`role.connectionUrl` fall back to the same local Postgres credentials as the Hyperdrive `dev` override (`postgres://postgres:postgres@localhost:5432/wal-go`).
+
+The `EMAIL` binding is also skipped in dev mode — Cloudflare's `send_email` binding isn't supported in local/workerd-dev (`WorkerValidationError: send_email bindings are not supported in local mode`). `sendEmail()` already handles a missing binding by logging and skipping, same as `vite dev`.
+
 ## Migrations
 
 Managed by Alchemy via `Drizzle.Schema`. On every deploy Alchemy compares the current schema against the latest snapshot and generates a new migration if anything changed. Files live in `packages/db/migrations/` as `{timestamp}_migration/migration.sql` + `snapshot.json` and must be committed. Both `alchemy deploy` and the `drizzle-kit` CLI scripts use this directory.

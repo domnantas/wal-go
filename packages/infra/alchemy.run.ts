@@ -1,4 +1,11 @@
-import { RemovalPolicy, Secret, Stack, Stage, Variable } from "alchemy";
+import {
+	AlchemyContext,
+	RemovalPolicy,
+	Secret,
+	Stack,
+	Stage,
+	Variable,
+} from "alchemy";
 import {
 	providers as cfProviders,
 	Hyperdrive,
@@ -38,44 +45,63 @@ export default Stack(
 	Effect.gen(function* () {
 		const stage = yield* Stage;
 		const isProd = stage === "prod";
+		const { dev: isDev } = yield* AlchemyContext;
 
-		const schema = yield* Schema("db-schema", {
-			schema: "../../packages/db/src/schema/index.ts",
-			out: "../../packages/db/migrations",
-		});
+		const role = yield* Effect.gen(function* () {
+			if (isDev) {
+				return {
+					origin: {
+						scheme: "postgres" as const,
+						host: "localhost",
+						port: 5432,
+						database: "wal-go",
+						user: "postgres",
+						password: Redacted.make("postgres"),
+					},
+					connectionUrl: Redacted.make(
+						"postgres://postgres:postgres@localhost:5432/wal-go"
+					),
+				};
+			}
 
-		// The physical PlanetScale database (`wal-go`) is shared by every stage,
-		// and PlanetScale databases carry no ownership tags — so Alchemy treats
-		// the `db` resource as "owned" in EVERY stage. Without this guard a
-		// `destroy` on any stage (including a preview PR) issues a PlanetScale
-		// DELETE database and takes prod data with it (this happened once).
-		// `retain` makes destroy drop the resource from state only; the database
-		// is never deleted by automation. Delete it manually in the dashboard if
-		// ever actually needed. The per-PR `db-branch` below keeps the default
-		// `destroy` policy on purpose — only the shared database is protected.
-		const db = yield* PostgresDatabase("db", {
-			name: "wal-go",
-			clusterSize: "PS_5",
-			replicas: 0,
-			arch: "arm",
-			region: {
-				slug: "eu-central",
-			},
-			migrationsDir: isProd ? schema.out : undefined,
-		}).pipe(RemovalPolicy.retain(true));
+			const schema = yield* Schema("db-schema", {
+				schema: "../../packages/db/src/schema/index.ts",
+				out: "../../packages/db/migrations",
+			});
 
-		const branch = isProd
-			? "main"
-			: yield* PostgresBranch("db-branch", {
-					database: db,
-					parentBranch: "main",
-					migrationsDir: schema.out,
-				});
+			// The physical PlanetScale database (`wal-go`) is shared by every stage,
+			// and PlanetScale databases carry no ownership tags — so Alchemy treats
+			// the `db` resource as "owned" in EVERY stage. Without this guard a
+			// `destroy` on any stage (including a preview PR) issues a PlanetScale
+			// DELETE database and takes prod data with it (this happened once).
+			// `retain` makes destroy drop the resource from state only; the database
+			// is never deleted by automation. Delete it manually in the dashboard if
+			// ever actually needed. The per-PR `db-branch` below keeps the default
+			// `destroy` policy on purpose — only the shared database is protected.
+			const db = yield* PostgresDatabase("db", {
+				name: "wal-go",
+				clusterSize: "PS_5",
+				replicas: 0,
+				arch: "arm",
+				region: {
+					slug: "eu-central",
+				},
+				migrationsDir: isProd ? schema.out : undefined,
+			}).pipe(RemovalPolicy.retain(true));
 
-		const role = yield* PostgresRole("db-role", {
-			database: db,
-			branch,
-			inheritedRoles: ["postgres"],
+			const branch = isProd
+				? "main"
+				: yield* PostgresBranch("db-branch", {
+						database: db,
+						parentBranch: "main",
+						migrationsDir: schema.out,
+					});
+
+			return yield* PostgresRole("db-role", {
+				database: db,
+				branch,
+				inheritedRoles: ["postgres"],
+			});
 		});
 
 		const hyperdrive = yield* Hyperdrive("hyperdrive", {
@@ -91,9 +117,14 @@ export default Stack(
 			},
 		});
 
-		const email = yield* SendEmail("EMAIL", {
-			allowedSenderAddresses: ["noreply@walgo.lt", "admin@walgo.lt"],
-		});
+		// `send_email` bindings aren't supported in `alchemy dev`'s local mode —
+		// binding it would crash worker creation. `sendEmail()` already logs and
+		// skips when the binding is absent, so just omit it in dev.
+		const email = isDev
+			? undefined
+			: yield* SendEmail("EMAIL", {
+					allowedSenderAddresses: ["noreply@walgo.lt", "admin@walgo.lt"],
+				});
 
 		// Public bucket for newsletter images. Served from a custom domain so the
 		// URLs embedded in already-sent emails stay valid forever (recipients fetch
@@ -126,7 +157,7 @@ export default Stack(
 			},
 			bindings: {
 				HYPERDRIVE: hyperdrive,
-				EMAIL: email,
+				...(email ? { EMAIL: email } : {}),
 				ASSETS_BUCKET: newsletterAssets,
 			},
 			observability: {
@@ -153,10 +184,16 @@ export default Stack(
 				...(process.env.DISCORD_WEBHOOK_URL
 					? { DISCORD_WEBHOOK_URL: Secret("DISCORD_WEBHOOK_URL") }
 					: {}),
-				VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: Variable(
-					"VITE_PUBLIC_POSTHOG_PROJECT_TOKEN"
-				),
-				VITE_PUBLIC_POSTHOG_HOST: Variable("VITE_PUBLIC_POSTHOG_HOST"),
+				// Optional: PostHog is disabled client-side when the token is unset,
+				// so only bind it when present (e.g. local dev may omit it).
+				...(process.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
+					? {
+							VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: Variable(
+								"VITE_PUBLIC_POSTHOG_PROJECT_TOKEN"
+							),
+							VITE_PUBLIC_POSTHOG_HOST: Variable("VITE_PUBLIC_POSTHOG_HOST"),
+						}
+					: {}),
 			},
 		});
 

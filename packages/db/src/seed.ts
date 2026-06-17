@@ -152,7 +152,7 @@ async function seed() {
 	let inserted = 0;
 	let attempts = 0;
 
-	while (inserted < 200 && attempts < 400) {
+	while (inserted < 2000 && attempts < 4000) {
 		attempts++;
 		const user = randomItem(users);
 		const operatorSquare = randomItem(VALID_WAL_SQUARES);

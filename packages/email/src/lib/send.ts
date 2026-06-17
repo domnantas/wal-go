@@ -54,8 +54,12 @@ async function getEmailBinding(): Promise<EmailBinding | undefined> {
 export async function sendEmail(message: OutboundEmail): Promise<void> {
 	const binding = await getEmailBinding();
 	if (!binding) {
+		const links = [...(message.html ?? "").matchAll(/href="([^"]+)"/g)].map(
+			(match) => match[1]
+		);
 		console.warn(
-			`[email] no EMAIL binding; skipped send to ${message.to} (${message.subject})`
+			`[email] no EMAIL binding; skipped send to ${message.to} (${message.subject})`,
+			links.length > 0 ? { links } : ""
 		);
 		return;
 	}
