@@ -308,7 +308,7 @@ function RouteComponent() {
 						/>
 						<StatCard
 							icon={<MapPinned className="size-4" />}
-							label="Unikalūs kvadratai"
+							label="Aplankyti kvadratai"
 							value={statValues.uniqueSquares}
 						/>
 						<StatCard

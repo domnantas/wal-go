@@ -22,6 +22,13 @@ The page defaults to the most recent one. When more than one ended season exists
 `Select` dropdown lets the viewer switch between them; switching re-fetches standings and
 re-fires the winner confetti.
 
+## Map
+
+Below the winner hero, a `MapView` renders the territory control for the selected season
+(`h-96`, rounded border, no geolocation). Square selection state is local to the page;
+clicking a square highlights it on the map (same `selectedSquareCode` / `onSquareSelect`
+pattern as `/map`) but does not open a stats panel on the leaderboard.
+
 ## Data
 
 All three queries are `publicProcedure`s; access is enforced at the route/header level.

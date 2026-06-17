@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Trophy } from "lucide-react";
 import { useState } from "react";
+import { MapView } from "@/domains/map/map-view";
 import { SeasonWinnerHero } from "@/domains/season/season-winner-hero";
 import { TEAM_CONFIG, type Team } from "@/domains/season/team";
 import { TeamStandingCard } from "@/domains/season/team-standing-card";
@@ -50,6 +51,9 @@ function RouteComponent() {
 		.sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime());
 
 	const [selectedSeasonId, setSelectedSeasonId] = useState<number | null>(null);
+	const [selectedSquareCode, setSelectedSquareCode] = useState<string | null>(
+		null
+	);
 	const activeSeasonId = selectedSeasonId ?? endedSeasons[0]?.id ?? null;
 	const selectedSeason =
 		endedSeasons.find((season) => season.id === activeSeasonId) ?? null;
@@ -133,6 +137,14 @@ function RouteComponent() {
 				/>
 			)}
 
+			<div className="flex h-96 overflow-hidden rounded-3xl border border-border">
+				<MapView
+					onSquareSelect={setSelectedSquareCode}
+					seasonId={activeSeasonId}
+					selectedSquareCode={selectedSquareCode}
+				/>
+			</div>
+
 			<section>
 				<h2 className="mb-3 font-bold font-serif text-xl">Komandos</h2>
 				<div className="grid gap-3 md:grid-cols-3">
@@ -161,7 +173,9 @@ function RouteComponent() {
 								<TableHead>Komanda</TableHead>
 								<TableHead className="w-24 text-right">Taškai</TableHead>
 								<TableHead className="w-24 text-right">QSO</TableHead>
-								<TableHead className="w-24 text-right">Kvadratai</TableHead>
+								<TableHead className="w-24 text-right">
+									Aplankyti kvadratai
+								</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
