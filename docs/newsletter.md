@@ -177,6 +177,12 @@ The `/admin` **Naujienlaiškis** tab
 
 - `admin.newsletter.audience` — `{ total, subscribed }` counts from the DB for
   the header card.
+- **Draft autosave** — all form fields are persisted to `localStorage` under the
+  key `newsletter-draft` on every change and restored on page load. Cleared on
+  successful send.
+- **Preview text field** — explicit plain-text input for the inbox preheader
+  (the snippet shown after the subject line in mail clients). Falls back to
+  `heading` when blank. No markdown — the field hint says so.
 - **Live preview (client-side)** — renders `NewsletterEmail` in the browser with
   the shared defaults, debounced and leniently mapped, shown in a sandboxed
   `<iframe srcDoc>`.

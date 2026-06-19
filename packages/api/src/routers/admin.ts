@@ -677,6 +677,7 @@ const newsletterContentInput = z.object({
 	label: z.string().trim().max(120).optional(),
 	heading: z.string().trim().min(1).max(200),
 	intro: z.string().trim().max(2000).optional(),
+	preview: z.string().trim().max(200).optional(),
 	sections: z.array(newsletterSectionInput).max(20).optional(),
 	ctaLabel: z.string().trim().max(120).optional(),
 	ctaUrl: z.url().optional(),
@@ -699,7 +700,7 @@ const newsletterContent = (input: z.infer<typeof newsletterContentInput>) => ({
 	sections: input.sections,
 	ctaLabel: input.ctaLabel,
 	ctaUrl: input.ctaUrl,
-	preview: input.intro,
+	preview: input.preview,
 	localization: WALGO_NEWSLETTER_LOCALIZATION,
 });
 

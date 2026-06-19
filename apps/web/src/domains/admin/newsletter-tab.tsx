@@ -43,6 +43,28 @@ const emptySection = (): SectionDraft => ({
 	imageUrl: "",
 });
 
+const DRAFT_KEY = "newsletter-draft";
+
+interface NewsletterDraft {
+	ctaLabel: string;
+	ctaUrl: string;
+	heading: string;
+	intro: string;
+	label: string;
+	preview: string;
+	sections: SectionDraft[];
+	subject: string;
+}
+
+const loadDraft = (): NewsletterDraft | null => {
+	try {
+		const raw = localStorage.getItem(DRAFT_KEY);
+		return raw ? (JSON.parse(raw) as NewsletterDraft) : null;
+	} catch {
+		return null;
+	}
+};
+
 const trimmedOrUndefined = (value: string) => {
 	const trimmed = value.trim();
 	return trimmed === "" ? undefined : trimmed;
@@ -53,22 +75,27 @@ export function NewsletterTab() {
 		orpc.admin.newsletter.audience.queryOptions()
 	);
 
-	const [subject, setSubject] = useState("");
-	const [label, setLabel] = useState("");
-	const [heading, setHeading] = useState("");
-	const [intro, setIntro] = useState("");
-	const [sections, setSections] = useState<SectionDraft[]>([]);
-	const [ctaLabel, setCtaLabel] = useState("");
-	const [ctaUrl, setCtaUrl] = useState("");
+	const [subject, setSubject] = useState(() => loadDraft()?.subject ?? "");
+	const [label, setLabel] = useState(() => loadDraft()?.label ?? "");
+	const [heading, setHeading] = useState(() => loadDraft()?.heading ?? "");
+	const [preview, setPreview] = useState(() => loadDraft()?.preview ?? "");
+	const [intro, setIntro] = useState(() => loadDraft()?.intro ?? "");
+	const [sections, setSections] = useState<SectionDraft[]>(
+		() => loadDraft()?.sections ?? []
+	);
+	const [ctaLabel, setCtaLabel] = useState(() => loadDraft()?.ctaLabel ?? "");
+	const [ctaUrl, setCtaUrl] = useState(() => loadDraft()?.ctaUrl ?? "");
 	const [testEmail, setTestEmail] = useState("");
 
 	const send = useMutation(
 		orpc.admin.newsletter.send.mutationOptions({
 			onSuccess: ({ sent }) => {
 				toast.success(`Naujienlaiškis išsiųstas (${sent})`);
+				localStorage.removeItem(DRAFT_KEY);
 				setSubject("");
 				setLabel("");
 				setHeading("");
+				setPreview("");
 				setIntro("");
 				setSections([]);
 				setCtaLabel("");
@@ -86,6 +113,22 @@ export function NewsletterTab() {
 			onError: (error) => toast.error(error.message),
 		})
 	);
+
+	useEffect(() => {
+		localStorage.setItem(
+			DRAFT_KEY,
+			JSON.stringify({
+				subject,
+				label,
+				heading,
+				preview,
+				intro,
+				sections,
+				ctaLabel,
+				ctaUrl,
+			})
+		);
+	}, [subject, label, heading, preview, intro, sections, ctaLabel, ctaUrl]);
 
 	const updateSection = (index: number, patch: Partial<SectionDraft>) => {
 		setSections((prev) =>
@@ -119,9 +162,9 @@ export function NewsletterTab() {
 				})),
 			ctaLabel: ctaPair ? ctaLabel.trim() : undefined,
 			ctaUrl: ctaPair ? ctaUrl.trim() : undefined,
-			preview: trimmedOrUndefined(intro),
+			preview: trimmedOrUndefined(preview),
 		};
-	}, [label, heading, intro, sections, ctaLabel, ctaUrl]);
+	}, [label, heading, preview, intro, sections, ctaLabel, ctaUrl]);
 
 	const debouncedContent = useDebounced(previewContent, 400);
 	const [previewHtml, setPreviewHtml] = useState<string>();
@@ -156,6 +199,7 @@ export function NewsletterTab() {
 		subject: subject.trim(),
 		heading: heading.trim(),
 		label: trimmedOrUndefined(label),
+		preview: trimmedOrUndefined(preview),
 		intro: trimmedOrUndefined(intro),
 		ctaLabel: trimmedOrUndefined(ctaLabel),
 		ctaUrl: trimmedOrUndefined(ctaUrl),
@@ -233,6 +277,18 @@ export function NewsletterTab() {
 							placeholder="Naujienos iš eterio"
 							value={heading}
 						/>
+					</Field>
+
+					<Field id="nl-preview" label="Peržiūros tekstas pašto programoje">
+						<Input
+							id="nl-preview"
+							onChange={(e) => setPreview(e.target.value)}
+							placeholder="Alpha sezonas jau įpusėjo…"
+							value={preview}
+						/>
+						<p className="text-muted-foreground text-xs">
+							Trumpas tekstas, rodomas po tema pašto programoje. Be markdown.
+						</p>
 					</Field>
 
 					<Field id="nl-intro" label="Įžanga">
