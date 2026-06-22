@@ -1,11 +1,61 @@
 # Scoring and Territory Control
 
+## Rule Sets
+
+Each season has a `scoring_rule_set` column (`"alpha"` | `"beta"`, default `"alpha"`). The active rule set determines point calculation, confirmation logic, and contact square requirements.
+
+A rule set is a **versioned identity**, not a per-season flag: many seasons can share one rule set, and the same value scores those seasons identically forever. When rules change, add a new enum value + a new file implementing `ScoringRuleSet` — existing seasons keep their old value untouched. Enum values are opaque ordered IDs (`alpha`, `beta`, …); a rule set's meaning lives in its file and the registry below, not in its name.
+
+### Rule Set Registry
+
+| Value | Seasons | Summary |
+|---|---|---|
+| `alpha` | Alpha season | 1 pt per QSO on operator square. Contact square optional. |
+| `beta` | Beta season | Mode-weighted (1 DIGI / 2 phone-CW) + double on confirmation. Contact square required. |
+
+Keep this table current when adding a rule set or assigning one to a season.
+
+### Alpha Rule Set
+
+- **1 point** per accepted QSO, awarded on the operator's WAL square.
+- Contact square (`GRIDSQUARE`) is optional — stored when provided but does not affect scoring.
+
+### Beta Rule Set
+
+- **1 point** for DIGI QSOs (unconfirmed).
+- **2 points** for CW / SSB / FM QSOs (unconfirmed).
+- **Double points** when the QSO is confirmed (both stations logged it).
+- Contact square is **required** — the field cannot be empty. DX (foreign) contacts are entered as the literal `DX`; they score base points but never confirm (no WAL square to swap).
+
+#### Confirmation
+
+A QSO is confirmed when the contact station has a matching QSO already in the system satisfying all of:
+
+| Field | Requirement |
+|---|---|
+| `band` | Equal |
+| `mode` | Equal |
+| `operatorSquare` | Equal to the other QSO's `contactSquare` |
+| `contactSquare` | Equal to the other QSO's `operatorSquare` |
+| `qsoAt` | Within ±300 seconds (5 minutes) |
+| Contact callsign | `UPPER(user.name)` of the other user matches this QSO's `contactCallsign` |
+| Banned | Other user must not be banned |
+
+Confirmation is **dynamic**: when either station logs or imports a QSO, if a matching QSO from the other side already exists, both stations immediately receive their full confirmed score. When a confirmed QSO is deleted, both stations lose the bonus.
+
+#### Beta scoring math
+
+```
+base = mode === "DIGI" ? 1 : 2
+inserting station scores: base × (confirmed ? 2 : 1)
+confirming station gets extra: +base_of_their_own_qso   (they go from 1× to 2×)
+```
+
+#### Bulk import (beta)
+
+Because confirmation must be checked per-QSO, beta seasons use per-QSO `scoreInsert` calls inside `commitUpload` instead of the batch `scoreBulkInsert` path. This ensures confirmation bonuses are awarded immediately when importing a log that matches QSOs already on file.
+
 ## Points
-
-For the alpha season, each accepted QSO awards one point to the submitting user's team on the operator's WAL square:
-
-- **Operator's square** (`MY_GRIDSQUARE`) — always awarded.
-- **Contact's square** (`GRIDSQUARE`) — stored when provided, but does not score in the alpha season.
 
 Points are per-season. Deleting a QSO loses its points immediately.
 
@@ -14,7 +64,7 @@ Points are per-season. Deleting a QSO loses its points immediately.
 Two layers; in both the contact callsign is the **base call** (suffixes/prefixes stripped at insert — see Callsign Normalization in [qso-logging.md](qso-logging.md)), so `LY2EN` and `LY2EN/P` from the same square collapse to one identity.
 
 - **Exact duplicates** prevent accidental double submission: same user already has the same season, callsign, band, mode, timestamp, operator square, and contact square.
-- **Game duplicates** are scoring rules: in the alpha season, only one QSO with the same callsign, band, mode, operator square, and contact square scores per Lithuanian calendar day (`Europe/Vilnius`). Changing either square lets another such QSO score that day.
+- **Game duplicates** are scoring rules: only one QSO with the same callsign, band, mode, operator square, and contact square scores per Lithuanian calendar day (`Europe/Vilnius`). Changing either square lets another such QSO score that day.
 
 ## Square Control
 
@@ -51,6 +101,16 @@ anonymized (team + square + time only, never a callsign) — see [activity-feed.
 
 ## Implementation
 
+### Rule set dispatch
+
+`getScoringRuleSet(scoringRuleSet: "alpha" | "beta"): ScoringRuleSet` (`packages/api/src/scoring/index.ts`) returns the right rule set object. The `ScoringRuleSet` interface (`packages/api/src/scoring/types.ts`) defines:
+
+- `usePerQsoScoring: boolean` — when true, `commitUpload` loops through `scoreInsert` per QSO instead of calling `scoreBulkInsert`.
+- `validateInsert` — rejects invalid QSOs (contact square, game dups).
+- `scoreInsert` / `scoreDelete` — compute per-QSO score deltas (including confirmation logic for beta).
+- `scoreBulkInsert` / `filterBulkInserts` — batch path for alpha.
+- `computeExpectedScores` — ground-truth aggregation used by drift detection and recompute.
+
 ### Materialized score tables
 
 Scores are stored, not computed on read (full-season aggregation across tens of thousands of QSOs is too expensive for map/leaderboard reads). Schema in `packages/db/src/schema/scoring.ts`:
@@ -83,7 +143,7 @@ A banned user's QSO rows **stay in the DB**, but their points must **not** count
 1. Locks the user row (`FOR UPDATE`), reads current `banned`.
 2. Updates the `banned` flag.
 3. On ban, deletes the user's `session` rows. We ban via a raw DB update, not better-auth's `banUser`, because the admin plugin only blocks banned users at **session creation** (re-login) — it doesn't invalidate existing sessions. Without revocation a banned user could keep calling `qsos.create` and re-add removed points.
-4. Only if the state changed, calls `applyUserBanScoreChange` (`packages/api/src/scoring/apply-deltas.ts`), which aggregates the user's stored QSOs per `(season, square, team)` and feeds them through `applyScoreDeltas` as negative (ban) or positive (unban) deltas.
+4. Only if the state changed, calls `applyUserBanScoreChange` (`packages/api/src/scoring/apply-deltas.ts`). For alpha seasons this uses a count-based delta. For beta seasons (mode-weighted + confirmation), it triggers a full `recomputeSeasonScores` because a count-based delta would be incorrect.
 
 The change-guard prevents double-counting on a repeated ban.
 
@@ -91,17 +151,13 @@ The change-guard prevents double-counting on a repeated ban.
 
 The score tables are a denormalized cache; `qso` is the source of truth. They can drift if a mutation bypasses the delta path (forgotten ban recompute, delta-math bug, direct DB edit).
 
-`computeScoreDrift` (`packages/api/src/scoring/drift.ts`) recomputes expected aggregates from `qso` joined with `user` (excluding banned users) and compares against stored rows. Per season it reports mismatched square rows, mismatched user rows, and net stored-minus-expected point difference. Surfaced per season in the admin dashboard ([admin.md](admin.md)).
+`computeScoreDrift` (`packages/api/src/scoring/drift.ts`) uses each rule set's `computeExpectedScores(db, seasonId)` to derive ground-truth aggregates (excluded banned users) and compares against stored rows. Per season it reports mismatched square rows, mismatched user rows, and net stored-minus-expected point difference. Surfaced per season in the admin dashboard ([admin.md](admin.md)).
 
-> **Baseline assumption:** expected points = count of stored QSO rows, because the alpha rule set awards exactly one point per accepted QSO (game duplicates filtered at insert). A future non-trivial rule set must update this baseline, or the detector reports false drift.
+For beta, `computeExpectedScores` performs an in-memory confirmation match: pairs up QSOs where both sides have a matching entry, assigns double points to confirmed pairs and base points to unconfirmed ones.
 
 ### Repair: recompute scores
 
-When the badge is red, an admin clicks **"Perskaičiuoti"** (`admin.scores.recompute`), running `recomputeSeasonScores` (`packages/api/src/scoring/apply-deltas.ts`) in a transaction: it **wipes** the season's score rows and **rebuilds** them from `qso` joined with `user` (excluding banned users) — the exact aggregation the detector expects. Idempotent; afterward the season is drift-free. Shares the one-point-per-QSO baseline, so a future rule set must update both together.
-
-### Recompute on QSO delete
-
-Deleting a QSO decrements symmetrically: find the operator square, decrement `square_score.points` for the team on that square, decrement `user_season_score.points` for the user.
+When the badge is red, an admin clicks **"Perskaičiuoti"** (`admin.scores.recompute`), running `recomputeSeasonScores` (`packages/api/src/scoring/apply-deltas.ts`) in a transaction: it **wipes** the season's score rows and **rebuilds** them from `ruleSet.computeExpectedScores`. Idempotent; afterward the season is drift-free.
 
 ## Discord announcements
 

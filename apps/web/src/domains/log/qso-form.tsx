@@ -102,6 +102,13 @@ const requiredWalSchema = requiredText("Įveskite WAL kvadratą").refine(
 	"Neteisingas WAL kvadratas"
 );
 
+const requiredWalOrDxSchema = requiredText(
+	"Įveskite WAL kvadratą arba DX"
+).refine(
+	(value) => value.toUpperCase() === "DX" || isValidWalSquare(value),
+	"Neteisingas WAL kvadratas"
+);
+
 const optionalWalSchema = z
 	.string()
 	.trim()
@@ -111,19 +118,23 @@ const optionalWalSchema = z
 		"Neteisingas WAL kvadratas"
 	);
 
-const qsoFormSchema = z.object({
-	contactCallsign: requiredText("Įveskite šaukinį")
-		.refine((v) => isValidCallsign(v), "Neteisingas šaukinys")
-		.refine(
-			(v) => !BLOCKED_CALLSIGN_REGEX.test(normalizeCallsign(v)),
-			"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦"
-		),
-	band: z.enum(BAND_OPTIONS),
-	mode: z.enum(MODE_OPTIONS),
-	qsoAt: dateTimeSchema,
-	operatorSquare: requiredWalSchema,
-	contactSquare: optionalWalSchema,
-});
+function getQsoFormSchema(requiresContactSquare: boolean) {
+	return z.object({
+		contactCallsign: requiredText("Įveskite šaukinį")
+			.refine((v) => isValidCallsign(v), "Neteisingas šaukinys")
+			.refine(
+				(v) => !BLOCKED_CALLSIGN_REGEX.test(normalizeCallsign(v)),
+				"Rusijos ir Baltarusijos šaukiniai neleistini. Слава Україні! 🇺🇦"
+			),
+		band: z.enum(BAND_OPTIONS),
+		mode: z.enum(MODE_OPTIONS),
+		qsoAt: dateTimeSchema,
+		operatorSquare: requiredWalSchema,
+		contactSquare: requiresContactSquare
+			? requiredWalOrDxSchema
+			: optionalWalSchema,
+	});
+}
 
 function toIsoDateTime(value: string) {
 	const date = parse(value, DATE_TIME_INPUT_FORMAT, new Date());
@@ -203,6 +214,7 @@ export function QsoForm({
 	onKeepOpenChange,
 	onModeChange,
 	onSubmit,
+	requiresContactSquare = false,
 	submitLabel,
 }: {
 	defaultValues: QsoFormState;
@@ -216,8 +228,10 @@ export function QsoForm({
 	onKeepOpenChange?: (keepOpen: boolean) => void;
 	onModeChange?: (mode: string) => void;
 	onSubmit: (payload: QsoFormPayload) => unknown;
+	requiresContactSquare?: boolean;
 	submitLabel: string;
 }) {
+	const qsoFormSchema = getQsoFormSchema(requiresContactSquare);
 	const contactCallsignRef = useRef<HTMLInputElement>(null);
 	const operatorSquareRef = useRef<HTMLInputElement>(null);
 	const contactSquareRef = useRef<HTMLInputElement>(null);
@@ -245,10 +259,9 @@ export function QsoForm({
 				mode: value.mode,
 				qsoAt,
 				operatorSquare: normalizeWalSquare(value.operatorSquare),
-				contactSquare:
-					value.contactSquare && value.contactSquare.toUpperCase() !== "DX"
-						? normalizeWalSquare(value.contactSquare)
-						: null,
+				contactSquare: value.contactSquare
+					? normalizeWalSquare(value.contactSquare)
+					: null,
 			});
 			if (keepOpen && result !== false) {
 				form.resetField("contactCallsign");
@@ -517,7 +530,9 @@ export function QsoForm({
 				</form.Field>
 				<form.Field
 					name="contactSquare"
-					validators={{ onBlur: qsoFormSchema.shape.contactSquare }}
+					validators={{
+						onBlur: qsoFormSchema.shape.contactSquare,
+					}}
 				>
 					{(field) => {
 						const isInvalid =
@@ -528,7 +543,11 @@ export function QsoForm({
 									<FieldLabel htmlFor="contactSquare">
 										Korespondento kvadratas
 									</FieldLabel>
-									<FieldDescription>Neprivaloma</FieldDescription>
+									<FieldDescription>
+										{requiresContactSquare
+											? "DX ryšiui įveskite DX"
+											: "Neprivaloma"}
+									</FieldDescription>
 								</div>
 								<Input
 									aria-invalid={isInvalid}

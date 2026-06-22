@@ -24,9 +24,11 @@ import {
 export function EditQsoDialog({
 	disabled = false,
 	qso,
+	requiresContactSquare = false,
 }: {
 	disabled?: boolean;
 	qso: EditableQso;
+	requiresContactSquare?: boolean;
 }) {
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
@@ -94,6 +96,7 @@ export function EditQsoDialog({
 					isPending={updateQso.isPending}
 					onClearError={() => setFormError(null)}
 					onSubmit={handleSubmit}
+					requiresContactSquare={requiresContactSquare}
 					submitLabel="Atnaujinti QSO"
 				/>
 			</DialogContent>

@@ -61,7 +61,7 @@ function RulesComponent() {
 		<main className="mx-auto max-w-3xl px-6 py-16">
 			<div className="mb-12">
 				<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.14em]">
-					WAL GO · Alpha 1 sezonas
+					WAL GO · Beta sezonas
 				</p>
 				<h1 className="mt-6 font-bold font-serif text-5xl leading-[1.02] tracking-tight md:text-6xl">
 					Žaidimo <em className="text-olive italic">taisyklės</em>
@@ -171,13 +171,17 @@ function RulesComponent() {
 								["Korespondento šaukinys", "Taip", "Pvz., LY5AT, OH3JR"],
 								["Data ir laikas", "Taip", "Tikslus UTC laikas"],
 								["Diapazonas", "Taip", "Pvz., 40m, 20m, 80m"],
-								["Moduliacija", "Taip", "CW, SSB, FT8 ir kt."],
+								["Moduliacija", "Taip", "CW, SSB, FM arba DIGI"],
 								[
 									"Operatoriaus WAL kvadratas",
 									"Taip",
 									"Kuriame kvadrate yra stotis",
 								],
-								["Korespondento WAL kvadratas", "Ne", "Jei žinomas"],
+								[
+									"Korespondento WAL kvadratas",
+									"Taip",
+									"Kuriame kvadrate yra korespondentas",
+								],
 							].map(([field, req, note]) => (
 								<tr key={field}>
 									<td className="px-4 py-2.5 font-medium">{field}</td>
@@ -213,9 +217,9 @@ function RulesComponent() {
 					Latvijos pusėje — QSO neįskaitomas. Jei Lietuvos pusėje — įskaitomas.
 				</Note>
 				<Rule n="6.4">
-					Korespondento WAL kvadratas yra neprivalomas. Ryšiai su užsienio
-					stotimis (DX) yra leidžiami — tokiu atveju korespondento kvadrato
-					lauką palikite tuščią arba įveskite{" "}
+					Korespondento WAL kvadratas yra <strong>privalomas</strong> — laukas
+					negali likti tuščias. Ryšiai su užsienio stotimis (DX) yra leidžiami
+					ir įskaitomi: tokiu atveju korespondento kvadrato lauke įveskite{" "}
 					<code className="rounded bg-muted px-1 font-mono text-xs">DX</code>.
 				</Rule>
 				<Rule n="6.5">
@@ -234,37 +238,37 @@ function RulesComponent() {
 
 			<RuleSection id="taskų-sistema" number="7" title="Taškų sistema">
 				<Rule n="7.1">
-					Kiekvienas QSO suteikia <strong>1 tašką</strong> žaidėjo komandai
-					operatoriaus WAL kvadrate.
-				</Rule>
-				<Note>
-					Pavyzdys: LY1JA priklauso raudonai komandai ir kvadrate{" "}
-					<strong>K12</strong>
-					užmezga ryšį su OH3JR 20m diapazone FT8 moduliacija. Užregistravus šį
-					QSO, raudonai komandai K12 kvadrate suteikiamas 1 taškas.
-				</Note>
-				<Rule n="7.2">
-					Taškai kaupiami sezono laikotarpiu. Ištrynus QSO, atitinkami taškai
-					atimami iš komandos rezultato.
-				</Rule>
-				<Rule n="7.3">
-					Per vieną Lietuvos kalendorinę dieną (vidurnaktis pagal Vilniaus
-					laiką, UTC+2/UTC+3) įskaitomas tik <strong>vienas QSO</strong> su tuo
-					pačiu korespondentu, tame pačiame diapazone, toje pačioje
-					moduliacijoje, tame pačiame operatoriaus kvadrate ir tame pačiame
-					korespondento kvadrate.
-				</Rule>
-				<Rule n="7.4">
-					Pakartotinas ryšys su tuo pačiu korespondentu{" "}
-					<strong>yra leidžiamas</strong> tą pačią dieną, jeigu pasikeičia bent
-					viena iš šių sąlygų:
+					Kiekvienas QSO suteikia taškų žaidėjo komandai operatoriaus WAL
+					kvadrate pagal moduliaciją:
 				</Rule>
 				<div className="ml-7 space-y-1.5">
 					{[
-						"operatorius persikelia į kitą WAL kvadratą",
-						"korespondentas persikelia į kitą WAL kvadratą (jei nurodytas)",
-						"pasikeičia diapazonas (pvz., iš 20m į 40m)",
-						"pasikeičia moduliacija (pvz., iš FT8 į SSB)",
+						["DIGI", "1 taškas"],
+						["CW, SSB, FM", "2 taškai"],
+					].map(([modeLabel, points]) => (
+						<div
+							className="flex gap-2 text-foreground/75 text-sm"
+							key={modeLabel}
+						>
+							<span className="mt-1 size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+							<span>
+								<strong>{modeLabel}</strong> — {points}
+							</span>
+						</div>
+					))}
+				</div>
+				<Rule n="7.2">
+					QSO taškai <strong>padvigubinami</strong>, kai ryšys yra{" "}
+					<strong>patvirtintas</strong> — kai abi stotys užregistruoja tą patį
+					ryšį WAL GO sistemoje. Patvirtinimas nustatomas, kai abiejų stočių
+					įrašuose sutampa:
+				</Rule>
+				<div className="ml-7 space-y-1.5">
+					{[
+						"diapazonas",
+						"moduliacija",
+						"sukeisti WAL kvadratai (vieno operatoriaus kvadratas = kito korespondento kvadratas)",
+						"ryšio laikas (leistinas skirtumas iki 5 minučių)",
 					].map((item) => (
 						<div className="flex gap-2 text-foreground/75 text-sm" key={item}>
 							<span className="mt-1 size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
@@ -273,10 +277,52 @@ function RulesComponent() {
 					))}
 				</div>
 				<Note>
-					Pavyzdys: LY1JA kvadrate <strong>K12</strong> jau padarė FT8 20m ryšį
-					su LY5AT. Tą pačią dieną: dar vienas FT8 20m ryšys su LY5AT iš K12 —{" "}
+					Patvirtinimas veikia automatiškai: kai antroji stotis užregistruoja
+					arba importuoja atitinkamą QSO, abiejų stočių taškai iškart
+					padvigubinami. Ištrynus patvirtintą QSO, papildomi taškai atimami iš
+					abiejų stočių.
+				</Note>
+				<Note>
+					Pavyzdys: LY1JA (raudona komanda) kvadrate <strong>K12</strong>{" "}
+					užmezga CW 20m ryšį su LY5AT, kuris yra kvadrate <strong>K13</strong>.
+					Iš pradžių LY1JA gauna 2 taškus. Kai LY5AT užregistruoja tą patį ryšį
+					(K13 ↔ K12, CW, 20m, per 5 min), abiejų stočių taškai padvigubinami —
+					LY1JA gauna 4 taškus K12 kvadrate, LY5AT — 4 taškus K13 kvadrate.
+				</Note>
+				<Rule n="7.3">
+					Taškai kaupiami sezono laikotarpiu. Ištrynus QSO, atitinkami taškai
+					atimami iš komandos rezultato.
+				</Rule>
+				<Rule n="7.4">
+					Per vieną Lietuvos kalendorinę dieną (vidurnaktis pagal Vilniaus
+					laiką, UTC+2/UTC+3) įskaitomas tik <strong>vienas QSO</strong> su tuo
+					pačiu korespondentu, tame pačiame diapazone, toje pačioje
+					moduliacijoje, tame pačiame operatoriaus kvadrate ir tame pačiame
+					korespondento kvadrate.
+				</Rule>
+				<Rule n="7.5">
+					Pakartotinas ryšys su tuo pačiu korespondentu{" "}
+					<strong>yra leidžiamas</strong> tą pačią dieną, jeigu pasikeičia bent
+					viena iš šių sąlygų:
+				</Rule>
+				<div className="ml-7 space-y-1.5">
+					{[
+						"operatorius persikelia į kitą WAL kvadratą",
+						"korespondentas persikelia į kitą WAL kvadratą",
+						"pasikeičia diapazonas (pvz., iš 20m į 40m)",
+						"pasikeičia moduliacija (pvz., iš DIGI į SSB)",
+					].map((item) => (
+						<div className="flex gap-2 text-foreground/75 text-sm" key={item}>
+							<span className="mt-1 size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+							<span>{item}</span>
+						</div>
+					))}
+				</div>
+				<Note>
+					Pavyzdys: LY1JA kvadrate <strong>K12</strong> jau padarė DIGI 20m ryšį
+					su LY5AT. Tą pačią dieną: dar vienas DIGI 20m ryšys su LY5AT iš K12 —{" "}
 					<strong>neįskaičiuojamas</strong>. Tačiau ryšys su LY5AT per CW 20m
-					arba FT8 40m — <strong>įskaičiuojamas</strong>. Ryšys su LY5AT FT8
+					arba DIGI 40m — <strong>įskaičiuojamas</strong>. Ryšys su LY5AT DIGI
 					20m, jei LY1JA persikelia į <strong>K13</strong> —{" "}
 					<strong>taip pat įskaičiuojamas</strong>.
 				</Note>

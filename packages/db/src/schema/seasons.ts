@@ -10,6 +10,7 @@ import {
 import { user } from "./auth.ts";
 
 export const teamColor = pgEnum("team_color", ["yellow", "green", "red"]);
+export const scoringRuleSetEnum = pgEnum("scoring_rule_set", ["alpha", "beta"]);
 
 export const season = pgTable("season", {
 	id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
@@ -22,6 +23,9 @@ export const season = pgTable("season", {
 		precision: 6,
 		withTimezone: true,
 	}).notNull(),
+	scoringRuleSet: scoringRuleSetEnum("scoring_rule_set")
+		.notNull()
+		.default("alpha"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.defaultNow()

@@ -57,6 +57,7 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	invalidMode: "Neatpažinta moduliacija",
 	invalidSquare: "Neteisingas WAL kvadratas",
 	malformedLine: "Neteisingas formatas",
+	missingContactSquare: "Trūksta korespondento kvadrato",
 	outsideSeason: "Už sezono ribų",
 	selfContact: "QSO su savimi",
 };
@@ -131,7 +132,8 @@ function gameDuplicateKey(row: ReviewRow) {
 function getBaseStatus(
 	row: ReviewRow,
 	userCallsign: string,
-	season: null | SeasonWindow
+	season: null | SeasonWindow,
+	requiresContactSquare: boolean
 ): null | RowStatusResult {
 	const structural = row.draft.issues[0];
 	if (structural) {
@@ -164,6 +166,9 @@ function getBaseStatus(
 	if (!isValidWalSquare(row.operatorSquare)) {
 		return { reason: "invalidSquare", status: "fixable" };
 	}
+	if (requiresContactSquare && normalizeWalSquare(row.contactSquare) === "") {
+		return { reason: "missingContactSquare", status: "fixable" };
+	}
 	if (!isContactSquareValid(row.contactSquare)) {
 		return { reason: "invalidSquare", status: "fixable" };
 	}
@@ -179,12 +184,18 @@ function getBaseStatus(
 function computeStatuses(
 	rows: ReviewRow[],
 	userCallsign: string,
-	season: null | SeasonWindow
+	season: null | SeasonWindow,
+	requiresContactSquare: boolean
 ): RowStatusResult[] {
 	const seenExact = new Set<string>();
 	const seenGame = new Set<string>();
 	return rows.map((row) => {
-		const base = getBaseStatus(row, userCallsign, season);
+		const base = getBaseStatus(
+			row,
+			userCallsign,
+			season,
+			requiresContactSquare
+		);
 		if (base) {
 			return base;
 		}
@@ -208,6 +219,7 @@ export function LogReviewDialog({
 	onOpenChange,
 	open,
 	parseResult,
+	requiresContactSquare = false,
 	seasonEnd,
 	seasonStart,
 	userCallsign,
@@ -217,6 +229,7 @@ export function LogReviewDialog({
 	onOpenChange: (open: boolean) => void;
 	open: boolean;
 	parseResult: ParseResult;
+	requiresContactSquare?: boolean;
 	seasonEnd: Date | null | string | undefined;
 	seasonStart: Date | null | string | undefined;
 	userCallsign: string;
@@ -242,8 +255,8 @@ export function LogReviewDialog({
 	}, [seasonStart, seasonEnd]);
 
 	const statuses = useMemo(
-		() => computeStatuses(rows, userCallsign, season),
-		[rows, userCallsign, season]
+		() => computeStatuses(rows, userCallsign, season, requiresContactSquare),
+		[rows, userCallsign, season, requiresContactSquare]
 	);
 	const importableCount = statuses.filter((s) => s.status === "ok").length;
 	const invalidCount = rows.length - importableCount;

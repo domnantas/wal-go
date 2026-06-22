@@ -20,6 +20,7 @@ export type SkipReason =
 	| "invalidMode"
 	| "invalidSquare"
 	| "malformedLine"
+	| "missingContactSquare"
 	| "outsideSeason"
 	| "selfContact";
 

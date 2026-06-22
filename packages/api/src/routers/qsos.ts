@@ -63,7 +63,11 @@ function validateSquares(operatorSquare: string, contactSquare: string | null) {
 			message: "Neteisingas mano WAL kvadratas",
 		});
 	}
-	if (contactSquare && !isValidWalSquare(contactSquare)) {
+	if (
+		contactSquare &&
+		contactSquare !== "DX" &&
+		!isValidWalSquare(contactSquare)
+	) {
 		throw new ORPCError("BAD_REQUEST", {
 			message: "Neteisingas korespondento WAL kvadratas",
 		});
@@ -127,10 +131,9 @@ async function rejectExactQsoDuplicate(
 
 function normalizeQsoInput(input: z.infer<typeof qsoInput>) {
 	const operatorSquare = normalizeWalSquare(input.operatorSquare);
-	const rawContactSquare = input.contactSquare
+	const contactSquare = input.contactSquare
 		? normalizeWalSquare(input.contactSquare)
 		: null;
-	const contactSquare = rawContactSquare === "DX" ? null : rawContactSquare;
 
 	validateSquares(operatorSquare, contactSquare);
 
@@ -196,6 +199,7 @@ async function filterExactQsoDuplicates(
 				contactCallsign: row.contactCallsign,
 				contactSquare: row.contactSquare,
 				mode: row.mode,
+				operatorCallsign: "",
 				operatorSquare: row.operatorSquare,
 				qsoAt: row.qsoAt,
 				seasonId: first.seasonId,
@@ -381,13 +385,14 @@ const create = protectedProcedure
 
 			const team = membershipRows[0].team;
 			const userId = context.session.user.id;
-			const ruleSet = getScoringRuleSet(currentSeason.id);
+			const ruleSet = getScoringRuleSet(currentSeason.scoringRuleSet);
 
 			const insertParams: InsertParams = {
 				band: input.band,
 				contactCallsign,
 				contactSquare,
 				mode: input.mode,
+				operatorCallsign: userCallsign,
 				operatorSquare,
 				qsoAt,
 				seasonId: currentSeason.id,
@@ -478,7 +483,11 @@ const update = protectedProcedure
 			}
 
 			const seasonRows = await tx
-				.select({ endsAt: season.endsAt, startsAt: season.startsAt })
+				.select({
+					endsAt: season.endsAt,
+					startsAt: season.startsAt,
+					scoringRuleSet: season.scoringRuleSet,
+				})
 				.from(season)
 				.where(eq(season.id, qsoRow.seasonId))
 				.limit(1);
@@ -511,28 +520,33 @@ const update = protectedProcedure
 				contactCallsign,
 				contactSquare,
 				mode: input.mode,
+				operatorCallsign: userCallsign,
 				operatorSquare,
 				qsoAt,
 				seasonId: qsoRow.seasonId,
 				team: qsoRow.team,
 				userId: qsoRow.userId,
 			};
-			const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+			const ruleSet = getScoringRuleSet(qsoSeason.scoringRuleSet);
 
 			await rejectExactQsoDuplicate(tx, updateParams, input.id);
 			await ruleSet.validateInsert(tx, updateParams, {
 				excludeQsoId: input.id,
 			});
 
-			const deleteDeltas =
-				qsoRow.operatorSquare === operatorSquare
-					? []
-					: await ruleSet.scoreDelete(tx, {
-							contactSquare: qsoRow.contactSquare,
-							operatorSquare: qsoRow.operatorSquare,
-							team: qsoRow.team,
-							userId: qsoRow.userId,
-						});
+			const deleteDeltas = await ruleSet.scoreDelete(tx, {
+				band: qsoRow.band,
+				contactCallsign: qsoRow.contactCallsign,
+				contactSquare: qsoRow.contactSquare,
+				mode: qsoRow.mode,
+				operatorCallsign: userCallsign,
+				operatorSquare: qsoRow.operatorSquare,
+				qsoAt: qsoRow.qsoAt,
+				qsoId: qsoRow.id,
+				seasonId: qsoRow.seasonId,
+				team: qsoRow.team,
+				userId: qsoRow.userId,
+			});
 
 			const rows = await tx
 				.update(qso)
@@ -552,10 +566,6 @@ const update = protectedProcedure
 				throw new ORPCError("INTERNAL_SERVER_ERROR", {
 					message: "Nepavyko atnaujinti QSO",
 				});
-			}
-
-			if (deleteDeltas.length === 0) {
-				return { payload: serializeQso(updated), changes: [] };
 			}
 
 			const insertDeltas = await ruleSet.scoreInsert(tx, updateParams);
@@ -598,7 +608,10 @@ const deleteQso = protectedProcedure
 			}
 
 			const seasonRows = await tx
-				.select({ endsAt: season.endsAt })
+				.select({
+					endsAt: season.endsAt,
+					scoringRuleSet: season.scoringRuleSet,
+				})
 				.from(season)
 				.where(eq(season.id, qsoRow.seasonId))
 				.limit(1);
@@ -610,10 +623,20 @@ const deleteQso = protectedProcedure
 				});
 			}
 
-			const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+			const operatorCallsign = normalizeCallsign(context.session.user.name);
+			const ruleSet = getScoringRuleSet(
+				seasonRows[0]?.scoringRuleSet ?? "alpha"
+			);
 			const deltas = await ruleSet.scoreDelete(tx, {
+				band: qsoRow.band,
+				contactCallsign: qsoRow.contactCallsign,
 				contactSquare: qsoRow.contactSquare,
+				mode: qsoRow.mode,
+				operatorCallsign,
 				operatorSquare: qsoRow.operatorSquare,
+				qsoAt: qsoRow.qsoAt,
+				qsoId: qsoRow.id,
+				seasonId: qsoRow.seasonId,
 				team: qsoRow.team,
 				userId: qsoRow.userId,
 			});
@@ -680,6 +703,7 @@ interface ValidatedRow {
 }
 
 interface RowContext {
+	requiresContactSquare: boolean;
 	seasonEnd: Date;
 	seasonStart: Date;
 	userCallsign: string;
@@ -724,11 +748,15 @@ function validateClientQso(
 	const normalizedContact = row.contactSquare
 		? normalizeWalSquare(row.contactSquare)
 		: "";
-	const contactSquare =
-		normalizedContact === "" || normalizedContact === "DX"
-			? null
-			: normalizedContact;
-	if (contactSquare && !isValidWalSquare(contactSquare)) {
+	const contactSquare = normalizedContact === "" ? null : normalizedContact;
+	if (ctx.requiresContactSquare && !contactSquare) {
+		return "missingContactSquare";
+	}
+	if (
+		contactSquare &&
+		contactSquare !== "DX" &&
+		!isValidWalSquare(contactSquare)
+	) {
 		return "invalidSquare";
 	}
 
@@ -761,12 +789,18 @@ function mapClientQsos(
 	seasonId: number,
 	team: "green" | "red" | "yellow",
 	userId: string,
-	userCallsign: string
+	userCallsign: string,
+	requiresContactSquare: boolean
 ): MappedQsos {
 	const insertParams: InsertParams[] = [];
 	const metaMap = new Map<InsertParams, LineMeta>();
 	const errors: ImportError[] = [];
-	const ctx: RowContext = { seasonEnd, seasonStart, userCallsign };
+	const ctx: RowContext = {
+		requiresContactSquare,
+		seasonEnd,
+		seasonStart,
+		userCallsign,
+	};
 
 	for (const row of rows) {
 		const result = validateClientQso(row, ctx);
@@ -774,7 +808,13 @@ function mapClientQsos(
 			errors.push({ line: row.line, content: row.raw, reason: result });
 			continue;
 		}
-		const p: InsertParams = { ...result, seasonId, team, userId };
+		const p: InsertParams = {
+			...result,
+			operatorCallsign: userCallsign,
+			seasonId,
+			team,
+			userId,
+		};
 		insertParams.push(p);
 		metaMap.set(p, { lineNumber: row.line, rawLine: row.raw });
 	}
@@ -811,6 +851,25 @@ const commitQsoInput = z.object({
 	qsoAt: z.string().max(40).nullable(),
 	raw: z.string().max(2000),
 });
+
+async function applyBulkScoreDeltas(
+	tx: Tx,
+	seasonId: number,
+	ruleSet: ReturnType<typeof getScoringRuleSet>,
+	toInsert: InsertParams[]
+): ReturnType<typeof applyScoreDeltas> {
+	if (!ruleSet.usePerQsoScoring) {
+		return applyScoreDeltas(tx, seasonId, ruleSet.scoreBulkInsert(toInsert));
+	}
+	const allDeltas: Parameters<typeof applyScoreDeltas>[2] = [];
+	for (const p of toInsert) {
+		const deltas = await ruleSet.scoreInsert(tx, p);
+		for (const d of deltas) {
+			allDeltas.push(d);
+		}
+	}
+	return applyScoreDeltas(tx, seasonId, allDeltas);
+}
 
 const commitUploadInput = z.object({
 	content: z.string().max(2_000_000),
@@ -866,6 +925,7 @@ const commitUpload = protectedProcedure
 
 			const team = membershipRows[0].team;
 			const userId = context.session.user.id;
+			const ruleSet = getScoringRuleSet(currentSeason.scoringRuleSet);
 
 			const {
 				insertParams,
@@ -878,7 +938,8 @@ const commitUpload = protectedProcedure
 				currentSeason.id,
 				team,
 				userId,
-				userCallsign
+				userCallsign,
+				ruleSet.requiresContactSquare
 			);
 
 			const exactDeduped = await filterExactQsoDuplicates(tx, insertParams);
@@ -889,7 +950,6 @@ const commitUpload = protectedProcedure
 				"exactDuplicate"
 			);
 
-			const ruleSet = getScoringRuleSet(currentSeason.id);
 			const toInsert = await ruleSet.filterBulkInserts(tx, exactDeduped);
 			const gameDupErrors = collectFilteredErrors(
 				exactDeduped,
@@ -933,11 +993,7 @@ const commitUpload = protectedProcedure
 
 			const changes =
 				toInsert.length > 0
-					? await applyScoreDeltas(
-							tx,
-							currentSeason.id,
-							ruleSet.scoreBulkInsert(toInsert)
-						)
+					? await applyBulkScoreDeltas(tx, currentSeason.id, ruleSet, toInsert)
 					: [];
 
 			const errors = [...mappingErrors, ...exactDupErrors, ...gameDupErrors];

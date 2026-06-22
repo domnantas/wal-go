@@ -72,6 +72,7 @@ const current = publicProcedure.handler(async ({ context }) => {
 		name: row.name,
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,
+		scoringRuleSet: row.scoringRuleSet,
 	};
 });
 
@@ -93,6 +94,7 @@ const list = publicProcedure.handler(async ({ context }) => {
 		name: row.name,
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,
+		scoringRuleSet: row.scoringRuleSet,
 		status: deriveStatus(row.startsAt, row.endsAt, now),
 		memberCount: memberCounts.get(row.id) ?? 0,
 	}));

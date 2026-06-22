@@ -1,3 +1,4 @@
+import { normalizeCallsign } from "@WAL-GO/callsign";
 import { session, user } from "@WAL-GO/db/schema/auth";
 import { newsletterSubscription } from "@WAL-GO/db/schema/newsletter";
 import { qso } from "@WAL-GO/db/schema/qsos";
@@ -483,10 +484,33 @@ const deleteQso = adminProcedure
 				throw new ORPCError("NOT_FOUND", { message: "QSO nerastas" });
 			}
 
-			const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+			const [seasonRow, userRow] = await Promise.all([
+				tx
+					.select({ scoringRuleSet: season.scoringRuleSet })
+					.from(season)
+					.where(eq(season.id, qsoRow.seasonId))
+					.limit(1),
+				tx
+					.select({ name: user.name })
+					.from(user)
+					.where(eq(user.id, qsoRow.userId))
+					.limit(1),
+			]);
+
+			const ruleSet = getScoringRuleSet(
+				seasonRow[0]?.scoringRuleSet ?? "alpha"
+			);
+			const operatorCallsign = normalizeCallsign(userRow[0]?.name ?? "");
 			const deltas = await ruleSet.scoreDelete(tx, {
+				band: qsoRow.band,
+				contactCallsign: qsoRow.contactCallsign,
 				contactSquare: qsoRow.contactSquare,
+				mode: qsoRow.mode,
+				operatorCallsign,
 				operatorSquare: qsoRow.operatorSquare,
+				qsoAt: qsoRow.qsoAt,
+				qsoId: qsoRow.id,
+				seasonId: qsoRow.seasonId,
 				team: qsoRow.team,
 				userId: qsoRow.userId,
 			});
@@ -522,10 +546,33 @@ const deleteQsos = adminProcedure
 					continue;
 				}
 
-				const ruleSet = getScoringRuleSet(qsoRow.seasonId);
+				const [seasonRow, userRow] = await Promise.all([
+					tx
+						.select({ scoringRuleSet: season.scoringRuleSet })
+						.from(season)
+						.where(eq(season.id, qsoRow.seasonId))
+						.limit(1),
+					tx
+						.select({ name: user.name })
+						.from(user)
+						.where(eq(user.id, qsoRow.userId))
+						.limit(1),
+				]);
+
+				const ruleSet = getScoringRuleSet(
+					seasonRow[0]?.scoringRuleSet ?? "alpha"
+				);
+				const operatorCallsign = normalizeCallsign(userRow[0]?.name ?? "");
 				const deltas = await ruleSet.scoreDelete(tx, {
+					band: qsoRow.band,
+					contactCallsign: qsoRow.contactCallsign,
 					contactSquare: qsoRow.contactSquare,
+					mode: qsoRow.mode,
+					operatorCallsign,
 					operatorSquare: qsoRow.operatorSquare,
+					qsoAt: qsoRow.qsoAt,
+					qsoId: qsoRow.id,
+					seasonId: qsoRow.seasonId,
 					team: qsoRow.team,
 					userId: qsoRow.userId,
 				});

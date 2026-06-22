@@ -44,7 +44,13 @@ function getDefaultValues() {
 	};
 }
 
-export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
+export function AddQsoDialog({
+	disabled = false,
+	requiresContactSquare = false,
+}: {
+	disabled?: boolean;
+	requiresContactSquare?: boolean;
+}) {
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
 	const [open, setOpen] = useState(false);
@@ -121,6 +127,7 @@ export function AddQsoDialog({ disabled = false }: { disabled?: boolean }) {
 					}}
 					onModeChange={(mode) => localStorage.setItem(LAST_MODE_KEY, mode)}
 					onSubmit={handleSubmit}
+					requiresContactSquare={requiresContactSquare}
 					submitLabel="Išsaugoti QSO"
 				/>
 			</DialogContent>

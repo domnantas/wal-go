@@ -334,6 +334,7 @@ function RouteComponent() {
 							onBandChange={handleBandChange}
 							onPageChange={setPage}
 							page={page}
+							requiresContactSquare={currentSeason?.scoringRuleSet === "beta"}
 							total={total}
 						/>
 					</div>
@@ -627,6 +628,7 @@ function LogDropzone() {
 					}}
 					open
 					parseResult={state.parseResult}
+					requiresContactSquare={currentSeason?.scoringRuleSet === "beta"}
 					seasonEnd={currentSeason?.endsAt}
 					seasonStart={currentSeason?.startsAt}
 					userCallsign={userCallsign}
@@ -680,10 +682,12 @@ function getQsoColumns({
 	canEdit,
 	deletingQsoId,
 	onDelete,
+	requiresContactSquare,
 }: {
 	canEdit: boolean;
 	deletingQsoId: null | number;
 	onDelete: (id: number) => void;
+	requiresContactSquare: boolean;
 }): ColumnDef<Qso>[] {
 	return [
 		{
@@ -745,6 +749,7 @@ function getQsoColumns({
 						<EditQsoDialog
 							disabled={!canEdit || deletingQsoId !== null}
 							qso={row.original}
+							requiresContactSquare={requiresContactSquare}
 						/>
 						<Button
 							aria-label="Ištrinti QSO"
@@ -793,6 +798,7 @@ function QsoLog({
 	onBandChange,
 	onPageChange,
 	page,
+	requiresContactSquare,
 	total,
 }: {
 	band: QsoBand | undefined;
@@ -802,6 +808,7 @@ function QsoLog({
 	onBandChange: (band: QsoBand | undefined) => void;
 	onPageChange: (page: number) => void;
 	page: number;
+	requiresContactSquare: boolean;
 	total: number;
 }) {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -838,8 +845,9 @@ function QsoLog({
 				canEdit: canAddQso,
 				deletingQsoId,
 				onDelete: (id) => deleteQso.mutate({ id }),
+				requiresContactSquare,
 			}),
-		[canAddQso, deleteQso, deletingQsoId]
+		[canAddQso, deleteQso, deletingQsoId, requiresContactSquare]
 	);
 
 	const table = useReactTable({
@@ -871,7 +879,10 @@ function QsoLog({
 				<p className="text-muted-foreground text-sm">
 					Pridėkite pirmą ryšį naudodami formą
 				</p>
-				<AddQsoDialog disabled={!canAddQso} />
+				<AddQsoDialog
+					disabled={!canAddQso}
+					requiresContactSquare={requiresContactSquare}
+				/>
 			</div>
 		);
 	}
@@ -894,7 +905,10 @@ function QsoLog({
 						/>
 					))}
 				</div>
-				<AddQsoDialog disabled={!canAddQso} />
+				<AddQsoDialog
+					disabled={!canAddQso}
+					requiresContactSquare={requiresContactSquare}
+				/>
 			</div>
 
 			<div className="overflow-x-auto overflow-y-hidden rounded-4xl border border-border bg-card">

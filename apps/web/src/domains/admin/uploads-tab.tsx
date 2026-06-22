@@ -29,6 +29,7 @@ const SKIP_REASON_LABELS: Record<string, string> = {
 	invalidMode: "Neteisinga moduliacija",
 	invalidSquare: "Neteisingas kvadratas",
 	malformedLine: "Klaidinga eilutė",
+	missingContactSquare: "Nenurodytas korespondento kvadratas",
 	outsideSeason: "Ne sezono laikotarpis",
 	selfContact: "QSO su savimi",
 };

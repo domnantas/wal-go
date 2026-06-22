@@ -1,8 +1,9 @@
+import { user } from "@WAL-GO/db/schema/auth";
 import { qso } from "@WAL-GO/db/schema/qsos";
 import { TZDate } from "@date-fns/tz";
 import { ORPCError } from "@orpc/server";
 import { format, formatISO } from "date-fns";
-import { and, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { and, count, eq, inArray, ne, or, sql } from "drizzle-orm";
 
 import type {
 	DeleteParams,
@@ -125,6 +126,7 @@ async function filterBulkInserts(
 				contactCallsign: row.contactCallsign,
 				contactSquare: row.contactSquare,
 				mode: row.mode,
+				operatorCallsign: "",
 				operatorSquare: row.operatorSquare,
 				qsoAt: row.qsoAt,
 				seasonId: batchDeduped[0]?.seasonId ?? 0,
@@ -185,6 +187,42 @@ function scoreBulkInsert(params: InsertParams[]): ScoreDelta[] {
 }
 
 export const alphaRuleSet: ScoringRuleSet = {
+	requiresContactSquare: false,
+	usePerQsoScoring: false,
+	computeExpectedScores: async (db, seasonId) => {
+		const [squareRows, userRows] = await Promise.all([
+			db
+				.select({
+					squareCode: qso.operatorSquare,
+					team: qso.team,
+					points: count(),
+				})
+				.from(qso)
+				.innerJoin(user, eq(user.id, qso.userId))
+				.where(and(eq(qso.seasonId, seasonId), eq(user.banned, false)))
+				.groupBy(qso.operatorSquare, qso.team),
+			db
+				.select({
+					userId: qso.userId,
+					points: count(),
+				})
+				.from(qso)
+				.innerJoin(user, eq(user.id, qso.userId))
+				.where(and(eq(qso.seasonId, seasonId), eq(user.banned, false)))
+				.groupBy(qso.userId),
+		]);
+		return {
+			squareScores: squareRows.map((r) => ({
+				squareCode: r.squareCode,
+				team: r.team,
+				points: Number(r.points),
+			})),
+			userScores: userRows.map((r) => ({
+				userId: r.userId,
+				points: Number(r.points),
+			})),
+		};
+	},
 	filterBulkInserts,
 	validateInsert,
 	scoreInsert,

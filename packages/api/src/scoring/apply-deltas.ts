@@ -1,14 +1,17 @@
-import { user } from "@WAL-GO/db/schema/auth";
+import type { createDb } from "@WAL-GO/db";
 import { qso } from "@WAL-GO/db/schema/qsos";
 import {
 	squareControlHistory,
 	squareScore,
 	userSeasonScore,
 } from "@WAL-GO/db/schema/scoring";
+import { season } from "@WAL-GO/db/schema/seasons";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
-
 import { computeLeader, type Team } from "./control";
+import { getScoringRuleSet } from "./index";
 import type { ScoreDelta, Tx } from "./types";
+
+type Db = Awaited<ReturnType<typeof createDb>>;
 
 /** A square whose controlling team changed as a result of applied deltas. */
 export interface OwnershipChange {
@@ -225,53 +228,42 @@ export async function recomputeSeasonScores(
 	tx: Tx,
 	seasonId: number
 ): Promise<void> {
+	const seasonRows = await tx
+		.select({ scoringRuleSet: season.scoringRuleSet })
+		.from(season)
+		.where(eq(season.id, seasonId))
+		.limit(1);
+
+	const ruleSet = getScoringRuleSet(seasonRows[0]?.scoringRuleSet ?? "alpha");
+
+	// tx and Db share the same query interface in Drizzle
+	const expected = await ruleSet.computeExpectedScores(
+		tx as unknown as Db,
+		seasonId
+	);
+
 	await tx.delete(squareScore).where(eq(squareScore.seasonId, seasonId));
 	await tx
 		.delete(userSeasonScore)
 		.where(eq(userSeasonScore.seasonId, seasonId));
 
-	const squareRows: {
-		squareCode: string;
-		team: ScoreDelta["team"];
-		count: number;
-	}[] = await tx
-		.select({
-			squareCode: qso.operatorSquare,
-			team: qso.team,
-			count: count(),
-		})
-		.from(qso)
-		.innerJoin(user, eq(user.id, qso.userId))
-		.where(and(eq(qso.seasonId, seasonId), eq(user.banned, false)))
-		.groupBy(qso.operatorSquare, qso.team);
-
-	if (squareRows.length > 0) {
+	if (expected.squareScores.length > 0) {
 		await tx.insert(squareScore).values(
-			squareRows.map((row) => ({
+			expected.squareScores.map((row) => ({
 				seasonId,
 				squareCode: row.squareCode,
 				team: row.team,
-				points: row.count,
+				points: row.points,
 			}))
 		);
 	}
 
-	const userRows: { userId: string; count: number }[] = await tx
-		.select({
-			userId: qso.userId,
-			count: count(),
-		})
-		.from(qso)
-		.innerJoin(user, eq(user.id, qso.userId))
-		.where(and(eq(qso.seasonId, seasonId), eq(user.banned, false)))
-		.groupBy(qso.userId);
-
-	if (userRows.length > 0) {
+	if (expected.userScores.length > 0) {
 		await tx.insert(userSeasonScore).values(
-			userRows.map((row) => ({
+			expected.userScores.map((row) => ({
 				seasonId,
 				userId: row.userId,
-				points: row.count,
+				points: row.points,
 			}))
 		);
 	}
@@ -282,33 +274,102 @@ export async function applyUserBanScoreChange(
 	userId: string,
 	banned: boolean
 ): Promise<OwnershipChange[]> {
-	const rows = await tx
-		.select({
-			seasonId: qso.seasonId,
-			squareCode: qso.operatorSquare,
-			team: qso.team,
-			count: count(),
-		})
+	// Find all seasons where this user has QSOs
+	const seasonIds = await tx
+		.selectDistinct({ seasonId: qso.seasonId })
 		.from(qso)
-		.where(eq(qso.userId, userId))
-		.groupBy(qso.seasonId, qso.operatorSquare, qso.team);
+		.where(eq(qso.userId, userId));
 
-	const sign = banned ? -1 : 1;
-	const deltasBySeason = new Map<number, ScoreDelta[]>();
-	for (const row of rows) {
-		const deltas = deltasBySeason.get(row.seasonId) ?? [];
-		deltas.push({
-			squareCode: row.squareCode,
-			team: row.team,
-			userId,
-			pointsDelta: sign * row.count,
-		});
-		deltasBySeason.set(row.seasonId, deltas);
+	if (seasonIds.length === 0) {
+		return [];
 	}
+
+	// Look up rule sets for affected seasons
+	const seasonRows = await tx
+		.select({ id: season.id, scoringRuleSet: season.scoringRuleSet })
+		.from(season)
+		.where(
+			inArray(
+				season.id,
+				seasonIds.map((r) => r.seasonId)
+			)
+		);
 
 	const changesBySeason: OwnershipChange[][] = [];
-	for (const [seasonId, deltas] of deltasBySeason) {
-		changesBySeason.push(await applyScoreDeltas(tx, seasonId, deltas));
+
+	for (const s of seasonRows) {
+		const ruleSet = getScoringRuleSet(s.scoringRuleSet);
+
+		if (ruleSet.usePerQsoScoring) {
+			// Non-trivial scoring (e.g. beta): full recompute is the only correct approach
+			// because ban changes confirmation bonus eligibility for other users too.
+			// Snapshot ownership before and after to detect changes.
+			const affectedSquareCodes = await tx
+				.selectDistinct({ squareCode: qso.operatorSquare })
+				.from(qso)
+				.where(and(eq(qso.seasonId, s.id), eq(qso.userId, userId)));
+
+			const codes = affectedSquareCodes.map((r) => r.squareCode);
+			const before =
+				codes.length > 0
+					? await snapshotLeaders(tx, s.id, codes)
+					: new Map<string, Team | null>();
+
+			await recomputeSeasonScores(tx, s.id);
+
+			const after =
+				codes.length > 0
+					? await snapshotLeaders(tx, s.id, codes)
+					: new Map<string, Team | null>();
+
+			const changes = codes.flatMap((code) => {
+				const beforeLeader = before.get(code) ?? null;
+				const afterLeader = after.get(code) ?? null;
+				if (beforeLeader === afterLeader) {
+					return [];
+				}
+				return [{ squareCode: code, before: beforeLeader, after: afterLeader }];
+			});
+
+			if (changes.length > 0) {
+				await tx.insert(squareControlHistory).values(
+					changes.map((change) => ({
+						seasonId: s.id,
+						squareCode: change.squareCode,
+						beforeTeam: change.before,
+						afterTeam: change.after,
+					}))
+				);
+			}
+
+			changesBySeason.push(changes);
+		} else {
+			// Alpha: simple count-based delta
+			const rows = await tx
+				.select({
+					squareCode: qso.operatorSquare,
+					team: qso.team,
+					qsoCount: count(),
+				})
+				.from(qso)
+				.where(and(eq(qso.seasonId, s.id), eq(qso.userId, userId)))
+				.groupBy(qso.operatorSquare, qso.team);
+
+			if (rows.length === 0) {
+				continue;
+			}
+
+			const sign = banned ? -1 : 1;
+			const deltas: ScoreDelta[] = rows.map((row) => ({
+				squareCode: row.squareCode,
+				team: row.team,
+				userId,
+				pointsDelta: sign * Number(row.qsoCount),
+			}));
+
+			changesBySeason.push(await applyScoreDeltas(tx, s.id, deltas));
+		}
 	}
+
 	return changesBySeason.flat();
 }
