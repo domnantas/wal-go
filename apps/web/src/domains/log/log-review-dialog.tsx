@@ -1,6 +1,7 @@
 import type { ImportError, ImportSuccess } from "@WAL-GO/api/routers/qsos";
 import {
 	BLOCKED_CALLSIGN_REGEX,
+	isLithuanianCallsign,
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
@@ -49,6 +50,7 @@ export interface ImportResult {
 export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	blockedCallsign: "Blokuojamas šaukinys. Слава Україні! 🇺🇦",
 	callsignMismatch: "Operatoriaus šaukinys nesutampa",
+	dxForLithuanian: "LY šaukiniui DX negalimas",
 	exactDuplicate: "Jau užregistruotas",
 	gameDuplicate: "Pakartotinis pagal žaidimo taisykles",
 	invalidBand: "Neatpažintas diapazonas",
@@ -129,6 +131,7 @@ function gameDuplicateKey(row: ReviewRow) {
  * Per-row checks that don't depend on other rows. Returns a terminal status, or
  * null when the row is otherwise importable (a duplicate candidate).
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: linear sequence of independent row checks reads clearer inline than split across helpers
 function getBaseStatus(
 	row: ReviewRow,
 	userCallsign: string,
@@ -171,6 +174,12 @@ function getBaseStatus(
 	}
 	if (!isContactSquareValid(row.contactSquare)) {
 		return { reason: "invalidSquare", status: "fixable" };
+	}
+	if (
+		normalizeWalSquare(row.contactSquare) === "DX" &&
+		isLithuanianCallsign(contactCallsign)
+	) {
+		return { reason: "dxForLithuanian", status: "fixable" };
 	}
 	return null;
 }

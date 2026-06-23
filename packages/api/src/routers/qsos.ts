@@ -1,5 +1,6 @@
 import {
 	isBlockedCallsign,
+	isLithuanianCallsign,
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
@@ -57,10 +58,19 @@ function toNumber(value: number | string | null | undefined): number {
 	return Number(value ?? 0);
 }
 
-function validateSquares(operatorSquare: string, contactSquare: string | null) {
+function validateSquares(
+	operatorSquare: string,
+	contactSquare: string | null,
+	contactCallsign: string
+) {
 	if (!isValidWalSquare(operatorSquare)) {
 		throw new ORPCError("BAD_REQUEST", {
 			message: "Neteisingas mano WAL kvadratas",
+		});
+	}
+	if (contactSquare === "DX" && isLithuanianCallsign(contactCallsign)) {
+		throw new ORPCError("BAD_REQUEST", {
+			message: "LY šaukiniui DX negalimas",
 		});
 	}
 	if (
@@ -135,7 +145,7 @@ function normalizeQsoInput(input: z.infer<typeof qsoInput>) {
 		? normalizeWalSquare(input.contactSquare)
 		: null;
 
-	validateSquares(operatorSquare, contactSquare);
+	validateSquares(operatorSquare, contactSquare, input.contactCallsign);
 
 	const qsoAt = parseISO(input.qsoAt);
 	if (!isValid(qsoAt)) {
@@ -715,6 +725,7 @@ interface RowContext {
  * matching is advisory (handled in the dialog) — rows always insert under the
  * authenticated user.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: linear sequence of independent row checks reads clearer inline than split across helpers
 function validateClientQso(
 	row: CommitQso,
 	ctx: RowContext
@@ -769,6 +780,9 @@ function validateClientQso(
 	}
 	if (isBlockedCallsign(contactCallsign)) {
 		return "blockedCallsign";
+	}
+	if (contactSquare === "DX" && isLithuanianCallsign(contactCallsign)) {
+		return "dxForLithuanian";
 	}
 
 	return {

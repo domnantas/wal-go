@@ -267,7 +267,7 @@ function RulesComponent() {
 					{[
 						"diapazonas",
 						"moduliacija",
-						"sukeisti WAL kvadratai (vieno operatoriaus kvadratas = kito korespondento kvadratas)",
+						"WAL kvadratai",
 						"ryšio laikas (leistinas skirtumas iki 5 minučių)",
 					].map((item) => (
 						<div className="flex gap-2 text-foreground/75 text-sm" key={item}>
@@ -276,12 +276,6 @@ function RulesComponent() {
 						</div>
 					))}
 				</div>
-				<Note>
-					Patvirtinimas veikia automatiškai: kai antroji stotis užregistruoja
-					arba importuoja atitinkamą QSO, abiejų stočių taškai iškart
-					padvigubinami. Ištrynus patvirtintą QSO, papildomi taškai atimami iš
-					abiejų stočių.
-				</Note>
 				<Note>
 					Pavyzdys: LY1JA (raudona komanda) kvadrate <strong>K12</strong>{" "}
 					užmezga CW 20m ryšį su LY5AT, kuris yra kvadrate <strong>K13</strong>.

@@ -1,5 +1,6 @@
 import {
 	BLOCKED_CALLSIGN_REGEX,
+	isLithuanianCallsign,
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
@@ -90,6 +91,8 @@ export interface QsoFormPayload {
 	qsoAt: string;
 }
 
+const DX_NOT_ALLOWED_FOR_LY = "LY šaukiniui DX negalimas";
+
 const requiredText = (message: string) => z.string().trim().min(1, message);
 
 const dateTimeSchema = requiredText("Įveskite QSO datą ir laiką").refine(
@@ -133,6 +136,21 @@ function getQsoFormSchema(requiresContactSquare: boolean) {
 		contactSquare: requiresContactSquare
 			? requiredWalOrDxSchema
 			: optionalWalSchema,
+	});
+}
+
+function getQsoSubmitSchema(requiresContactSquare: boolean) {
+	return getQsoFormSchema(requiresContactSquare).superRefine((values, ctx) => {
+		if (
+			values.contactSquare.trim().toUpperCase() === "DX" &&
+			isLithuanianCallsign(values.contactCallsign)
+		) {
+			ctx.addIssue({
+				code: "custom",
+				message: DX_NOT_ALLOWED_FOR_LY,
+				path: ["contactSquare"],
+			});
+		}
 	});
 }
 
@@ -232,6 +250,7 @@ export function QsoForm({
 	submitLabel: string;
 }) {
 	const qsoFormSchema = getQsoFormSchema(requiresContactSquare);
+	const qsoSubmitSchema = getQsoSubmitSchema(requiresContactSquare);
 	const contactCallsignRef = useRef<HTMLInputElement>(null);
 	const operatorSquareRef = useRef<HTMLInputElement>(null);
 	const contactSquareRef = useRef<HTMLInputElement>(null);
@@ -246,7 +265,7 @@ export function QsoForm({
 	const form = useForm({
 		defaultValues,
 		validators: {
-			onSubmit: qsoFormSchema,
+			onSubmit: qsoSubmitSchema,
 		},
 		onSubmit: async ({ value }) => {
 			const qsoAt = toIsoDateTime(value.qsoAt);
@@ -531,7 +550,20 @@ export function QsoForm({
 				<form.Field
 					name="contactSquare"
 					validators={{
-						onBlur: qsoFormSchema.shape.contactSquare,
+						onBlur: ({ value, fieldApi }) => {
+							const result = qsoFormSchema.shape.contactSquare.safeParse(value);
+							if (!result.success) {
+								return result.error.issues[0];
+							}
+							const callsign = fieldApi.form.getFieldValue("contactCallsign");
+							if (
+								value.trim().toUpperCase() === "DX" &&
+								isLithuanianCallsign(callsign)
+							) {
+								return { message: DX_NOT_ALLOWED_FOR_LY };
+							}
+							return;
+						},
 					}}
 				>
 					{(field) => {
