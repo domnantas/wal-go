@@ -337,7 +337,8 @@ function RouteComponent() {
 							onBandChange={handleBandChange}
 							onPageChange={setPage}
 							page={page}
-							requiresContactSquare={currentSeason?.scoringRuleSet === "beta"}
+							rejectsSameSquare={currentSeason?.rejectsSameSquare ?? false}
+							requiresContactSquare={currentSeason?.requiresContactSquare ?? false}
 							total={total}
 						/>
 					</div>
@@ -631,7 +632,8 @@ function LogDropzone() {
 					}}
 					open
 					parseResult={state.parseResult}
-					requiresContactSquare={currentSeason?.scoringRuleSet === "beta"}
+					rejectsSameSquare={currentSeason?.rejectsSameSquare ?? false}
+					requiresContactSquare={currentSeason?.requiresContactSquare ?? false}
 					seasonEnd={currentSeason?.endsAt}
 					seasonStart={currentSeason?.startsAt}
 					userCallsign={userCallsign}
@@ -685,11 +687,13 @@ function getQsoColumns({
 	canEdit,
 	deletingQsoId,
 	onDelete,
+	rejectsSameSquare,
 	requiresContactSquare,
 }: {
 	canEdit: boolean;
 	deletingQsoId: null | number;
 	onDelete: (id: number) => void;
+	rejectsSameSquare: boolean;
 	requiresContactSquare: boolean;
 }): ColumnDef<Qso>[] {
 	return [
@@ -762,6 +766,7 @@ function getQsoColumns({
 						<EditQsoDialog
 							disabled={!canEdit || deletingQsoId !== null}
 							qso={row.original}
+							rejectsSameSquare={rejectsSameSquare}
 							requiresContactSquare={requiresContactSquare}
 						/>
 						<Button
@@ -811,6 +816,7 @@ function QsoLog({
 	onBandChange,
 	onPageChange,
 	page,
+	rejectsSameSquare,
 	requiresContactSquare,
 	total,
 }: {
@@ -821,6 +827,7 @@ function QsoLog({
 	onBandChange: (band: QsoBand | undefined) => void;
 	onPageChange: (page: number) => void;
 	page: number;
+	rejectsSameSquare: boolean;
 	requiresContactSquare: boolean;
 	total: number;
 }) {
@@ -858,9 +865,10 @@ function QsoLog({
 				canEdit: canAddQso,
 				deletingQsoId,
 				onDelete: (id) => deleteQso.mutate({ id }),
+				rejectsSameSquare,
 				requiresContactSquare,
 			}),
-		[canAddQso, deleteQso, deletingQsoId, requiresContactSquare]
+		[canAddQso, deleteQso, deletingQsoId, rejectsSameSquare, requiresContactSquare]
 	);
 
 	const table = useReactTable({
@@ -894,6 +902,7 @@ function QsoLog({
 				</p>
 				<AddQsoDialog
 					disabled={!canAddQso}
+					rejectsSameSquare={rejectsSameSquare}
 					requiresContactSquare={requiresContactSquare}
 				/>
 			</div>
@@ -920,6 +929,7 @@ function QsoLog({
 				</div>
 				<AddQsoDialog
 					disabled={!canAddQso}
+					rejectsSameSquare={rejectsSameSquare}
 					requiresContactSquare={requiresContactSquare}
 				/>
 			</div>

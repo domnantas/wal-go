@@ -23,6 +23,7 @@ export type SkipReason =
 	| "malformedLine"
 	| "missingContactSquare"
 	| "outsideSeason"
+	| "sameSquare"
 	| "selfContact";
 
 /**

@@ -200,6 +200,7 @@ async function scoreSeasonQsos(
 }
 
 export const alphaRuleSet: ScoringRuleSet = {
+	rejectsSameSquare: false,
 	requiresContactSquare: false,
 	usePerQsoScoring: false,
 	computeExpectedScores: async (db, seasonId) => {

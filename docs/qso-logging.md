@@ -123,7 +123,7 @@ Many loggers omit the WAL-specific `MY_SIG_INFO`/`SIG_INFO` but still carry the 
 |---|---|---|
 | Structural | `@WAL-GO/log-parse` (`issues`) | `invalidBand`, `invalidMode`, `invalidDate`, `invalidCallsign`, `malformedLine` |
 | Square validity | Review dialog (live, `@WAL-GO/grid`) | operator square required + valid; contact valid / empty / `DX` |
-| Contextual | `qsos.commitUpload` (authoritative) | `outsideSeason`, `selfContact`, `blockedCallsign`, `exactDuplicate`, `gameDuplicate` |
+| Contextual | `qsos.commitUpload` (authoritative) | `outsideSeason`, `selfContact`, `blockedCallsign`, `exactDuplicate`, `gameDuplicate`, `sameSquare` (beta only) |
 
 Structurally-invalid rows (bad band/mode/date) are shown, marked, and excluded — their square inputs are disabled (editing a square can't fix them). Square-only problems are editable. The dialog lists valid and invalid together, sorted by time.
 

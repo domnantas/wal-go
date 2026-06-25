@@ -139,7 +139,10 @@ function getQsoFormSchema(requiresContactSquare: boolean) {
 	});
 }
 
-function getQsoSubmitSchema(requiresContactSquare: boolean) {
+function getQsoSubmitSchema(
+	requiresContactSquare: boolean,
+	rejectsSameSquare: boolean
+) {
 	return getQsoFormSchema(requiresContactSquare).superRefine((values, ctx) => {
 		if (
 			values.contactSquare.trim().toUpperCase() === "DX" &&
@@ -148,6 +151,19 @@ function getQsoSubmitSchema(requiresContactSquare: boolean) {
 			ctx.addIssue({
 				code: "custom",
 				message: DX_NOT_ALLOWED_FOR_LY,
+				path: ["contactSquare"],
+			});
+		}
+		if (
+			rejectsSameSquare &&
+			values.contactSquare.trim() !== "" &&
+			normalizeWalSquare(values.contactSquare) ===
+				normalizeWalSquare(values.operatorSquare)
+		) {
+			ctx.addIssue({
+				code: "custom",
+				message:
+					"Korespondento kvadratas negali sutapti su operatoriaus kvadratu",
 				path: ["contactSquare"],
 			});
 		}
@@ -232,6 +248,7 @@ export function QsoForm({
 	onKeepOpenChange,
 	onModeChange,
 	onSubmit,
+	rejectsSameSquare = false,
 	requiresContactSquare = false,
 	submitLabel,
 }: {
@@ -246,11 +263,12 @@ export function QsoForm({
 	onKeepOpenChange?: (keepOpen: boolean) => void;
 	onModeChange?: (mode: string) => void;
 	onSubmit: (payload: QsoFormPayload) => unknown;
+	rejectsSameSquare?: boolean;
 	requiresContactSquare?: boolean;
 	submitLabel: string;
 }) {
 	const qsoFormSchema = getQsoFormSchema(requiresContactSquare);
-	const qsoSubmitSchema = getQsoSubmitSchema(requiresContactSquare);
+	const qsoSubmitSchema = getQsoSubmitSchema(requiresContactSquare, rejectsSameSquare);
 	const contactCallsignRef = useRef<HTMLInputElement>(null);
 	const operatorSquareRef = useRef<HTMLInputElement>(null);
 	const contactSquareRef = useRef<HTMLInputElement>(null);

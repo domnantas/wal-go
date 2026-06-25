@@ -87,6 +87,7 @@ Two layers; in both the contact callsign is the **base call** (suffixes/prefixes
 
 - **Exact duplicates** prevent accidental double submission: same user already has the same season, callsign, band, mode, timestamp, operator square, and contact square.
 - **Game duplicates** are scoring rules: only one QSO with the same callsign, band, mode, operator square, and contact square scores per Lithuanian calendar day (`Europe/Vilnius`). Changing either square lets another such QSO score that day.
+- **Same-square contacts**: QSOs where the contact square equals the operator square are rejected when the rule set has `rejectsSameSquare: true` (beta). Enforced in `beta.ts` (`validateInsert`), `validateClientQso` via `RowContext.rejectsSameSquare` (bulk import), the manual form (`getQsoSubmitSchema` with `rejectsSameSquare` prop), and the review dialog (`getBaseStatus` with `rejectsSameSquare` prop). Skip reason: `sameSquare`.
 
 ## Square Control
 

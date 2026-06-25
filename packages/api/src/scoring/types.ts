@@ -54,6 +54,8 @@ export interface ExpectedScores {
 export interface ScoringRuleSet {
 	computeExpectedScores(db: Db, seasonId: number): Promise<ExpectedScores>;
 	filterBulkInserts(tx: Tx, params: InsertParams[]): Promise<InsertParams[]>;
+	/** When true, QSOs where contactSquare === operatorSquare are rejected. */
+	rejectsSameSquare: boolean;
 	/** When true, a non-empty contact square (WAL square or "DX") is mandatory. */
 	requiresContactSquare: boolean;
 	scoreBulkInsert(params: InsertParams[]): ScoreDelta[];
