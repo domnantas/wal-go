@@ -1,0 +1,19 @@
+--- a/lib/Plan.js
++++ b/lib/Plan.js
+@@ -223,6 +223,16 @@
+         }
+         else if (Output.isNamedExpr(expr)) {
+             return yield* resolveOutput(expr.expr);
++        }
++        // A value wrapped by `Output.proxy` always reports `ExprSymbol`, so a
++        // plain resolved value (e.g. a stabilized resource's attributes) reaches
++        // here looking like an Expr but carrying no known expr `kind` — its
++        // `kind` is the underlying value's own field (e.g. a Planetscale
++        // Postgres database's `kind: "postgresql"`). Unwrap via `ExprSymbol`
++        // and return the resolved value instead of dying.
++        const unwrapped = expr?.[Output.ExprSymbol];
++        if (unwrapped !== undefined && unwrapped !== expr) {
++            return unwrapped;
+         }
+         return yield* Effect.die(new Error("Not implemented yet" + expr.kind));
+     });
