@@ -49,6 +49,8 @@ export default Stack(
 		const isProd = stage === "prod";
 		const { dev: isDev } = yield* AlchemyContext;
 
+		const databaseName = "wal-go";
+
 		const role = yield* Effect.gen(function* () {
 			if (isDev) {
 				return {
@@ -81,7 +83,7 @@ export default Stack(
 			// ever actually needed. The per-PR `db-branch` below keeps the default
 			// `destroy` policy on purpose — only the shared database is protected.
 			const db = yield* PostgresDatabase("db", {
-				name: "wal-go",
+				name: databaseName,
 				clusterSize: "PS_5",
 				replicas: 0,
 				arch: "arm",
@@ -100,7 +102,7 @@ export default Stack(
 					});
 
 			return yield* PostgresRole("db-role", {
-				database: db,
+				database: databaseName,
 				branch,
 				inheritedRoles: ["postgres"],
 			});
