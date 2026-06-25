@@ -182,7 +182,7 @@ export default Stack(
 						}
 					: {}),
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
-				DATABASE_URL: role.connectionUrl,
+				...(isProd ? {} : { DATABASE_URL: role.connectionUrl }),
 				// Optional: announcements are disabled when the secret is unset, so
 				// only bind it when present (e.g. preview deploys may omit it).
 				...(process.env.DISCORD_WEBHOOK_URL

@@ -576,9 +576,7 @@ export function QsoForm({
 										Korespondento kvadratas
 									</FieldLabel>
 									<FieldDescription>
-										{requiresContactSquare
-											? "DX ryšiui įveskite DX"
-											: "Neprivaloma"}
+										{requiresContactSquare ? "" : "Neprivaloma"}
 									</FieldDescription>
 								</div>
 								<Input
@@ -593,7 +591,7 @@ export function QsoForm({
 										onClearError();
 										handleFieldChange(field, event.target.value.toUpperCase());
 									}}
-									placeholder="B12"
+									placeholder="B12 / DX"
 									ref={contactSquareRef}
 									value={field.state.value}
 								/>

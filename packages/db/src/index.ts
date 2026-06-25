@@ -67,6 +67,7 @@ async function createClient(connectionString: string | undefined, max: number) {
 		max,
 		idle_timeout: 20,
 		prepare: false,
+		connection: { idle_session_timeout: 300_000 },
 	});
 	return drizzle({ client, relations });
 }
