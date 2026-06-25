@@ -2,9 +2,8 @@ import type { createDb } from "@WAL-GO/db";
 import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { ORPCError } from "@orpc/server";
 import { and, asc, count, eq, gte, lte } from "drizzle-orm";
-
-import { getScoringRuleSet } from "../scoring/index";
 import { protectedProcedure, publicProcedure } from "../index";
+import { getScoringRuleSet } from "../scoring/index";
 
 const TEAMS = ["yellow", "green", "red"] as const;
 type Team = (typeof TEAMS)[number];

@@ -17,7 +17,7 @@ Available after joining the active season. Fields:
 | Operator WAL square | Yes | Explicit WAL code, e.g. `A05`. |
 | Contact WAL square | No | Explicit WAL code when known. |
 
-The backend validates WAL codes are valid Lithuanian cells. The contact square may also be `DX` for stations outside WAL territory — **except** when the contact callsign is Lithuanian (`LY` prefix): an `LY` station is always inside WAL territory, so `DX` is rejected ("LY šaukiniui DX negalimas"). This rule is enforced in the manual form (`QsoForm`), the bulk-import review dialog (`getBaseStatus`), and authoritatively on the server (`validateSquares` for single QSOs, `validateClientQso` for bulk commit, skip reason `dxForLithuanian`). The `LY` check lives in `isLithuanianCallsign` (`@WAL-GO/callsign`) and runs on the normalized base call. Duplicate detection, scoring, and deletion all apply.
+The backend validates WAL codes are valid Lithuanian cells. The contact square may also be `DX` for stations outside WAL territory — this is allowed for any callsign (including `LY` operating abroad, e.g. `YL/LY1JA`). Duplicate detection, scoring, and deletion all apply.
 
 In the Add QSO dialog, pressing Space while the callsign field is focused moves focus to **Mano kvadratas** when that field is empty. If it already has a value, focus moves to **Korespondento kvadratas** instead. The space is used only as a navigation shortcut and is not added to the callsign.
 

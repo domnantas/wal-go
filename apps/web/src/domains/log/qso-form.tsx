@@ -1,6 +1,5 @@
 import {
 	BLOCKED_CALLSIGN_REGEX,
-	isLithuanianCallsign,
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
@@ -91,8 +90,6 @@ export interface QsoFormPayload {
 	qsoAt: string;
 }
 
-const DX_NOT_ALLOWED_FOR_LY = "LY šaukiniui DX negalimas";
-
 const requiredText = (message: string) => z.string().trim().min(1, message);
 
 const dateTimeSchema = requiredText("Įveskite QSO datą ir laiką").refine(
@@ -144,16 +141,6 @@ function getQsoSubmitSchema(
 	rejectsSameSquare: boolean
 ) {
 	return getQsoFormSchema(requiresContactSquare).superRefine((values, ctx) => {
-		if (
-			values.contactSquare.trim().toUpperCase() === "DX" &&
-			isLithuanianCallsign(values.contactCallsign)
-		) {
-			ctx.addIssue({
-				code: "custom",
-				message: DX_NOT_ALLOWED_FOR_LY,
-				path: ["contactSquare"],
-			});
-		}
 		if (
 			rejectsSameSquare &&
 			values.contactSquare.trim() !== "" &&
@@ -268,7 +255,10 @@ export function QsoForm({
 	submitLabel: string;
 }) {
 	const qsoFormSchema = getQsoFormSchema(requiresContactSquare);
-	const qsoSubmitSchema = getQsoSubmitSchema(requiresContactSquare, rejectsSameSquare);
+	const qsoSubmitSchema = getQsoSubmitSchema(
+		requiresContactSquare,
+		rejectsSameSquare
+	);
 	const contactCallsignRef = useRef<HTMLInputElement>(null);
 	const operatorSquareRef = useRef<HTMLInputElement>(null);
 	const contactSquareRef = useRef<HTMLInputElement>(null);
@@ -568,17 +558,10 @@ export function QsoForm({
 				<form.Field
 					name="contactSquare"
 					validators={{
-						onBlur: ({ value, fieldApi }) => {
+						onBlur: ({ value }) => {
 							const result = qsoFormSchema.shape.contactSquare.safeParse(value);
 							if (!result.success) {
 								return result.error.issues[0];
-							}
-							const callsign = fieldApi.form.getFieldValue("contactCallsign");
-							if (
-								value.trim().toUpperCase() === "DX" &&
-								isLithuanianCallsign(callsign)
-							) {
-								return { message: DX_NOT_ALLOWED_FOR_LY };
 							}
 							return;
 						},
@@ -591,7 +574,7 @@ export function QsoForm({
 							<Field data-invalid={isInvalid}>
 								<div className="flex items-center justify-between gap-2">
 									<FieldLabel htmlFor="contactSquare">
-										Korespondento kvadratas
+										Korespondento kvadratas (arba DX)
 									</FieldLabel>
 									<FieldDescription>
 										{requiresContactSquare ? "" : "Neprivaloma"}

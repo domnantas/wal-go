@@ -12,18 +12,6 @@ export function isBlockedCallsign(callsign: string): boolean {
 	return BLOCKED_CALLSIGN_REGEX.test(callsign);
 }
 
-const LITHUANIAN_CALLSIGN_REGEX = /^LY/;
-
-/**
- * Whether the callsign belongs to a Lithuanian (LY) station. Checks the
- * normalized base call, so operating prefixes/suffixes are stripped first.
- * Lithuanian stations are always inside WAL territory, so their contact square
- * can never be DX.
- */
-export function isLithuanianCallsign(callsign: string): boolean {
-	return LITHUANIAN_CALLSIGN_REGEX.test(normalizeCallsign(callsign));
-}
-
 /**
  * Whether a callsign has a plausible amateur-radio shape (prefix + digit +
  * suffix). Checks the normalized base call, so operating suffixes/prefixes like

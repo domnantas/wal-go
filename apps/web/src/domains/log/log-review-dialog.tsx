@@ -1,7 +1,6 @@
 import type { ImportError, ImportSuccess } from "@WAL-GO/api/routers/qsos";
 import {
 	BLOCKED_CALLSIGN_REGEX,
-	isLithuanianCallsign,
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
@@ -50,7 +49,6 @@ export interface ImportResult {
 export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	blockedCallsign: "Blokuojamas šaukinys. Слава Україні! 🇺🇦",
 	callsignMismatch: "Operatoriaus šaukinys nesutampa",
-	dxForLithuanian: "LY šaukiniui DX negalimas",
 	exactDuplicate: "Jau užregistruotas",
 	gameDuplicate: "Pakartotinis pagal žaidimo taisykles",
 	invalidBand: "Neatpažintas diapazonas",
@@ -178,15 +176,10 @@ function getBaseStatus(
 		return { reason: "invalidSquare", status: "fixable" };
 	}
 	if (
-		normalizeWalSquare(row.contactSquare) === "DX" &&
-		isLithuanianCallsign(contactCallsign)
-	) {
-		return { reason: "dxForLithuanian", status: "fixable" };
-	}
-	if (
 		rejectsSameSquare &&
 		isValidWalSquare(row.contactSquare) &&
-		normalizeWalSquare(row.contactSquare) === normalizeWalSquare(row.operatorSquare)
+		normalizeWalSquare(row.contactSquare) ===
+			normalizeWalSquare(row.operatorSquare)
 	) {
 		return { reason: "sameSquare", status: "fixable" };
 	}
@@ -278,7 +271,13 @@ export function LogReviewDialog({
 
 	const statuses = useMemo(
 		() =>
-			computeStatuses(rows, userCallsign, season, requiresContactSquare, rejectsSameSquare),
+			computeStatuses(
+				rows,
+				userCallsign,
+				season,
+				requiresContactSquare,
+				rejectsSameSquare
+			),
 		[rows, userCallsign, season, requiresContactSquare, rejectsSameSquare]
 	);
 	const importableCount = statuses.filter((s) => s.status === "ok").length;

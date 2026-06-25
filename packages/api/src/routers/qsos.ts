@@ -1,6 +1,5 @@
 import {
 	isBlockedCallsign,
-	isLithuanianCallsign,
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
@@ -58,19 +57,10 @@ function toNumber(value: number | string | null | undefined): number {
 	return Number(value ?? 0);
 }
 
-function validateSquares(
-	operatorSquare: string,
-	contactSquare: string | null,
-	contactCallsign: string
-) {
+function validateSquares(operatorSquare: string, contactSquare: string | null) {
 	if (!isValidWalSquare(operatorSquare)) {
 		throw new ORPCError("BAD_REQUEST", {
 			message: "Neteisingas mano WAL kvadratas",
-		});
-	}
-	if (contactSquare === "DX" && isLithuanianCallsign(contactCallsign)) {
-		throw new ORPCError("BAD_REQUEST", {
-			message: "LY šaukiniui DX negalimas",
 		});
 	}
 	if (
@@ -147,7 +137,7 @@ function normalizeQsoInput(input: z.infer<typeof qsoInput>) {
 		? normalizeWalSquare(input.contactSquare)
 		: null;
 
-	validateSquares(operatorSquare, contactSquare, input.contactCallsign);
+	validateSquares(operatorSquare, contactSquare);
 
 	const qsoAt = parseISO(input.qsoAt);
 	if (!isValid(qsoAt)) {
@@ -787,10 +777,6 @@ function validateClientQso(
 	if (isBlockedCallsign(contactCallsign)) {
 		return "blockedCallsign";
 	}
-	if (contactSquare === "DX" && isLithuanianCallsign(contactCallsign)) {
-		return "dxForLithuanian";
-	}
-
 	if (
 		ctx.rejectsSameSquare &&
 		contactSquare !== null &&

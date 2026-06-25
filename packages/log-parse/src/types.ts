@@ -12,7 +12,6 @@ export type LogMode = "CW" | "DIGI" | "FM" | "SSB";
 export type SkipReason =
 	| "blockedCallsign"
 	| "callsignMismatch"
-	| "dxForLithuanian"
 	| "exactDuplicate"
 	| "gameDuplicate"
 	| "invalidBand"

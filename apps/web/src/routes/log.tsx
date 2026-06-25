@@ -338,7 +338,9 @@ function RouteComponent() {
 							onPageChange={setPage}
 							page={page}
 							rejectsSameSquare={currentSeason?.rejectsSameSquare ?? false}
-							requiresContactSquare={currentSeason?.requiresContactSquare ?? false}
+							requiresContactSquare={
+								currentSeason?.requiresContactSquare ?? false
+							}
 							total={total}
 						/>
 					</div>
@@ -868,7 +870,13 @@ function QsoLog({
 				rejectsSameSquare,
 				requiresContactSquare,
 			}),
-		[canAddQso, deleteQso, deletingQsoId, rejectsSameSquare, requiresContactSquare]
+		[
+			canAddQso,
+			deleteQso,
+			deletingQsoId,
+			rejectsSameSquare,
+			requiresContactSquare,
+		]
 	);
 
 	const table = useReactTable({
