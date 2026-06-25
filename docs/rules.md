@@ -9,8 +9,10 @@ Rules are numbered sections built from three internal components:
 | Component | Purpose |
 |---|---|
 | `RuleSection` | Top-level numbered section with `id`, `number`, `title` |
-| `Rule` | Individual numbered rule paragraph |
+| `Rule` | Individual numbered rule paragraph; `changed` prop renders an "Atnaujinta" badge |
 | `Note` | Styled callout for examples and season caveats |
+
+Rules changed in the alpha → beta transition are flagged with `changed` on `Rule`, which renders an olive "Atnaujinta" badge before the text. Currently marked: **6.4** (contact square now required), **7.1** (mode-weighted points, was flat 1), **7.2** (confirmation doubling, new). Clear these flags once the changes stop being recent — keep them in sync with the [rule change banner](#rule-change-banner).
 
 Section `id`s enable deep-linking (e.g. `/rules#taskų-sistema`). Each `Rule` is also deep-linkable: it renders `id="rule-<n>"` (e.g. `/rules#rule-7.3`), and its number is a clickable anchor. Anchored targets use `scroll-mt-24` to clear the fixed header.
 
@@ -42,3 +44,11 @@ The page reflects the **active season's rule set**. It currently describes the *
 - A team **controls** a square with strictly more points than either rival; tied leaders → neutral.
 - Season winner: most squares controlled at end; tiebreak total points. Next season starts from zero — no carry-over.
 - On suspected cheating (fabricated QSOs, multi-accounting, rule circumvention), admins may void QSOs and suspend or permanently delete the account; decisions are final (rule 2.3).
+
+## Rule change banner
+
+`RuleChangeBanner` (`components/rule-change-banner.tsx`) is a site-wide strip rendered in the root layout (`routes/__root.tsx`) between the header and page content. It announces recent rule changes and links to `/rules`.
+
+- **Dismissal is versioned.** It stores the constant `BANNER_VERSION` under `localStorage["wal-go-rule-change-banner"]` and only hides when the stored value matches the current version. Bump `BANNER_VERSION` whenever rules change again to re-show the banner to everyone (including users who dismissed the previous one).
+- Update the banner copy (and `BANNER_VERSION`) together with the rule change it announces.
+- Hidden on `/maintenance`, matching the header.

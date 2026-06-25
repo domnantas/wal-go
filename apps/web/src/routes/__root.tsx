@@ -14,6 +14,7 @@ import { client, type orpc } from "@/utils/orpc";
 import { CookieBanner } from "../components/cookie-banner";
 import Header from "../components/header";
 import { Providers } from "../components/providers";
+import { RuleChangeBanner } from "../components/rule-change-banner";
 import appCss from "../index.css?url";
 
 const SITE_URL = "https://walgo.lt";
@@ -155,8 +156,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				<ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
 					<Providers>
-						<div className="grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr]">
+						<div className="grid grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto_1fr]">
 							<Header />
+							<RuleChangeBanner />
 							<div className="min-w-0">{children}</div>
 						</div>
 						<Toaster richColors />

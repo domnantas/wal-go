@@ -29,9 +29,11 @@ function RuleSection({ id, number, title, children }: RuleSectionProps) {
 
 function Rule({
 	n,
+	changed,
 	children,
 }: {
 	n: number | string;
+	changed?: boolean;
 	children: React.ReactNode;
 }) {
 	const id = `rule-${n}`;
@@ -43,7 +45,14 @@ function Rule({
 			>
 				{n}.
 			</a>
-			<p>{children}</p>
+			<p>
+				{changed && (
+					<span className="mr-2 inline-flex items-center rounded-full bg-olive/15 px-2 py-0.5 align-middle font-medium font-mono text-[10px] text-olive uppercase tracking-wide">
+						Atnaujinta
+					</span>
+				)}
+				{children}
+			</p>
 		</div>
 	);
 }
@@ -216,7 +225,7 @@ function RulesComponent() {
 					kvadratas apima ir Lietuvos, ir Latvijos teritoriją. Jei stotis veikia
 					Latvijos pusėje — QSO neįskaitomas. Jei Lietuvos pusėje — įskaitomas.
 				</Note>
-				<Rule n="6.4">
+				<Rule changed n="6.4">
 					Korespondento WAL kvadratas yra <strong>privalomas</strong> — laukas
 					negali likti tuščias. Ryšiai su užsienio stotimis (DX) yra leidžiami
 					ir įskaitomi: tokiu atveju korespondento kvadrato lauke įveskite{" "}
@@ -237,7 +246,7 @@ function RulesComponent() {
 			</RuleSection>
 
 			<RuleSection id="taskų-sistema" number="7" title="Taškų sistema">
-				<Rule n="7.1">
+				<Rule changed n="7.1">
 					Kiekvienas QSO suteikia taškų žaidėjo komandai operatoriaus WAL
 					kvadrate pagal moduliaciją:
 				</Rule>
@@ -257,7 +266,7 @@ function RulesComponent() {
 						</div>
 					))}
 				</div>
-				<Rule n="7.2">
+				<Rule changed n="7.2">
 					QSO taškai <strong>padvigubinami</strong>, kai ryšys yra{" "}
 					<strong>patvirtintas</strong> — kai abi stotys užregistruoja tą patį
 					ryšį WAL GO sistemoje. Patvirtinimas nustatomas, kai abiejų stočių
