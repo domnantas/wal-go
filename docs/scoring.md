@@ -55,6 +55,28 @@ confirming station gets extra: +base_of_their_own_qso   (they go from 1× to 2×
 
 Because confirmation must be checked per-QSO, beta seasons use per-QSO `scoreInsert` calls inside `commitUpload` instead of the batch `scoreBulkInsert` path. This ensures confirmation bonuses are awarded immediately when importing a log that matches QSOs already on file.
 
+## Per-QSO Score
+
+Each QSO carries its own score, shown in the station log (`/log`) and the admin QSO tab. The value is the points that single QSO contributes to its operator square under the season's rule set:
+
+- **Alpha**: always `1`.
+- **Beta**: `base × (confirmed ? 2 : 1)`, i.e. `1`, `2`, or `4`.
+
+Confirmation is **symmetric** — both sides of a confirmed pair independently show their own doubled value, so a confirmed QSO needs no special "shared" representation. A confirmed QSO is marked with a `×2` badge next to the score.
+
+### Materialization
+
+The per-QSO score is **materialized** on the `qso` row (`score` integer, `confirmed` boolean) rather than computed on every read. `qsos.list` and `admin.qsos.list` simply select the columns — no scoring work on the hot read path.
+
+The columns are maintained by `syncQsoScores(tx, seasonId)` (`apply-deltas.ts`), called inside the transaction of **every** write that can change scoring: `qsos.create` / `update` / `delete`, bulk import (`applyBulkScoreDeltas`), `admin.qsos.delete` / `deleteMany`, and `recomputeSeasonScores` (which covers ban/unban). It is the single reconciliation point:
+
+1. Run `ruleSet.scoreSeasonQsos(tx, seasonId)` — `Map<qsoId, { points, confirmed }>` for every non-banned QSO. Beta reuses the same confirmation detection as `computeExpectedScores` (extracted into `detectConfirmedIds`), so materialized values always match awarded aggregate points.
+2. Diff against the stored columns and `UPDATE` only the rows that changed (preserving `updatedAt` — a scoring sync is not a user edit).
+
+This recompute-and-diff approach (vs. per-path delta math) is deliberate: confirmation is symmetric and dynamic, so one insert/delete can flip a counterpart QSO too. One season scan per write — writes are rare; reads stay free. Banned users' QSOs are absent from the map and reconcile to `0`, matching their removal from the aggregate tables; unban restores them via recompute.
+
+**Backfill**: the columns ship with `DEFAULT 0` / `false`, so existing rows read `0` until their season is next written or recomputed. After deploying, run **Perskaičiuoti** (`admin.scores.recompute`) once per season to populate them — especially ended seasons, which receive no further writes. Aggregate scores are unaffected by this change, so the drift detector stays clean regardless.
+
 ## Points
 
 Points are per-season. Deleting a QSO loses its points immediately.

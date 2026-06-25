@@ -30,7 +30,7 @@ import {
 } from "@WAL-GO/ui/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -87,7 +87,7 @@ export function QsosTab() {
 					Pasirinkite sezoną, kad matytumėte QSO
 				</p>
 			) : (
-				<QsosContent seasonId={seasonId} />
+				<QsosContent key={seasonId} seasonId={seasonId} />
 			)}
 		</div>
 	);
@@ -95,15 +95,15 @@ export function QsosTab() {
 
 function QsosContent({ seasonId }: { seasonId: number }) {
 	const queryClient = useQueryClient();
+	const [page, setPage] = useState(1);
 	const { data: qsos, isPending: isQsosPending } = useQuery(
-		orpc.admin.qsos.list.queryOptions({ input: { seasonId } })
+		orpc.admin.qsos.list.queryOptions({ input: { seasonId, page } })
 	);
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
 	const invalidateAndClear = () => {
 		queryClient.invalidateQueries({
-			queryKey: orpc.admin.qsos.list.queryOptions({ input: { seasonId } })
-				.queryKey,
+			queryKey: orpc.admin.qsos.list.key({ input: { seasonId } }),
 		});
 		setSelectedIds(new Set());
 	};
@@ -136,7 +136,9 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 		);
 	}
 
-	const rows = qsos ?? [];
+	const rows = qsos?.rows ?? [];
+	const pageCount = qsos?.pageCount ?? 1;
+	const total = qsos?.total ?? 0;
 	const allSelected = rows.length > 0 && selectedIds.size === rows.length;
 	const someSelected = selectedIds.size > 0;
 
@@ -212,6 +214,7 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 							<TableHead className="px-4">Diapazonas</TableHead>
 							<TableHead className="px-4">Moduliacija</TableHead>
 							<TableHead className="px-4">Kvadratai</TableHead>
+							<TableHead className="px-4">Taškai</TableHead>
 							<TableHead className="px-4" />
 						</TableRow>
 					</TableHeader>
@@ -220,7 +223,7 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 							<TableRow>
 								<TableCell
 									className="px-4 py-10 text-center text-muted-foreground"
-									colSpan={8}
+									colSpan={9}
 								>
 									Nėra QSO šiame sezone
 								</TableCell>
@@ -269,6 +272,19 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 											)}
 										</div>
 									</TableCell>
+									<TableCell className="px-4">
+										<span className="inline-flex items-center gap-1.5 font-medium tabular-nums">
+											{q.score}
+											{q.confirmed && (
+												<span
+													className="rounded-full bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] text-accent"
+													title="Patvirtintas ryšys – dvigubi taškai"
+												>
+													×2
+												</span>
+											)}
+										</span>
+									</TableCell>
 									<TableCell className="px-4 text-right">
 										<AlertDialog>
 											<AlertDialogTrigger
@@ -309,6 +325,31 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 					</TableBody>
 				</Table>
 			</div>
+			{pageCount > 1 ? (
+				<div className="flex items-center justify-between gap-4">
+					<p className="text-muted-foreground text-sm">
+						{total} QSO &middot; puslapis {page} iš {pageCount}
+					</p>
+					<div className="flex gap-2">
+						<Button
+							disabled={page <= 1}
+							onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+							size="icon-sm"
+							variant="outline"
+						>
+							<ChevronLeft />
+						</Button>
+						<Button
+							disabled={page >= pageCount}
+							onClick={() => setPage((prev) => Math.min(pageCount, prev + 1))}
+							size="icon-sm"
+							variant="outline"
+						>
+							<ChevronRight />
+						</Button>
+					</div>
+				</div>
+			) : null}
 		</div>
 	);
 }

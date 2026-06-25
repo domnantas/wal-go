@@ -76,12 +76,14 @@ export const Route = createFileRoute("/log")({
 
 interface Qso {
 	band: string;
+	confirmed: boolean;
 	contactCallsign: string;
 	contactSquare: null | string;
 	id: number;
 	mode: string;
 	operatorSquare: string;
 	qsoAt: Date | string;
+	score: number;
 }
 
 interface SeasonListItem {
@@ -738,6 +740,16 @@ function getQsoColumns({
 			),
 		},
 		{
+			id: "score",
+			header: "Taškai",
+			cell: ({ row }) => (
+				<ScoreBadge
+					confirmed={row.original.confirmed}
+					score={row.original.score}
+				/>
+			),
+		},
+		{
 			id: "actions",
 			header: "",
 			enableSorting: false,
@@ -765,6 +777,28 @@ function getQsoColumns({
 			},
 		},
 	];
+}
+
+function ScoreBadge({
+	confirmed,
+	score,
+}: {
+	confirmed: boolean;
+	score: number;
+}) {
+	return (
+		<span className="inline-flex items-center gap-1.5 font-medium tabular-nums">
+			{score}
+			{confirmed ? (
+				<span
+					className="rounded-full bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] text-accent"
+					title="Patvirtintas ryšys – dvigubi taškai"
+				>
+					×2
+				</span>
+			) : null}
+		</span>
+	);
 }
 
 function SquareBadge({

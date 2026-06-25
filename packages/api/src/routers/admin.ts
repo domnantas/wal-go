@@ -23,6 +23,7 @@ import {
 	applyUserBanScoreChange,
 	type OwnershipChange,
 	recomputeSeasonScores,
+	syncQsoScores,
 } from "../scoring/apply-deltas";
 import { computeScoreDrift, EMPTY_SEASON_DRIFT } from "../scoring/drift";
 import { getScoringRuleSet } from "../scoring/index";
@@ -423,26 +424,48 @@ const setMembershipTeam = adminProcedure
 		}
 	});
 
+const QSOS_PAGE_SIZE = 50;
+
 const listQsos = adminProcedure
-	.input(z.object({ seasonId: z.number().int().positive() }))
+	.input(
+		z.object({
+			seasonId: z.number().int().positive(),
+			page: z.number().int().positive().default(1),
+		})
+	)
 	.handler(async ({ context, input }) => {
-		const rows = await context.db
-			.select({
-				id: qso.id,
-				qsoAt: qso.qsoAt,
-				operatorCallsign: user.name,
-				contactCallsign: qso.contactCallsign,
-				band: qso.band,
-				mode: qso.mode,
-				operatorSquare: qso.operatorSquare,
-				contactSquare: qso.contactSquare,
-				team: qso.team,
-			})
-			.from(qso)
-			.innerJoin(user, eq(qso.userId, user.id))
-			.where(eq(qso.seasonId, input.seasonId))
-			.orderBy(desc(qso.qsoAt), desc(qso.id));
-		return rows;
+		const where = eq(qso.seasonId, input.seasonId);
+		const [rows, totalResult] = await Promise.all([
+			context.db
+				.select({
+					id: qso.id,
+					qsoAt: qso.qsoAt,
+					operatorCallsign: user.name,
+					contactCallsign: qso.contactCallsign,
+					band: qso.band,
+					mode: qso.mode,
+					operatorSquare: qso.operatorSquare,
+					contactSquare: qso.contactSquare,
+					team: qso.team,
+					score: qso.score,
+					confirmed: qso.confirmed,
+				})
+				.from(qso)
+				.innerJoin(user, eq(qso.userId, user.id))
+				.where(where)
+				.orderBy(desc(qso.qsoAt), desc(qso.id))
+				.limit(QSOS_PAGE_SIZE)
+				.offset((input.page - 1) * QSOS_PAGE_SIZE),
+			context.db.select({ count: count() }).from(qso).where(where),
+		]);
+		const total = totalResult[0]?.count ?? 0;
+		return {
+			rows,
+			total,
+			page: input.page,
+			pageSize: QSOS_PAGE_SIZE,
+			pageCount: Math.max(1, Math.ceil(total / QSOS_PAGE_SIZE)),
+		};
 	});
 
 const listUserQsos = adminProcedure
@@ -520,6 +543,7 @@ const deleteQso = adminProcedure
 				deltas
 			);
 			await tx.delete(qso).where(eq(qso.id, input.id));
+			await syncQsoScores(tx, qsoRow.seasonId);
 			return ownershipChanges;
 		});
 
@@ -533,6 +557,7 @@ const deleteQsos = adminProcedure
 	.handler(async ({ context, input }) => {
 		const changes = await context.db.transaction(async (tx) => {
 			const ownershipChanges: OwnershipChange[] = [];
+			const affectedSeasonIds = new Set<number>();
 			for (const id of input.ids) {
 				const existing = await tx
 					.select()
@@ -580,6 +605,10 @@ const deleteQsos = adminProcedure
 					...(await applyScoreDeltas(tx, qsoRow.seasonId, deltas))
 				);
 				await tx.delete(qso).where(eq(qso.id, id));
+				affectedSeasonIds.add(qsoRow.seasonId);
+			}
+			for (const affectedSeasonId of affectedSeasonIds) {
+				await syncQsoScores(tx, affectedSeasonId);
 			}
 			return ownershipChanges;
 		});

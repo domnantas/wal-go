@@ -8,6 +8,7 @@ import { and, count, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type {
 	DeleteParams,
 	InsertParams,
+	QsoScore,
 	ScoreDelta,
 	ScoringRuleSet,
 	Tx,
@@ -186,6 +187,18 @@ function scoreBulkInsert(params: InsertParams[]): ScoreDelta[] {
 	return [...squareMap.values()];
 }
 
+async function scoreSeasonQsos(
+	db: Parameters<ScoringRuleSet["scoreSeasonQsos"]>[0],
+	seasonId: number
+): Promise<Map<number, QsoScore>> {
+	const rows = await db
+		.select({ id: qso.id })
+		.from(qso)
+		.innerJoin(user, and(eq(user.id, qso.userId), eq(user.banned, false)))
+		.where(eq(qso.seasonId, seasonId));
+	return new Map(rows.map((r) => [r.id, { points: 1, confirmed: false }]));
+}
+
 export const alphaRuleSet: ScoringRuleSet = {
 	requiresContactSquare: false,
 	usePerQsoScoring: false,
@@ -228,4 +241,5 @@ export const alphaRuleSet: ScoringRuleSet = {
 	scoreInsert,
 	scoreDelete,
 	scoreBulkInsert,
+	scoreSeasonQsos,
 };

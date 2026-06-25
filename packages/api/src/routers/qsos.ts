@@ -18,7 +18,7 @@ import { z } from "zod";
 import { protectedProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
 import { checkRateLimit } from "../rate-limit";
-import { applyScoreDeltas } from "../scoring/apply-deltas";
+import { applyScoreDeltas, syncQsoScores } from "../scoring/apply-deltas";
 import { getScoringRuleSet } from "../scoring/index";
 import type { InsertParams, Tx } from "../scoring/types";
 import { getCurrentSeason } from "./seasons";
@@ -94,6 +94,8 @@ function serializeQso(row: typeof qso.$inferSelect) {
 		operatorSquare: row.operatorSquare,
 		contactSquare: row.contactSquare,
 		team: row.team,
+		score: row.score,
+		confirmed: row.confirmed,
 	};
 }
 
@@ -437,6 +439,7 @@ const create = protectedProcedure
 
 			const deltas = await ruleSet.scoreInsert(tx, insertParams);
 			const changes = await applyScoreDeltas(tx, currentSeason.id, deltas);
+			await syncQsoScores(tx, currentSeason.id);
 
 			return { payload: serializeQso(created), changes };
 		});
@@ -583,6 +586,7 @@ const update = protectedProcedure
 				...deleteDeltas,
 				...insertDeltas,
 			]);
+			await syncQsoScores(tx, qsoRow.seasonId);
 
 			return { payload: serializeQso(updated), changes };
 		});
@@ -653,6 +657,7 @@ const deleteQso = protectedProcedure
 			const changes = await applyScoreDeltas(tx, qsoRow.seasonId, deltas);
 
 			await tx.delete(qso).where(eq(qso.id, input.id));
+			await syncQsoScores(tx, qsoRow.seasonId);
 
 			return { payload: serializeQso(qsoRow), changes };
 		});
@@ -867,6 +872,22 @@ const commitQsoInput = z.object({
 });
 
 async function applyBulkScoreDeltas(
+	tx: Tx,
+	seasonId: number,
+	ruleSet: ReturnType<typeof getScoringRuleSet>,
+	toInsert: InsertParams[]
+): ReturnType<typeof applyScoreDeltas> {
+	const changes = await applyBulkAggregateDeltas(
+		tx,
+		seasonId,
+		ruleSet,
+		toInsert
+	);
+	await syncQsoScores(tx, seasonId);
+	return changes;
+}
+
+async function applyBulkAggregateDeltas(
 	tx: Tx,
 	seasonId: number,
 	ruleSet: ReturnType<typeof getScoringRuleSet>,

@@ -1,4 +1,5 @@
 import {
+	boolean,
 	index,
 	integer,
 	pgEnum,
@@ -63,6 +64,10 @@ export const qso = pgTable(
 		team: teamColor("team").notNull(),
 		operatorSquare: varchar("operator_square", { length: 3 }).notNull(),
 		contactSquare: varchar("contact_square", { length: 3 }),
+		// Materialized per-QSO score under the season rule set. Maintained by
+		// syncQsoScores after every write — never set these directly on insert.
+		score: integer("score").notNull().default(0),
+		confirmed: boolean("confirmed").notNull().default(false),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()

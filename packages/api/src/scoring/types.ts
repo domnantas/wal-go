@@ -37,6 +37,11 @@ export interface DeleteParams {
 	userId: string;
 }
 
+export interface QsoScore {
+	confirmed: boolean;
+	points: number;
+}
+
 export interface ExpectedScores {
 	squareScores: Array<{
 		squareCode: string;
@@ -54,6 +59,8 @@ export interface ScoringRuleSet {
 	scoreBulkInsert(params: InsertParams[]): ScoreDelta[];
 	scoreDelete(tx: Tx, params: DeleteParams): Promise<ScoreDelta[]>;
 	scoreInsert(tx: Tx, params: InsertParams): Promise<ScoreDelta[]>;
+	/** Per-QSO score for every QSO in a season, keyed by QSO id. */
+	scoreSeasonQsos(db: Db, seasonId: number): Promise<Map<number, QsoScore>>;
 	usePerQsoScoring: boolean;
 	validateInsert(
 		tx: Tx,

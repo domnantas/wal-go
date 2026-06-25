@@ -9,6 +9,7 @@ import type {
 	DeleteParams,
 	ExpectedScores,
 	InsertParams,
+	QsoScore,
 	ScoreDelta,
 	ScoringRuleSet,
 	Tx,
@@ -326,12 +327,25 @@ function scoreBulkInsert(params: InsertParams[]): ScoreDelta[] {
 	return [...squareMap.values()];
 }
 
-async function computeExpectedScores(
+interface SeasonQsoRow {
+	band: string;
+	contactCallsign: string;
+	contactSquare: string | null;
+	id: number;
+	mode: string;
+	operatorSquare: string;
+	qsoAt: Date;
+	team: "green" | "red" | "yellow";
+	userId: string;
+	userName: string;
+}
+
+/** Load all non-banned QSOs for a season with the fields scoring needs. */
+function loadSeasonQsos(
 	db: Parameters<ScoringRuleSet["computeExpectedScores"]>[0],
 	seasonId: number
-): Promise<ExpectedScores> {
-	// Get all non-banned QSOs for the season with user info
-	const qsoRows = await db
+): Promise<SeasonQsoRow[]> {
+	return db
 		.select({
 			id: qso.id,
 			userId: qso.userId,
@@ -347,10 +361,11 @@ async function computeExpectedScores(
 		.from(qso)
 		.innerJoin(user, and(eq(user.id, qso.userId), eq(user.banned, false)))
 		.where(eq(qso.seasonId, seasonId));
+}
 
-	// Build lookup: normalizedCallsign -> list of QSO ids with their fields
-	type QsoEntry = (typeof qsoRows)[number];
-	const byCallsign = new Map<string, QsoEntry[]>();
+/** Ids of QSOs that have a reciprocal confirming QSO within the time window. */
+function detectConfirmedIds(qsoRows: SeasonQsoRow[]): Set<number> {
+	const byCallsign = new Map<string, SeasonQsoRow[]>();
 	for (const row of qsoRows) {
 		const key = row.userName.toUpperCase();
 		const list = byCallsign.get(key) ?? [];
@@ -358,7 +373,6 @@ async function computeExpectedScores(
 		byCallsign.set(key, list);
 	}
 
-	// For each QSO, check if a confirming QSO exists in memory
 	const confirmedIds = new Set<number>();
 	for (const q of qsoRows) {
 		if (!q.contactSquare) {
@@ -380,6 +394,34 @@ async function computeExpectedScores(
 			}
 		}
 	}
+
+	return confirmedIds;
+}
+
+async function scoreSeasonQsos(
+	db: Parameters<ScoringRuleSet["scoreSeasonQsos"]>[0],
+	seasonId: number
+): Promise<Map<number, QsoScore>> {
+	const qsoRows = await loadSeasonQsos(db, seasonId);
+	const confirmedIds = detectConfirmedIds(qsoRows);
+
+	return new Map(
+		qsoRows.map((q) => {
+			const confirmed = confirmedIds.has(q.id);
+			return [
+				q.id,
+				{ points: getBasePoints(q.mode) * (confirmed ? 2 : 1), confirmed },
+			];
+		})
+	);
+}
+
+async function computeExpectedScores(
+	db: Parameters<ScoringRuleSet["computeExpectedScores"]>[0],
+	seasonId: number
+): Promise<ExpectedScores> {
+	const qsoRows = await loadSeasonQsos(db, seasonId);
+	const confirmedIds = detectConfirmedIds(qsoRows);
 
 	// Aggregate points
 	const squareMap = new Map<
@@ -425,4 +467,5 @@ export const betaRuleSet: ScoringRuleSet = {
 	scoreInsert,
 	scoreDelete,
 	scoreBulkInsert,
+	scoreSeasonQsos,
 };

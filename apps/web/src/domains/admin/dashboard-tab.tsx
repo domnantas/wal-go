@@ -189,6 +189,9 @@ function DriftBadge({
 				queryClient.invalidateQueries({
 					queryKey: orpc.admin.dashboard.queryOptions().queryKey,
 				});
+				queryClient.invalidateQueries({
+					queryKey: orpc.admin.qsos.list.key(),
+				});
 				toast.success("Taškai perskaičiuoti");
 			},
 			onError: (e) => toast.error(e.message),
@@ -197,9 +200,23 @@ function DriftBadge({
 
 	if (!drift.hasDrift) {
 		return (
-			<div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 font-medium text-green-800 text-xs dark:bg-green-900/30 dark:text-green-400">
-				<CheckCircle2 className="size-3.5" />
-				Taškai sutampa
+			<div className="mb-4 flex items-center gap-2">
+				<span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 font-medium text-green-800 text-xs dark:bg-green-900/30 dark:text-green-400">
+					<CheckCircle2 className="size-3.5" />
+					Taškai sutampa
+				</span>
+				<Button
+					disabled={recompute.isPending}
+					onClick={() => recompute.mutate({ seasonId })}
+					size="sm"
+					variant="ghost"
+				>
+					{recompute.isPending ? (
+						<Spinner className="size-3.5" />
+					) : (
+						"Perskaičiuoti"
+					)}
+				</Button>
 			</div>
 		);
 	}

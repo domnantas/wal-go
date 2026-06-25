@@ -224,6 +224,52 @@ export async function applyScoreDeltas(
  * accepted QSO and game duplicates are filtered at insert time. A future
  * non-trivial rule set must update this recompute alongside it.
  */
+/**
+ * Reconciles the materialized per-QSO `score` / `confirmed` columns with the
+ * rule set's authoritative per-QSO scoring for a whole season. Run inside the
+ * same transaction as any write that can change scoring (insert, update,
+ * delete, bulk import, ban recompute) so reads can serve the columns directly
+ * instead of recomputing confirmation on every list request.
+ *
+ * Confirmation is symmetric and dynamic, so a single insert/delete can flip a
+ * counterpart QSO too; recomputing the season and updating only the rows that
+ * actually changed keeps this correct without bespoke per-path delta logic.
+ * Banned users' QSOs are absent from the rule set's map and reconcile to 0,
+ * matching their removal from the aggregate score tables.
+ */
+export async function syncQsoScores(tx: Tx, seasonId: number): Promise<void> {
+	const seasonRows = await tx
+		.select({ scoringRuleSet: season.scoringRuleSet })
+		.from(season)
+		.where(eq(season.id, seasonId))
+		.limit(1);
+	const ruleSet = getScoringRuleSet(seasonRows[0]?.scoringRuleSet ?? "alpha");
+
+	// tx and Db share the same query interface in Drizzle
+	const scores = await ruleSet.scoreSeasonQsos(tx as unknown as Db, seasonId);
+
+	const stored = await tx
+		.select({ id: qso.id, score: qso.score, confirmed: qso.confirmed })
+		.from(qso)
+		.where(eq(qso.seasonId, seasonId));
+
+	for (const row of stored) {
+		const target = scores.get(row.id) ?? { points: 0, confirmed: false };
+		if (row.score === target.points && row.confirmed === target.confirmed) {
+			continue;
+		}
+		await tx
+			.update(qso)
+			.set({
+				score: target.points,
+				confirmed: target.confirmed,
+				// Preserve the user-facing edit timestamp: a scoring sync is not a QSO edit.
+				updatedAt: sql`${qso.updatedAt}`,
+			})
+			.where(eq(qso.id, row.id));
+	}
+}
+
 export async function recomputeSeasonScores(
 	tx: Tx,
 	seasonId: number
@@ -267,6 +313,8 @@ export async function recomputeSeasonScores(
 			}))
 		);
 	}
+
+	await syncQsoScores(tx, seasonId);
 }
 
 export async function applyUserBanScoreChange(
@@ -368,6 +416,7 @@ export async function applyUserBanScoreChange(
 			}));
 
 			changesBySeason.push(await applyScoreDeltas(tx, s.id, deltas));
+			await syncQsoScores(tx, s.id);
 		}
 	}
 

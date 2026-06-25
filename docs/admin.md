@@ -11,13 +11,20 @@ Two layers:
 
 All procedures live in `packages/api/src/routers/admin.ts`.
 
+## Tab navigation
+
+Tabs are controlled (`useState`) and defined once in the `adminTabs` array in
+`apps/web/src/routes/admin.tsx`. On `sm`+ they render as the horizontal
+`TabsList`; below `sm` the list is hidden and a full-width `Select` dropdown
+drives the same state, keeping the page usable on mobile.
+
 ## Tabs
 
 ### Dashboard (Apžvalga) — default
 
 - **Global stat cards**: total users, total QSOs across all seasons, season count.
 - **Per-season cards** (oldest first): name, status badge (`active`/`upcoming`/`ended`), date range, QSO count, total members, and a team bar (yellow/green/red) whose primary metric is controlled WAL square count, with points and member count secondary.
-- **Drift badge** per card: green "Taškai sutampa" when stored scores match the source-of-truth QSOs, or red "Aptiktas taškų neatitikimas" showing how many square rows, user rows, and total points differ. Computed by `computeScoreDrift` (`packages/api/src/scoring/drift.ts` — see [scoring.md](scoring.md)). The red badge carries a **"Perskaičiuoti"** button (`admin.scores.recompute`) that wipes and rebuilds the season's score tables from QSOs.
+- **Drift badge** per card: green "Taškai sutampa" when stored scores match the source-of-truth QSOs, or red "Aptiktas taškų neatitikimas" showing how many square rows, user rows, and total points differ. Computed by `computeScoreDrift` (`packages/api/src/scoring/drift.ts` — see [scoring.md](scoring.md)). Both states carry a **"Perskaičiuoti"** button (`admin.scores.recompute`) that wipes and rebuilds the season's score tables from QSOs and reconciles the materialized per-QSO `score`/`confirmed` columns via `syncQsoScores`. It is available even when scores match because per-QSO backfill does not register as aggregate drift — see [scoring.md](scoring.md) § Per-QSO Score → Materialization. The mutation invalidates the dashboard and the QSO tab list.
 
 Team points and controlled-square counts derive from `square_score`; a square counts as controlled only when one team has strictly more points than either rival. Implemented via `admin.dashboard`.
 
@@ -62,7 +69,8 @@ A row is written to `cabrillo_upload` (which carries a `format` column) inside t
 
 ### QSOs
 
-- Pick a season from a dropdown to view its QSOs (timestamp, operator callsign, contact callsign, band, mode, squares).
+- Pick a season from a dropdown to view its QSOs (timestamp, operator callsign, contact callsign, band, mode, squares, score). The score column shows each QSO's point value under the season rule set, with a `×2` badge for confirmed beta QSOs — see [scoring.md](scoring.md) § Per-QSO Score.
+- **Pagination**: `admin.qsos.list` takes `{ seasonId, page }` (page defaults to 1) and returns `{ rows, total, page, pageSize, pageCount }` with `pageSize` fixed at 50 server-side (newest first); each row carries `score` and `confirmed`. Prev/Kitas controls below the table; shown only when `pageCount > 1`. Switching season remounts the list (keyed by `seasonId`) so the page resets to 1. Select-all + bulk delete operate on the current page only.
 - Delete a single QSO with confirmation — scores recalculated via `scoreDelete`.
 - **Bulk delete**: each row has a checkbox plus a header "select all" (shows indeterminate on partial selection). When any row is selected a toolbar appears with the selected count and a destructive "Ištrinti pažymėtus" action (confirmation). Selection clears after a successful delete. Used to clean up abuse.
 
