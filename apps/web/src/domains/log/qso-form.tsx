@@ -151,6 +151,19 @@ function getQsoSubmitSchema(requiresContactSquare: boolean) {
 				path: ["contactSquare"],
 			});
 		}
+		if (
+			requiresContactSquare &&
+			values.contactSquare.trim() !== "" &&
+			normalizeWalSquare(values.contactSquare) ===
+				normalizeWalSquare(values.operatorSquare)
+		) {
+			ctx.addIssue({
+				code: "custom",
+				message:
+					"Korespondento kvadratas negali sutapti su operatoriaus kvadratu",
+				path: ["contactSquare"],
+			});
+		}
 	});
 }
 

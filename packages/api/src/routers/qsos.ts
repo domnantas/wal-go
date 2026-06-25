@@ -790,6 +790,14 @@ function validateClientQso(
 		return "dxForLithuanian";
 	}
 
+	if (
+		ctx.requiresContactSquare &&
+		contactSquare !== null &&
+		contactSquare === operatorSquare
+	) {
+		return "sameSquare";
+	}
+
 	return {
 		band: row.band,
 		contactCallsign,

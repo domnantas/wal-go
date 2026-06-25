@@ -109,6 +109,13 @@ async function validateInsert(
 		});
 	}
 
+	if (params.contactSquare === params.operatorSquare) {
+		throw new ORPCError("BAD_REQUEST", {
+			message:
+				"Korespondento WAL kvadratas negali sutapti su operatoriaus kvadratu",
+		});
+	}
+
 	const excludeOwnQso = options?.excludeQsoId
 		? ne(qso.id, options.excludeQsoId)
 		: undefined;

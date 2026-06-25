@@ -61,6 +61,7 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
 	malformedLine: "Neteisingas formatas",
 	missingContactSquare: "Trūksta korespondento kvadrato",
 	outsideSeason: "Už sezono ribų",
+	sameSquare: "Vienodi WAL kvadratai",
 	selfContact: "QSO su savimi",
 };
 
@@ -180,6 +181,13 @@ function getBaseStatus(
 		isLithuanianCallsign(contactCallsign)
 	) {
 		return { reason: "dxForLithuanian", status: "fixable" };
+	}
+	if (
+		requiresContactSquare &&
+		isValidWalSquare(row.contactSquare) &&
+		normalizeWalSquare(row.contactSquare) === normalizeWalSquare(row.operatorSquare)
+	) {
+		return { reason: "sameSquare", status: "fixable" };
 	}
 	return null;
 }
