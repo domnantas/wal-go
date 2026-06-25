@@ -5,8 +5,17 @@ import {
 	squareScore,
 	userSeasonScore,
 } from "@WAL-GO/db/schema/scoring";
-import { seasonMembership } from "@WAL-GO/db/schema/seasons";
-import { and, count, countDistinct, desc, eq, gte, sql } from "drizzle-orm";
+import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
+import {
+	and,
+	asc,
+	count,
+	countDistinct,
+	desc,
+	eq,
+	gte,
+	sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import { publicProcedure } from "../index";
@@ -192,6 +201,58 @@ const activityFeed = publicProcedure
 		return rows;
 	});
 
+const controlTimeline = publicProcedure
+	.input(scoringInput)
+	.handler(async ({ context, input }) => {
+		const seasonId = await resolveSeasonId(context.db, input.seasonId);
+		if (seasonId === null) {
+			return [];
+		}
+
+		const [seasonRow] = await context.db
+			.select({ startsAt: season.startsAt })
+			.from(season)
+			.where(eq(season.id, seasonId))
+			.limit(1);
+
+		const events = await context.db
+			.select({
+				before: squareControlHistory.beforeTeam,
+				after: squareControlHistory.afterTeam,
+				at: squareControlHistory.createdAt,
+			})
+			.from(squareControlHistory)
+			.where(eq(squareControlHistory.seasonId, seasonId))
+			.orderBy(asc(squareControlHistory.createdAt));
+
+		const counts: Record<Team, number> = { yellow: 0, green: 0, red: 0 };
+		const byTime = new Map<
+			number,
+			{ at: Date; yellow: number; green: number; red: number }
+		>();
+
+		if (seasonRow) {
+			byTime.set(seasonRow.startsAt.getTime(), {
+				at: seasonRow.startsAt,
+				yellow: 0,
+				green: 0,
+				red: 0,
+			});
+		}
+
+		for (const event of events) {
+			if (event.before) {
+				counts[event.before] -= 1;
+			}
+			if (event.after) {
+				counts[event.after] += 1;
+			}
+			byTime.set(event.at.getTime(), { at: event.at, ...counts });
+		}
+
+		return [...byTime.values()].sort((a, b) => a.at.getTime() - b.at.getTime());
+	});
+
 const RECENT_ACTIVITY_HOURS = 2;
 
 const recentSquares = publicProcedure
@@ -273,6 +334,7 @@ export const scoringRouter = {
 	squares,
 	individualStandings,
 	teamStandings,
+	controlTimeline,
 	activityFeed,
 	recentSquares,
 	recentSquareActivity,

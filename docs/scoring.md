@@ -92,6 +92,13 @@ Scoped to the active season. The scoring router exposes two endpoints (`packages
 - **Team standings** (`scoring.teamStandings`) — teams ranked by WAL squares currently controlled (desc); ties broken by total points. Rendered: the map sidebar shows controlled-square stats under the progress box, in fixed order yellow/green/red, each a progress bar; also used on the homepage and in `SeasonResultsBox`. When no season is active, the sidebar can show recently ended results using the same endpoint scoped to the ended season id.
 - **Individual standings** (`scoring.individualStandings`) — operators ranked by total season points (desc): callsign, team color, point total, plus `qsoCount` and `squaresWorked` (distinct operator squares). Banned users are excluded from both the points rows and the activity aggregates. Per-player team mapping stays hidden during an active season; it's revealed only for ended seasons on the leaderboard ([leaderboard.md](leaderboard.md)).
 
+- **Control timeline** (`scoring.controlTimeline`) — replays `square_control_history` for the
+  season to produce `{ at, yellow, green, red }` snapshots: starting from a zero baseline at the
+  season start, each ownership change decrements the losing team and increments the gaining team
+  (nullable = uncontrolled), emitting one point per distinct timestamp. Powers the leaderboard's
+  control-over-time chart ([leaderboard.md](leaderboard.md)). Because it is a pure replay of the
+  same append-only log, its final values match `teamStandings.squaresControlled`.
+
 Two more `publicProcedure`s in the same router power the in-app liveness signals, both
 anonymized (team + square + time only, never a callsign) — see [activity-feed.md](activity-feed.md):
 
@@ -119,7 +126,7 @@ Scores are stored, not computed on read (full-season aggregation across tens of 
 |---|---|---|
 | `square_score` | `season_id`, `square_code`, `team`, `points` | Unique on `(season_id, square_code, team)`. One row per active team per square. `points >= 0` check. |
 | `user_season_score` | `season_id`, `user_id`, `points` | Individual leaderboard. Unique on `(season_id, user_id)`. `points >= 0` check. |
-| `square_control_history` | `season_id`, `square_code`, `before_team`, `after_team`, `created_at` | Append-only log of takeovers (ownership changes). Teams nullable (null = uncontrolled). Indexed on `(season_id, created_at)`. Powers the in-app activity feed ([activity-feed.md](activity-feed.md)). Rows written by `applyScoreDeltas` in the same transaction as the score change. |
+| `square_control_history` | `season_id`, `square_code`, `before_team`, `after_team`, `created_at` | Append-only log of takeovers (ownership changes). Teams nullable (null = uncontrolled). Indexed on `(season_id, created_at)`. Powers the in-app activity feed ([activity-feed.md](activity-feed.md)) and the leaderboard control-over-time chart ([leaderboard.md](leaderboard.md)). Rows written by `applyScoreDeltas` in the same transaction as the score change. |
 
 Both update **in the same transaction** as the QSO insert/delete. Increments use `INSERT ... ON CONFLICT DO UPDATE` on the unique key. A square's owner is **derived on read** (the `team` with `MAX(points)`, checked for strict majority), never stored.
 
@@ -158,6 +165,16 @@ For beta, `computeExpectedScores` performs an in-memory confirmation match: pair
 ### Repair: recompute scores
 
 When the badge is red, an admin clicks **"Perskaičiuoti"** (`admin.scores.recompute`), running `recomputeSeasonScores` (`packages/api/src/scoring/apply-deltas.ts`) in a transaction: it **wipes** the season's score rows and **rebuilds** them from `ruleSet.computeExpectedScores`. Idempotent; afterward the season is drift-free.
+
+### Backfill: rebuild control history
+
+`square_control_history` is written live by `applyScoreDeltas`, so it only covers takeovers that happened **after the table existed**. To reconstruct the full history (e.g. it was added mid-season, or drifted), `rebuildControlHistory(tx, seasonId)` (`packages/api/src/scoring/rebuild-control-history.ts`) replays the season from the source-of-truth `qso` table:
+
+- Loads every non-banned QSO ordered by `qsoAt` and expands them into time-ordered additive **score events**. Each QSO contributes its base points at `qsoAt`; under beta a confirmed QSO contributes a second equal event at its confirmation time (the later `qsoAt` of the matched pair — the doubling). The per-`(square, team)` sum therefore equals `computeExpectedScores`, so the reconstructed end state matches the materialized score tables.
+- Replays events in time order, grouping by timestamp, and emits one history row per ownership change, **stamped with the causing contact's `qsoAt`** (backfilled rows have no real insert time). This makes the timeline chart a clean game-time curve.
+- **Wipes** the season's history rows and re-inserts the full reconstruction (full rebuild, not gap-only — one consistent algorithm and timestamp basis, verifiable against current scores).
+
+Run it with `pnpm -F @WAL-GO/api backfill:control-history <seasonId> [--dry-run]` (`src/scripts/rebuild-control-history.ts`). `--dry-run` rebuilds inside a transaction and rolls back, printing the row count without writing. Drives the leaderboard control-over-time chart ([leaderboard.md](leaderboard.md)).
 
 ## Discord announcements
 

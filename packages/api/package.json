@@ -9,9 +9,6 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {
-    "backfill:control-history": "tsx src/scripts/rebuild-control-history.ts"
-  },
   "dependencies": {
     "@WAL-GO/callsign": "workspace:*",
     "@WAL-GO/auth": "workspace:*",

@@ -20,6 +20,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Trophy } from "lucide-react";
 import { useState } from "react";
 import { MapView } from "@/domains/map/map-view";
+import { ControlTimelineChart } from "@/domains/season/control-timeline-chart";
 import { SeasonWinnerHero } from "@/domains/season/season-winner-hero";
 import { TEAM_CONFIG, type Team } from "@/domains/season/team";
 import { TeamStandingCard } from "@/domains/season/team-standing-card";
@@ -144,6 +145,8 @@ function RouteComponent() {
 					selectedSquareCode={selectedSquareCode}
 				/>
 			</div>
+
+			<ControlTimelineChart seasonId={activeSeasonId} />
 
 			<section>
 				<h2 className="mb-3 font-bold font-serif text-xl">Komandos</h2>

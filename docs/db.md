@@ -58,10 +58,12 @@ Uses the `postgres` (postgres.js) package with the `drizzle-orm/postgres-js` ada
 
 1. explicit `connectionString` argument (scripts/seeds)
 2. `HYPERDRIVE.connectionString` — **preferred** in deployed Workers (pooled)
-3. `cloudflareEnv.DATABASE_URL` — direct PlanetScale fallback when no Hyperdrive binding
+3. `cloudflareEnv.DATABASE_URL` — direct PlanetScale fallback when no Hyperdrive binding (**preview stages only**; prod doesn't bind it — see [infra.md](infra.md#prod-has-no-direct-database_url))
 4. `process.env.DATABASE_URL` — Node / local `vite dev`
 
 In PlanetScale's `pg_stat_activity`, Hyperdrive connections still show `application_name = postgres.js` — tell them apart by `usename` and long-lived idle pooling. A genuine direct bypass only happens when `HYPERDRIVE` is missing/empty and code falls to step 3.
+
+Every client sets `connection: { idle_session_timeout: 300_000 }` (5 min). PlanetScale's role can't set a cluster-wide value, so it's injected per session — the server reaps any session left idle (crashed script, preview direct fallback) so it can't hold a connection slot forever. One-off scripts that `createDb()` against prod must still `await db.$client.end()` in a `finally` to release the slot immediately rather than waiting out the timeout.
 
 ### Pooling and request lifecycle
 
