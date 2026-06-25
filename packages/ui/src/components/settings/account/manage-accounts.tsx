@@ -12,14 +12,6 @@ export interface ManageAccountsProps {
 	className?: string;
 }
 
-/**
- * Render a card that lists and manages all device sessions for the current user.
- *
- * Shows each session with user information and actions to switch to or revoke a session.
- * When device session data is loading, a pending placeholder row is displayed.
- *
- * @returns A JSX element containing the accounts management card
- */
 export function ManageAccounts({ className }: ManageAccountsProps) {
 	const { authClient, localization } = useAuth();
 	const { data: session } = useSession(authClient);

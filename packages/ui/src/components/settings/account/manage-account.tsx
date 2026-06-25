@@ -30,16 +30,6 @@ export interface ManageAccountProps {
 	isPending?: boolean;
 }
 
-/**
- * Render a single account row with user info and switch/revoke controls.
- *
- * Shows the user's avatar and info. For the active session, shows a sign-out button.
- * For non-active sessions, shows a dropdown menu with switch and sign-out options.
- *
- * @param deviceSession - The device session object containing session and user data
- * @param isPending - Whether the device session is pending
- * @returns A JSX element containing the account row
- */
 export function ManageAccount({
 	deviceSession,
 	isPending,

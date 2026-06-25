@@ -11,13 +11,6 @@ export type ProviderButtonProps = {
 	isDisabled?: boolean;
 } & Omit<ComponentProps<typeof Button>, "onClick" | "disabled" | "children">;
 
-/**
- * Render a single social provider sign-in button with its own mutation and pending state.
- *
- * @param provider - The social provider this button signs in with.
- * @param label - Label style: `"continueWith"` (e.g. "Continue with Google"), `"providerName"` (e.g. "Google"), or `"none"` (icon only).
- * @param isDisabled - External disabled state (e.g. the parent form is submitting).
- */
 export function ProviderButton({
 	provider,
 	label = "continueWith",

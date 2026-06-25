@@ -14,15 +14,6 @@ export interface ChangeEmailProps {
 	className?: string;
 }
 
-/**
- * Render a card containing a form to view and update the authenticated user's email.
- *
- * Shows a loading skeleton until session data is available, displays the current
- * email as the form's default value, and sends a verification email to the
- * new address upon successful submission.
- *
- * @returns A JSX element rendering the change-email card and form
- */
 export function ChangeEmail({ className }: ChangeEmailProps) {
 	const { authClient, basePaths, localization, viewPaths } = useAuth();
 	const { data: session } = useSession(authClient);

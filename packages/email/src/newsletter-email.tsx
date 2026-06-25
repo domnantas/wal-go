@@ -60,46 +60,27 @@ export type NewsletterEmailLocalization = typeof newsletterEmailLocalization;
 const PREVIEW_UNSUBSCRIBE_URL = "#";
 
 export interface NewsletterSection {
-	/** Section body text. */
 	body: string;
-	/** Optional thumbnail shown left of the text as a feature row. */
 	imageUrl?: string;
-	/** Overrides the default "read more" label for this section. */
 	linkLabel?: string;
-	/** Section heading. */
 	title: string;
-	/** Optional link the section's "read more" button points to. */
 	url?: string;
 }
 
 export interface NewsletterEmailProps {
-	/** Name of the application sending the newsletter. */
 	appName?: string;
-	/** Custom CSS class names for styling specific parts of the email. */
 	classNames?: EmailClassNames;
-	/** Custom color scheme for the surface (background/card) in light/dark. */
 	colors?: EmailColors;
-	/** Optional primary call-to-action label. */
 	ctaLabel?: string;
-	/** Optional primary call-to-action URL. */
 	ctaUrl?: string;
-	/** Whether to enable dark mode support for surfaces. */
 	darkMode?: boolean;
-	/** Additional React nodes to inject into the email head. */
 	head?: ReactNode;
-	/** Main headline shown under the logo. */
 	heading: string;
-	/** Intro paragraph shown under the headline. */
 	intro?: string;
-	/** Short label shown above the headline (e.g. issue / date). */
 	label?: string;
-	/** Localization overrides for static labels. */
 	localization?: Partial<NewsletterEmailLocalization>;
-	/** Logo URL(s) - a single string or light/dark variants. */
 	logoURL?: string | { light: string; dark: string };
-	/** Text shown in the inbox preview line. */
 	preview?: string;
-	/** Content blocks rendered in order. */
 	sections?: NewsletterSection[];
 	/**
 	 * Link recipients use to unsubscribe. Required by anti-spam law. The sender
@@ -107,7 +88,6 @@ export interface NewsletterEmailProps {
 	 * own route verifies; in previews it falls back to an inert `#` placeholder.
 	 */
 	unsubscribeUrl?: string;
-	/** Optional link to view the newsletter in a browser. */
 	viewOnlineUrl?: string;
 }
 

@@ -6,10 +6,6 @@ export interface DangerZoneProps {
 	className?: string;
 }
 
-/**
- * Renders the danger zone heading and {@link DeleteUser}.
- * Gate with `deleteUser.enabled` at the call site (e.g. {@link SecuritySettings}).
- */
 export function DangerZone({ className }: DangerZoneProps) {
 	const { localization } = useAuth();
 

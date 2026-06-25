@@ -1,85 +1,47 @@
 # WAL-GO
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
+Lithuanian amateur radio territory competition web app. Operators join seasonal teams, log QSOs, and compete for WAL grid squares.
 
-## Features
+## Stack
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Biome** - Linting and formatting
-- **Turborepo** - Optimized monorepo build system
+- TanStack Start + TanStack Router
+- oRPC API layer
+- Drizzle + PostgreSQL
+- Better Auth
+- Tailwind CSS + shadcn/ui in `packages/ui`
+- Cloudflare Workers + Alchemy + PlanetScale for deployment
+- Ultracite/Biome for formatting and linting
 
 ## Getting Started
 
-First, install the dependencies:
-
 ```bash
 pnpm install
-```
-
-Copy `apps/web/.env.example` to `apps/web/.env` — it's pre-configured to connect to this local instance. Generate `BETTER_AUTH_SECRET` with `openssl rand -base64 32``.
-
-```bash
 cp apps/web/.env.example apps/web/.env
+openssl rand -base64 32 # use this for BETTER_AUTH_SECRET
 ```
 
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-### Local development (Docker)
-
-Start Postgres locally:
+The example env is preconfigured for local Postgres.
 
 ```bash
 docker compose up -d
+pnpm db:push
+pnpm dev
 ```
 
-This runs Postgres on `localhost:5432` with:
-- User: `postgres`
-- Password: `postgres`
-- Database: `wal-go`
-
-Stop the database:
-
-```bash
-docker compose down
-```
-
-### Apply schema
-
-```bash
-pnpm run db:push
-```
-
-Then, run the development server:
-
-```bash
-pnpm run dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+Local DB defaults: `postgres:postgres@localhost:5432/wal-go`.
 
 ## UI Customization
-
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
 
 - Change design tokens and global styles in `packages/ui/src/styles/globals.css`
 - Update shared primitives in `packages/ui/src/components/*`
 - Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
 
-### Add more shared components
+### Add shared shadcn components
 
-Run this from the project root to add more primitives to the shared UI package:
+Run from the project root:
 
 ```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
+pnpm dlx shadcn@latest add accordion dialog popover sheet table -c packages/ui
 ```
 
 Import shared components like this:
@@ -88,26 +50,23 @@ Import shared components like this:
 import { Button } from "@WAL-GO/ui/components/button";
 ```
 
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
 ## Deployment (Cloudflare via Alchemy)
 
-- Dev: cd apps/web && pnpm run alchemy dev
-- Deploy: cd apps/web && pnpm run deploy
-- Destroy: cd apps/web && pnpm run destroy
+- Dev with workerd: `pnpm dev:alchemy`
+- Deploy: `pnpm deploy`
+- Destroy: `pnpm destroy`
 
-For more details, see the guide on [Deploying to Cloudflare with Alchemy](https://www.better-t-stack.dev/docs/guides/cloudflare-alchemy).
+See [docs/infra.md](docs/infra.md).
 
-## Git Hooks and Formatting
+## Formatting
 
-- Format and lint fix: `pnpm run check`
+- Check: `pnpm check`
+- Fix: `pnpm fix`
 
 ## Project Structure
 
 ```
-WAL-GO/
+wal-go/
 ├── apps/
 │   └── web/         # Fullstack application (React + TanStack Start)
 ├── packages/
@@ -119,12 +78,14 @@ WAL-GO/
 
 ## Available Scripts
 
-- `pnpm run dev`: Start all applications in development mode
-- `pnpm run build`: Build all applications
-- `pnpm run dev:web`: Start only the web application
-- `pnpm run check-types`: Check TypeScript types across all apps
-- `pnpm run db:push`: Push schema changes to database
-- `pnpm run db:generate`: Generate database client/types
-- `pnpm run db:migrate`: Run database migrations
-- `pnpm run db:studio`: Open database studio UI
-- `pnpm run check`: Run Biome formatting and linting
+- `pnpm dev`: Start the local Node/Vite workflow
+- `pnpm dev:alchemy`: Start the workerd/Alchemy workflow
+- `pnpm build`: Build all apps/packages
+- `pnpm check-types`: Typecheck all apps/packages
+- `pnpm test`: Run package tests
+- `pnpm db:push`: Push schema changes locally
+- `pnpm db:generate`: Generate migrations
+- `pnpm db:migrate`: Run migrations
+- `pnpm db:studio`: Open Drizzle Studio
+- `pnpm check`: Run Ultracite/Biome checks
+- `pnpm fix`: Apply Ultracite/Biome fixes

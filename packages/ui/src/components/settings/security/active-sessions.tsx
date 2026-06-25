@@ -11,14 +11,6 @@ export interface ActiveSessionsProps {
 	className?: string;
 }
 
-/**
- * Render a card listing all active sessions for the current user with revoke controls.
- *
- * Shows each session's browser, OS, IP address, and creation time. The current session is marked
- * and navigates to sign-out on click, while other sessions can be revoked individually.
- *
- * @returns A JSX element containing the sessions card
- */
 export function ActiveSessions({ className }: ActiveSessionsProps) {
 	const { authClient, localization } = useAuth();
 	const { data: session } = useSession(authClient);

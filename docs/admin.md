@@ -13,10 +13,7 @@ All procedures live in `packages/api/src/routers/admin.ts`.
 
 ## Tab navigation
 
-Tabs are controlled (`useState`) and defined once in the `adminTabs` array in
-`apps/web/src/routes/admin.tsx`. On `sm`+ they render as the horizontal
-`TabsList`; below `sm` the list is hidden and a full-width `Select` dropdown
-drives the same state, keeping the page usable on mobile.
+Tabs are defined once in `adminTabs` (`apps/web/src/routes/admin.tsx`). Desktop uses `TabsList`; mobile uses a full-width `Select` bound to the same state.
 
 ## Tabs
 

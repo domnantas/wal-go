@@ -1,8 +1,6 @@
-# Activity Feed and Map Pulse
+# Activity Feed
 
-Two in-app liveness signals that show the game is active **without leaking the
-callsign → team mapping** (figuring out who's on which team is part of the game). Both
-expose team + square + time only — never a callsign or user id.
+In-app liveness signals show game activity without leaking the callsign-to-team mapping. They expose team, square, and time only, never callsigns or user ids.
 
 ## Activity feed
 
@@ -14,13 +12,7 @@ recent.
 
 ### Persistence
 
-Takeovers were previously ephemeral (computed, sent to Discord, discarded). They are now
-persisted to `square_control_history` ([db.md](db.md), [scoring.md](scoring.md)). The insert
-lives in `applyScoreDeltas` (`packages/api/src/scoring/apply-deltas.ts`) — the single
-chokepoint every score change passes through — so it runs **in the same transaction** as the
-score change (rolled-back changes record nothing) and automatically covers QSO
-create/update/delete/import and ban/unban. `recomputeSeasonScores` bypasses
-`applyScoreDeltas` and is intentionally not instrumented (matches the Discord behavior).
+Takeovers are persisted to `square_control_history` ([db.md](db.md), [scoring.md](scoring.md)). Inserts happen in `applyScoreDeltas` (`packages/api/src/scoring/apply-deltas.ts`) in the same transaction as the score change, covering QSO create/update/delete/import and ban/unban. `recomputeSeasonScores` bypasses it by design, matching Discord announcements.
 
 ### Endpoint
 
@@ -37,8 +29,7 @@ create/update/delete/import and ban/unban. `recomputeSeasonScores` bypasses
 `ActivityFeedBox` (`apps/web/src/domains/scoring/activity-feed-box.tsx`):
 
 - Polls via TanStack Query `refetchInterval: 20000` (the app's first polling query).
-- Each row: a team-colored dot (`TEAM_DOT_CLASSES`, muted when a square became uncontrolled)
-  + a Lithuanian line + relative time via `formatDistanceToNowStrict(at, { addSuffix, locale: lt })`.
+- Each row: a team-colored dot, Lithuanian text, and relative time via `date-fns`.
 - Line text is built client-side from `before`/`after` null-ness, mirroring the Discord phrasing:
   - first claim: `Kvadratą {code} užėmė {team}`
   - overtake: `Kvadratą {code} perėmė {team} (buvo {prev})`
@@ -55,8 +46,7 @@ Placement: the `/map` right sidebar after the team-controlled box
 
 ## Map pulse
 
-WAL squares with a radio contact in the last 2 hours pulse on the map. See the pulse layer
-details in [map.md](map.md).
+WAL squares with a radio contact in the last 2 hours pulse on the map. See [map.md](map.md).
 
 ### Endpoint
 

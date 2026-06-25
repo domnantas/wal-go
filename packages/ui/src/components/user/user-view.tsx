@@ -9,18 +9,9 @@ import { UserAvatar } from "./user-avatar";
 export interface UserViewProps {
 	className?: string;
 	isPending?: boolean;
-	/** @remarks `User` */
 	user?: User & { username?: string | null; displayUsername?: string | null };
 }
 
-/**
- * Render a compact user item with an avatar, a primary label (display username, name, or email), and an optional secondary email line.
- *
- * @param isPending - If true and no `user` prop is provided, renders a loading skeleton instead of user details
- * @param className - Additional CSS classes applied to the outer container
- * @param user - Optional user object to display; when omitted the current session user is used
- * @returns A React element showing the user's avatar with their identifying information
- */
 export function UserView({ className, isPending, user }: UserViewProps) {
 	const { authClient } = useAuth();
 	const { data: session, isPending: sessionPending } = useSession(authClient);

@@ -12,13 +12,6 @@ export interface ProviderButtonsProps {
 
 export type SocialLayout = "auto" | "horizontal" | "vertical" | "grid";
 
-/**
- * Render sign-in buttons for configured social providers. Each button owns its own sign-in mutation.
- *
- * @param isPending - External pending state (e.g. parent form submitting) that disables all buttons.
- * @param socialLayout - Preferred layout for the provider buttons; when set to `"auto"` the layout is chosen based on the number of available providers.
- * @returns A JSX element containing provider sign-in buttons.
- */
 export function ProviderButtons({
 	isPending,
 	socialLayout = "auto",

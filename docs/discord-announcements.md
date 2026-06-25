@@ -31,7 +31,7 @@ It runs inside the DB transaction, so it only *detects and returns* changes — 
 
 Wired call sites:
 
-- Interactive QSO `create`, `update`, `delete`, and Cabrillo `importCabrillo` (`packages/api/src/routers/qsos.ts`).
+- Interactive QSO `create`, `update`, `delete`, and log `commitUpload` (`packages/api/src/routers/qsos.ts`).
 - Admin `banUser`, `unbanUser`, `deleteUser`, `deleteQso` (`packages/api/src/routers/admin.ts`) — via `applyUserBanScoreChange` / `applyScoreDeltas`.
 
 `recomputeSeasonScores` (drift repair) wipes and rebuilds tables directly and is intentionally **not** instrumented.

@@ -26,7 +26,7 @@ Both are optional — `PHProvider` (`apps/web/src/components/providers.tsx`) ski
 - **Router error boundary** — `ErrorPage` (`apps/web/src/components/error-page.tsx`) calls `posthog.captureException(error)` on mount. Render and route-loader errors are caught by TanStack Router's `defaultErrorComponent` and never bubble to `window.onerror`.
 - **TanStack Query** — the `QueryCache` and `MutationCache` `onError` handlers in `apps/web/src/utils/orpc.ts` call `posthog.captureException(error)`. This covers all oRPC query/mutation failures, including the ones whose per-call `onError` only shows a toast. Guarded by `typeof window` since `makeQueryClient` also runs during SSR.
 
-Not yet captured: **server-side** errors. oRPC's server `onError` interceptors (`apps/web/src/routes/api/rpc/$.ts`) only `console.error`. `posthog-js` is client-only — capturing server/SSR errors would require `posthog-node` with a per-request flush on the worker.
+Not yet captured: server-side errors. oRPC's server `onError` interceptors (`apps/web/src/routes/api/rpc/$.ts`) only `console.error`. Capturing server/SSR errors would require a Worker-compatible server client and per-request flush.
 
 ## Tracked events
 

@@ -4,7 +4,7 @@
 
 Each season has a `scoring_rule_set` column (`"alpha"` | `"beta"`, default `"alpha"`). The active rule set determines point calculation, confirmation logic, and contact square requirements.
 
-A rule set is a **versioned identity**, not a per-season flag: many seasons can share one rule set, and the same value scores those seasons identically forever. When rules change, add a new enum value + a new file implementing `ScoringRuleSet` — existing seasons keep their old value untouched. Enum values are opaque ordered IDs (`alpha`, `beta`, …); a rule set's meaning lives in its file and the registry below, not in its name.
+A rule set is a versioned identity, not a per-season flag. Many seasons can share one rule set, and the same value scores those seasons identically forever. When rules change, add a new enum value plus a new `ScoringRuleSet`; existing seasons keep their old value.
 
 ### Rule Set Registry
 
@@ -66,14 +66,14 @@ Confirmation is **symmetric** — both sides of a confirmed pair independently s
 
 ### Materialization
 
-The per-QSO score is **materialized** on the `qso` row (`score` integer, `confirmed` boolean) rather than computed on every read. `qsos.list` and `admin.qsos.list` simply select the columns — no scoring work on the hot read path.
+The per-QSO score is materialized on the `qso` row (`score` integer, `confirmed` boolean) instead of computed on every read. `qsos.list` and `admin.qsos.list` select the columns directly.
 
 The columns are maintained by `syncQsoScores(tx, seasonId)` (`apply-deltas.ts`), called inside the transaction of **every** write that can change scoring: `qsos.create` / `update` / `delete`, bulk import (`applyBulkScoreDeltas`), `admin.qsos.delete` / `deleteMany`, and `recomputeSeasonScores` (which covers ban/unban). It is the single reconciliation point:
 
 1. Run `ruleSet.scoreSeasonQsos(tx, seasonId)` — `Map<qsoId, { points, confirmed }>` for every non-banned QSO. Beta reuses the same confirmation detection as `computeExpectedScores` (extracted into `detectConfirmedIds`), so materialized values always match awarded aggregate points.
 2. Diff against the stored columns and `UPDATE` only the rows that changed (preserving `updatedAt` — a scoring sync is not a user edit).
 
-This recompute-and-diff approach (vs. per-path delta math) is deliberate: confirmation is symmetric and dynamic, so one insert/delete can flip a counterpart QSO too. One season scan per write — writes are rare; reads stay free. Banned users' QSOs are absent from the map and reconcile to `0`, matching their removal from the aggregate tables; unban restores them via recompute.
+This recompute-and-diff approach is deliberate: confirmation is symmetric and dynamic, so one insert/delete can flip a counterpart QSO too. Writes are rare; reads stay cheap. Banned users' QSOs reconcile to `0`, matching their removal from aggregate tables; unban restores them via recompute.
 
 **Backfill**: the columns ship with `DEFAULT 0` / `false`, so existing rows read `0` until their season is next written or recomputed. After deploying, run **Perskaičiuoti** (`admin.scores.recompute`) once per season to populate them — especially ended seasons, which receive no further writes. Aggregate scores are unaffected by this change, so the drift detector stays clean regardless.
 

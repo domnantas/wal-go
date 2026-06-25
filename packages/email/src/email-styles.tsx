@@ -1,7 +1,4 @@
-// Email clients can't read the app's oklch design tokens, so the brand palette
-// is pinned here as static sRGB hex. Values mirror `--brand-*` from
-// packages/ui/src/styles/globals.css. They stay constant across light/dark
-// because brand identity should look the same in every inbox.
+// Email clients cannot read oklch app tokens; keep the brand palette as static sRGB.
 export const BRAND = {
 	olive: "#41592c",
 	rust: "#a8472d",
@@ -11,9 +8,7 @@ export const BRAND = {
 	white: "#ffffff",
 } as const;
 
-// Warm surface palette tuned to the WAL GO logo (cream paper, dark-brown ink).
-// Shared default `colors` so every email reads warmer than the neutral
-// `defaultColors`, while still adapting to dark mode through `EmailStyles`.
+// Warm default surface shared by branded emails.
 export const WARM_SURFACE: EmailColors = {
 	light: {
 		background: "#faf3f5",
@@ -56,11 +51,6 @@ export const defaultColors = {
 	},
 };
 
-/**
- * Custom CSS class names for styling different parts of email templates.
- *
- * Allows fine-grained control over the appearance of email components.
- */
 export interface EmailClassNames {
 	body?: string;
 	button?: string;
@@ -76,47 +66,16 @@ export interface EmailClassNames {
 	title?: string;
 }
 
-/**
- * Custom color scheme configuration for email templates.
- *
- * Supports separate color definitions for light and dark modes.
- * Any color not specified will fall back to the defaultColors values.
- */
 export interface EmailColors {
 	dark?: Partial<typeof defaultColors.dark>;
 	light?: Partial<typeof defaultColors.light>;
 }
 
-/**
- * Props for the EmailStyles component.
- */
 interface EmailStylesProps {
-	/** Custom color scheme for light and dark modes */
 	colors?: EmailColors;
-	/** Whether to enable dark mode support */
 	darkMode?: boolean;
 }
 
-/**
- * Component that injects CSS styles for email templates with support for light and dark modes.
- *
- * Generates inline styles that adapt to the user's color scheme preference and applies
- * custom colors if provided. Handles logo visibility switching between light and dark modes.
- *
- * @param props - Style configuration options
- * @returns A style element containing CSS for email template theming
- *
- * @example
- * ```tsx
- * <EmailStyles
- *   colors={{
- *     light: { primary: "#000000" },
- *     dark: { primary: "#FFFFFF" }
- *   }}
- *   darkMode={true}
- * />
- * ```
- */
 export const EmailStyles = ({ colors, darkMode = true }: EmailStylesProps) => (
 	<style type="text/css">{`
       .bg-background {

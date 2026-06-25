@@ -1,43 +1,9 @@
-- [x] Color squares according to the leading team
-- [x] Countdown until next season UI
-- [x] Join season CTA
-- [x] Sign in/up password validation does not clear after entering valid password
-- [x] User button gets colored before join season wheel stops spinning
-- [x] Join season explanation.
-- [x] Countdowns should use HH:mm:ss format when there's less than 24 hours left
-- [x] Mobile design
-- [x] Seed script for the db
-- [x] Email verification
-- [x] Cabrillo import
-- [x] Forgot email
-- [x] Change email
-- [x] Change password
-- [x] Error pages with discord link
-- [x] Set up better auth with SSR
-- [x] Rules page
-- [x] Set up Discord
-- [x] Feature voting
-- [x] Bug reporting
-- [x] Presentation about WAL GO
-- [x] Admin page
-- [x] Audit trail of uploads in admin
-- [x] Score reconciliation
-- [x] Add posthog tracking
-- [x] QSO editing
-- [x] Re-draw the logo
-- [x] Rate limiting
-- [x] Map geolocation
-- [x] Log pagination
-- [x] History window – or send a message to Discord. 
-- [x] Map visible when logged out as well
-- [x] Remember geolocation setting on map (separate from the add qso)
-- [x] ADIF import
-- [x] error tracking with posthog
-- [] Leaderboard – only visible when season ends
-- [] Spotting/self-spotting feature – send a message to discrod
-- [] Past season views
-- [] Profile with your impact on the map
-- [] Analysing uploaded qsos
-- [] Log export?
-- [] i18n
-- [] marketing emails
+# Backlog
+
+Completed work is documented under `docs/`. Keep this file for open product ideas only.
+
+- [ ] Spotting/self-spotting feature with Discord notification
+- [ ] Profile page with personal map impact
+- [ ] Uploaded-QSO analysis beyond raw upload audit
+- [ ] Log export
+- [ ] i18n beyond the current Lithuanian UI

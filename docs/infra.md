@@ -1,6 +1,6 @@
 # Infrastructure
 
-WAL-GO uses [Alchemy v2](https://alchemy.run) for IaC on Cloudflare + PlanetScale.
+WAL GO uses [Alchemy v2](https://alchemy.run) for IaC on Cloudflare and PlanetScale.
 
 ## Environments
 
@@ -67,7 +67,7 @@ pnpm dev  # from repo root (runs turbo dev:bare)
 
 The default local workflow. Runs entirely in Node.js, no Cloudflare/alchemy dependency. Needs local Postgres at `localhost:5432` (`docker compose up -d`).
 
-Plain `vite dev` runs the SSR handler in the same Node process and does **not** read `.env` on its own (Vite only exposes `VITE_`-prefixed vars to `import.meta.env`, never to `process.env`). So `vite.config.ts` loads every var from `apps/web/.env` into `process.env` when `command === "serve"` — without this, server code (`@WAL-GO/auth`, `@WAL-GO/db`) sees empty `process.env` and throws (`Missing required env var: BETTER_AUTH_SECRET`, no `DATABASE_URL`). All Cloudflare-only paths degrade gracefully when their binding is absent: `getDb()` falls back to `process.env.DATABASE_URL`, `sendEmail()` / Discord / R2 image upload log-and-skip.
+Plain `vite dev` runs the SSR handler in the same Node process and does not read `.env` for server code on its own. `vite.config.ts` loads every var from `apps/web/.env` into `process.env` when `command === "serve"`. Cloudflare-only paths degrade gracefully when bindings are absent: `getDb()` falls back to `process.env.DATABASE_URL`; email, Discord, and R2 image upload log-and-skip.
 
 ### `alchemy dev` (workerd, Hyperdrive dev override)
 

@@ -23,7 +23,7 @@ In the Add QSO dialog, pressing Space while the callsign field is focused moves 
 
 ### Blur validation
 
-Fields validate on blur only if they are **dirty** — i.e. the user has typed into them at least once (`handleFieldBlur` in `@WAL-GO/ui/lib/form`, gating on TanStack Form's sticky `field.state.meta.isDirty`). A pristine field (never edited) does not validate on blur, so tabbing past it, clicking the date picker, toggling the **Neuždaryti lango** switch, or clicking the close button never surfaces a "required" error. Because the dialog is vertically centered (`fixed top-1/2 -translate-y-1/2`), a freshly rendered error would otherwise grow it, re-center it, and shift controls out from under a pending click. A field that was typed into and then cleared stays dirty, so it correctly shows the "required" error on blur. Full validation still runs on submit.
+Fields validate on blur only after the user has edited them (`handleFieldBlur` gates on TanStack Form's sticky `field.state.meta.isDirty`). Pristine fields do not show "required" errors while users tab through the dialog or close it. Full validation still runs on submit.
 
 ### Keep dialog open
 
@@ -39,7 +39,7 @@ The Add QSO dialog has a geolocation toggle next to **Mano kvadratas** (`Geoloca
 - The square is **recalculated each time the dialog opens** (form remounts), so a moved operator gets their current square. With toggle on + permission granted, the field pre-fills on open.
 - **Denied** → button disabled, crossed-out icon, toggle off.
 
-Button states (lucide): Off → `Locate` (`outline`); On → `LocateFixed` (`default`/filled); Locating → `Spinner` (disabled); Denied/unsupported → `LocateOff` (disabled). A `Tooltip` (`@WAL-GO/ui`) explains the action; the trigger wraps the button in a `span` so the tooltip appears even while disabled. Labels mirror state ("Nustatyti kvadratą pagal vietą" / "Nenaudoti mano vietos" / "Vietos prieiga užblokuota").
+Button states use lucide icons: `Locate` off, `LocateFixed` on, `Spinner` while locating, and disabled `LocateOff` when denied/unsupported. A tooltip explains the current action.
 
 The toggle renders only in `AddQsoDialog` (via the `geolocation` prop on `QsoForm`); the edit dialog keeps manual square entry. This opt-in is **separate** from the map geolocation opt-in (see [map.md](map.md)).
 
@@ -168,7 +168,7 @@ Summary cards on `/log` are backed by server-side aggregates (`qsos.stats`), not
 
 ### Page load
 
-`/log` shows a single centered spinner until **all** of its first-paint queries resolve — the season queries (`current`, `myMembership`, `list`, `participated`) plus `qsos.stats` and the first `qsos.list` page. Folding the stats and QSO queries into this gate prevents the earlier staggered paint where the dropzone appeared first and the stats grid then popped in above it, shifting content down. The QSO list uses `placeholderData: keepPreviousData`, so band/page changes keep the previous rows visible (no spinner) instead of re-triggering the gate.
+`/log` shows one centered spinner until first-paint season, stats, and QSO-list queries resolve. The QSO list uses `placeholderData: keepPreviousData`, so band/page changes keep previous rows visible instead of re-triggering the gate.
 
 ### CRUD
 

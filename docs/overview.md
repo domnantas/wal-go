@@ -1,6 +1,6 @@
-# WAL GO — Game Overview
+# WAL GO Overview
 
-Web-based territory competition for Lithuanian amateur radio operators, inspired by Pokémon GO and Ingress. Operators compete in seasons to control WAL grid squares by logging real radio contacts (QSOs).
+Web territory game for Lithuanian amateur radio operators. Players join seasonal teams, log real radio contacts (QSOs), and compete for WAL grid squares.
 
 ## Core Concept
 
@@ -50,11 +50,11 @@ The map loads the displayed season (active first, else most recently ended), sam
 
 ## Social Previews
 
-The root route (`apps/web/src/routes/__root.tsx`) defines global document metadata: Lithuanian title/description plus Open Graph tags for `https://walgo.lt` (`og:type`, `og:url`, `og:title`, `og:description`, `og:site_name`, `og:locale`). `og:image` → `/web-app-manifest-512x512.png` with width/height/alt.
+The root route (`apps/web/src/routes/__root.tsx`) defines global Lithuanian title/description plus Open Graph tags for `https://walgo.lt`. `og:image` points to `/web-app-manifest-512x512.png`.
 
 ## Error and 404 pages
 
-Unmatched routes render `NotFound` (`components/not-found.tsx`) via `defaultNotFoundComponent` in `router.tsx`: Lithuanian message, home link, Discord button. Uncaught render errors render `ErrorPage` (`components/error-page.tsx`) via `defaultErrorComponent`: error message, retry (`reset()`), Discord link. The Discord URL (`https://discord.gg/RQfcQ29d44`) is hardcoded in both.
+Unmatched routes render `NotFound` (`components/not-found.tsx`) via `defaultNotFoundComponent` in `router.tsx`: Lithuanian message, home link, Discord button. Uncaught render errors render `ErrorPage` (`components/error-page.tsx`) via `defaultErrorComponent`: error message, retry (`reset()`), Discord link. Both use `DISCORD_INVITE_URL`.
 
 ## Activity visibility
 

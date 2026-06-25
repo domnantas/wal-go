@@ -34,9 +34,6 @@ export interface DeleteUserProps {
 	className?: string;
 }
 
-/**
- * Danger-zone card to delete the authenticated account, with a confirmation dialog and toasts.
- */
 export function DeleteUser({ className }: DeleteUserProps) {
 	const { authClient, basePaths, localization, viewPaths, navigate } =
 		useAuth();

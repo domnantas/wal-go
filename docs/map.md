@@ -6,7 +6,7 @@ The `/map` route renders the main game map for signed-in users.
 
 Base map is MapLibre GL. Local OpenFreeMap-compatible style JSON lives in `apps/web/src/assets/`: `walgo-style.json` (light) and `walgo-dark-style.json` (dark), inspired by the Liberty OSM style and using the app palette (dark background, olive land, rust/golden road accents, bark earth tones, cream labels).
 
-The map is initialized on the client in a React effect to keep browser-only MapLibre APIs out of SSR. It uses MapLibre's native navigation, scale, and geolocation controls.
+The map initializes on the client to keep browser-only MapLibre APIs out of SSR. It uses MapLibre navigation, scale, and optional geolocation controls.
 
 ## Geolocation
 
@@ -50,7 +50,7 @@ Square control is scoped to the displayed season: active season while one is act
 
 Squares with a radio contact in the last 2 hours pulse to signal live activity. `scoring.recentSquares` (keyed on `qsoAt`, banned users excluded — see [activity-feed.md](activity-feed.md)) returns each recent square code paired with the team of its most recent QSO (`distinctOn(operatorSquare)` ordered by `qsoAt desc`, joined to `seasonMembership`), polled every 60s. `createEnrichedGeoJSON` writes a `recentActivity` boolean and a `recentTeam` onto each feature alongside `controllingTeam`. The pulse line layer filters on `recentActivity` and colors `line-color` via a `match` on `recentTeam` (team fill colors, falling back to `pulseColor`), so the outline matches the team that was last active there.
 
-MapLibre can't animate paint via CSS, so a `requestAnimationFrame` loop oscillates the layer's `line-opacity` (0.3 → 0.95) on a `(1 − cos)/2` breathing curve (~1.5s period); `line-width` stays fixed. The loop reads `mapRef` each frame (the map is created in a later effect, so capturing it once at mount would see `null` and never start), and is cancelled on unmount.
+MapLibre can't animate paint via CSS, so a `requestAnimationFrame` loop oscillates the layer's `line-opacity` (0.3 → 0.95); `line-width` stays fixed. The loop reads `mapRef` each frame and is cancelled on unmount.
 
 ### Battery cost
 

@@ -39,67 +39,23 @@ const emailVerificationEmailLocalization = {
 	POWERED_BY_BETTER_AUTH: "Sukurta su {betterAuth}",
 };
 
-/**
- * Localization strings for the EmailVerificationEmail component.
- *
- * Contains all text content used in the email verification email template.
- */
 export type EmailVerificationEmailLocalization =
 	typeof emailVerificationEmailLocalization;
 
-/**
- * Props for the EmailVerificationEmail component.
- */
 export interface EmailVerificationEmailProps {
-	/** Name of the application sending the email */
 	appName?: string;
-	/** Custom CSS class names for styling specific parts of the email */
 	classNames?: EmailClassNames;
-	/** Custom color scheme for light and dark modes */
 	colors?: EmailColors;
-	/** Whether to enable dark mode support */
 	darkMode?: boolean;
-	/** Email address being verified */
 	email?: string;
-	/** Number of minutes until the verification link expires */
 	expirationMinutes?: number;
-	/** Additional React nodes to inject into the email head */
 	head?: ReactNode;
-	/**
-	 * Localization overrides for customizing email text
-	 * @remarks `EmailVerificationEmailLocalization`
-	 */
 	localization?: Partial<EmailVerificationEmailLocalization>;
-	/** Logo URL(s) - a single string or light/dark variants. If omitted, no logo is shown. */
 	logoURL?: string | { light: string; dark: string };
-	/** Whether to show the "Powered by better-auth" footer */
 	poweredBy?: boolean;
-	/** Verification URL that users must click to verify their email */
 	url: string;
 }
 
-/**
- * Email template component that sends email verification links to users.
- *
- * This email includes:
- * - Verification button and fallback URL
- * - Expiration time information
- * - Security notice for unauthorized requests
- * - Customizable branding and styling
- * - Support for light/dark mode themes
- *
- * @example
- * ```tsx
- * <EmailVerificationEmail
- *   url="https://example.com/verify?token=abc123"
- *   email="user@example.com"
- *   appName="My App"
- *   expirationMinutes={60}
- *   logoURL="https://example.com/logo.png"
- *   darkMode={true}
- * />
- * ```
- */
 export const EmailVerificationEmail = ({
 	url,
 	email,
@@ -341,15 +297,8 @@ export const EmailVerificationEmail = ({
 	);
 };
 
-/**
- * Default localization strings for the email verification template.
- * Can be overridden via the `localization` prop.
- */
 EmailVerificationEmail.localization = emailVerificationEmailLocalization;
 
-/**
- * Example props for previewing the email template in development.
- */
 EmailVerificationEmail.PreviewProps = {
 	url: "https://better-auth-ui.com/auth/verify-email?token=example-token",
 	appName: "Better Auth",

@@ -40,15 +40,6 @@ const changePasswordSchema = z.object({
 	confirmPassword: passwordSchema,
 });
 
-/**
- * Render a card form for changing the authenticated user's password.
- *
- * When the user has a credential account, displays fields for current password,
- * new password, and optionally confirm password. When the user only has social
- * accounts, displays a prompt to set a password via the reset flow.
- *
- * @returns A JSX element containing the change-password or set-password card
- */
 export function ChangePassword({ className }: ChangePasswordProps) {
 	const { authClient, emailAndPassword, localization } = useAuth();
 	const { data: session } = useSession(authClient);

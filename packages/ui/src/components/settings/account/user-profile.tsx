@@ -55,12 +55,6 @@ function getUsernameAvailabilityIcon({
 	return <Spinner />;
 }
 
-/**
- * Render a profile card that lets the authenticated user view and update their username.
- *
- * @param className - Optional additional CSS class names applied to the card container
- * @returns A JSX element containing the profile card with editable username fields
- */
 export function UserProfile({ className }: UserProfileProps) {
 	const { authClient, localization } = useAuth();
 	const usernameConfig = useAuthPlugin(usernamePlugin);

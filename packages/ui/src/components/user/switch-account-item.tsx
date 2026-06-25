@@ -15,12 +15,6 @@ export interface SwitchAccountItemProps {
 	deviceSession: DeviceSession;
 }
 
-/**
- * Render a dropdown menu item for switching to a different authenticated session.
- *
- * @param deviceSession - The device session to display and switch to when selected
- * @returns The switch account dropdown menu item as a JSX element
- */
 export function SwitchAccountItem({ deviceSession }: SwitchAccountItemProps) {
 	const { authClient } = useAuth();
 	const { mutate: setActiveSession, isPending } =
