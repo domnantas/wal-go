@@ -46,9 +46,11 @@ function getDefaultValues() {
 
 export function AddQsoDialog({
 	disabled = false,
+	rejectsSameSquare = false,
 	requiresContactSquare = false,
 }: {
 	disabled?: boolean;
+	rejectsSameSquare?: boolean;
 	requiresContactSquare?: boolean;
 }) {
 	const queryClient = useQueryClient();
@@ -127,6 +129,7 @@ export function AddQsoDialog({
 					}}
 					onModeChange={(mode) => localStorage.setItem(LAST_MODE_KEY, mode)}
 					onSubmit={handleSubmit}
+					rejectsSameSquare={rejectsSameSquare}
 					requiresContactSquare={requiresContactSquare}
 					submitLabel="Išsaugoti QSO"
 				/>

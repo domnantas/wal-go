@@ -466,6 +466,7 @@ async function computeExpectedScores(
 }
 
 export const betaRuleSet: ScoringRuleSet = {
+	rejectsSameSquare: true,
 	requiresContactSquare: true,
 	usePerQsoScoring: true,
 	computeExpectedScores,

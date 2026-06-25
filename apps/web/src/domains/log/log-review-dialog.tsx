@@ -137,7 +137,8 @@ function getBaseStatus(
 	row: ReviewRow,
 	userCallsign: string,
 	season: null | SeasonWindow,
-	requiresContactSquare: boolean
+	requiresContactSquare: boolean,
+	rejectsSameSquare: boolean
 ): null | RowStatusResult {
 	const structural = row.draft.issues[0];
 	if (structural) {
@@ -183,7 +184,7 @@ function getBaseStatus(
 		return { reason: "dxForLithuanian", status: "fixable" };
 	}
 	if (
-		requiresContactSquare &&
+		rejectsSameSquare &&
 		isValidWalSquare(row.contactSquare) &&
 		normalizeWalSquare(row.contactSquare) === normalizeWalSquare(row.operatorSquare)
 	) {
@@ -202,7 +203,8 @@ function computeStatuses(
 	rows: ReviewRow[],
 	userCallsign: string,
 	season: null | SeasonWindow,
-	requiresContactSquare: boolean
+	requiresContactSquare: boolean,
+	rejectsSameSquare: boolean
 ): RowStatusResult[] {
 	const seenExact = new Set<string>();
 	const seenGame = new Set<string>();
@@ -211,7 +213,8 @@ function computeStatuses(
 			row,
 			userCallsign,
 			season,
-			requiresContactSquare
+			requiresContactSquare,
+			rejectsSameSquare
 		);
 		if (base) {
 			return base;
@@ -236,6 +239,7 @@ export function LogReviewDialog({
 	onOpenChange,
 	open,
 	parseResult,
+	rejectsSameSquare = false,
 	requiresContactSquare = false,
 	seasonEnd,
 	seasonStart,
@@ -246,6 +250,7 @@ export function LogReviewDialog({
 	onOpenChange: (open: boolean) => void;
 	open: boolean;
 	parseResult: ParseResult;
+	rejectsSameSquare?: boolean;
 	requiresContactSquare?: boolean;
 	seasonEnd: Date | null | string | undefined;
 	seasonStart: Date | null | string | undefined;
@@ -272,8 +277,9 @@ export function LogReviewDialog({
 	}, [seasonStart, seasonEnd]);
 
 	const statuses = useMemo(
-		() => computeStatuses(rows, userCallsign, season, requiresContactSquare),
-		[rows, userCallsign, season, requiresContactSquare]
+		() =>
+			computeStatuses(rows, userCallsign, season, requiresContactSquare, rejectsSameSquare),
+		[rows, userCallsign, season, requiresContactSquare, rejectsSameSquare]
 	);
 	const importableCount = statuses.filter((s) => s.status === "ok").length;
 	const invalidCount = rows.length - importableCount;

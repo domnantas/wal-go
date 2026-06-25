@@ -24,10 +24,12 @@ import {
 export function EditQsoDialog({
 	disabled = false,
 	qso,
+	rejectsSameSquare = false,
 	requiresContactSquare = false,
 }: {
 	disabled?: boolean;
 	qso: EditableQso;
+	rejectsSameSquare?: boolean;
 	requiresContactSquare?: boolean;
 }) {
 	const queryClient = useQueryClient();
@@ -96,6 +98,7 @@ export function EditQsoDialog({
 					isPending={updateQso.isPending}
 					onClearError={() => setFormError(null)}
 					onSubmit={handleSubmit}
+					rejectsSameSquare={rejectsSameSquare}
 					requiresContactSquare={requiresContactSquare}
 					submitLabel="Atnaujinti QSO"
 				/>

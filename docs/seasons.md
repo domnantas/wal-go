@@ -41,7 +41,7 @@ Seasons are created/edited/deleted by admins via the Seasons tab ([admin.md](adm
 
 | Procedure | Type | Description |
 |---|---|---|
-| `seasons.current` | `publicProcedure` query | Active season or `null`. |
+| `seasons.current` | `publicProcedure` query | Active season or `null`. Includes `requiresContactSquare` and `rejectsSameSquare` flags derived from the rule set, so clients don't need to check `scoringRuleSet` directly. |
 | `seasons.list` | `publicProcedure` query | All seasons with derived status and `member_count`, `starts_at asc`. |
 | `seasons.myMembership` | `protectedProcedure` query | Current user's membership in the active season, or `null`. |
 | `seasons.join` | `protectedProcedure` mutation | Idempotent join; server selects the team. |

@@ -718,6 +718,7 @@ interface ValidatedRow {
 }
 
 interface RowContext {
+	rejectsSameSquare: boolean;
 	requiresContactSquare: boolean;
 	seasonEnd: Date;
 	seasonStart: Date;
@@ -791,7 +792,7 @@ function validateClientQso(
 	}
 
 	if (
-		ctx.requiresContactSquare &&
+		ctx.rejectsSameSquare &&
 		contactSquare !== null &&
 		contactSquare === operatorSquare
 	) {
@@ -817,12 +818,14 @@ function mapClientQsos(
 	team: "green" | "red" | "yellow",
 	userId: string,
 	userCallsign: string,
-	requiresContactSquare: boolean
+	requiresContactSquare: boolean,
+	rejectsSameSquare: boolean
 ): MappedQsos {
 	const insertParams: InsertParams[] = [];
 	const metaMap = new Map<InsertParams, LineMeta>();
 	const errors: ImportError[] = [];
 	const ctx: RowContext = {
+		rejectsSameSquare,
 		requiresContactSquare,
 		seasonEnd,
 		seasonStart,
@@ -982,7 +985,8 @@ const commitUpload = protectedProcedure
 				team,
 				userId,
 				userCallsign,
-				ruleSet.requiresContactSquare
+				ruleSet.requiresContactSquare,
+				ruleSet.rejectsSameSquare
 			);
 
 			const exactDeduped = await filterExactQsoDuplicates(tx, insertParams);

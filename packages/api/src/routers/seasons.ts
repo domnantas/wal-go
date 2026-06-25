@@ -3,6 +3,7 @@ import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { ORPCError } from "@orpc/server";
 import { and, asc, count, eq, gte, lte } from "drizzle-orm";
 
+import { getScoringRuleSet } from "../scoring/index";
 import { protectedProcedure, publicProcedure } from "../index";
 
 const TEAMS = ["yellow", "green", "red"] as const;
@@ -67,12 +68,15 @@ const current = publicProcedure.handler(async ({ context }) => {
 	if (!row) {
 		return null;
 	}
+	const ruleSet = getScoringRuleSet(row.scoringRuleSet);
 	return {
 		id: row.id,
 		name: row.name,
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,
 		scoringRuleSet: row.scoringRuleSet,
+		requiresContactSquare: ruleSet.requiresContactSquare,
+		rejectsSameSquare: ruleSet.rejectsSameSquare,
 	};
 });
 
