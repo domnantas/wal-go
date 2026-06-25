@@ -14,7 +14,6 @@ All three load via Fontsource imports in `globals.css`.
 
 Earthy, calm, exploration — "expedition field journal". Motifs used across the homepage:
 
-- **Paper grain** — fixed non-interactive noise overlay (`body::after` in `globals.css`) across the app.
 - **Radio rings** — `.radio-rings` utility: concentric radial lines tinted from `--foreground`, with optional `--rings-x` / `--rings-y` origin.
 - **Graticule** — `.graticule` utility: faint survey-map grid with intersection dots; cell size via `--graticule-size`.
 - **Mono accents / morse** — small uppercase `font-mono` captions for field-log texture. Mark decorative ones `aria-hidden`.
