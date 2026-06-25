@@ -43,9 +43,7 @@ export function ControlTimelineChart({ seasonId }: ControlTimelineChartProps) {
 
 	return (
 		<section>
-			<h2 className="mb-3 font-bold font-serif text-xl">
-				Kvadratų kontrolė laike
-			</h2>
+			<h2 className="mb-3 font-bold font-serif text-xl">Užimti kvadratai</h2>
 			<div className="rounded-4xl border border-border bg-card p-4">
 				<ChartContainer className="h-72 w-full" config={chartConfig}>
 					<LineChart data={points} margin={{ left: 4, right: 12, top: 8 }}>

@@ -34,6 +34,7 @@ import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { ScoreBadge } from "@/domains/scoring/score-badge";
 import { orpc } from "@/utils/orpc";
 
 function formatDateTime(date: Date) {
@@ -273,17 +274,7 @@ function QsosContent({ seasonId }: { seasonId: number }) {
 										</div>
 									</TableCell>
 									<TableCell className="px-4">
-										<span className="inline-flex items-center gap-1.5 font-medium tabular-nums">
-											{q.score}
-											{q.confirmed && (
-												<span
-													className="rounded-full bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] text-accent"
-													title="Patvirtintas ryšys – dvigubi taškai"
-												>
-													×2
-												</span>
-											)}
-										</span>
+										<ScoreBadge confirmed={q.confirmed} score={q.score} />
 									</TableCell>
 									<TableCell className="px-4 text-right">
 										<AlertDialog>

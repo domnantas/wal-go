@@ -480,6 +480,8 @@ const listUserQsos = adminProcedure
 				mode: qso.mode,
 				operatorSquare: qso.operatorSquare,
 				contactSquare: qso.contactSquare,
+				score: qso.score,
+				confirmed: qso.confirmed,
 				team: qso.team,
 				seasonId: qso.seasonId,
 				seasonName: season.name,

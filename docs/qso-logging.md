@@ -152,7 +152,7 @@ Each accepted QSO links to the submitting user, the active season at submission,
 
 ## Log View
 
-`/log` lists the user's QSOs for the current season: callsign, band, mode, date/time, credited operator square, optional contact square, and the QSO's score (`Taškai`). The score is that QSO's point value under the season rule set, with a `×2` badge for confirmed beta QSOs — see [scoring.md](scoring.md) § Per-QSO Score. `qsos.list` attaches `score` and `confirmed` to each row. Manual creation opens `AddQsoDialog`; each row opens `EditQsoDialog` for edit/delete while the season is active. Both dialogs share the lower-level `QsoForm`.
+`/log` lists the user's QSOs for the current season: callsign, band, mode, date/time, credited operator square, optional contact square, and the QSO's score (`Taškai`). The score is that QSO's point value under the season rule set, with a green checkmark badge (tooltip: "Patvirtintas ryšys – dvigubi taškai") for confirmed beta QSOs — see [scoring.md](scoring.md) § Per-QSO Score. `qsos.list` attaches `score` and `confirmed` to each row. Manual creation opens `AddQsoDialog`; each row opens `EditQsoDialog` for edit/delete while the season is active. Both dialogs share the lower-level `QsoForm`.
 
 ### Responsive design
 

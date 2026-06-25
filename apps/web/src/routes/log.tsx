@@ -56,6 +56,7 @@ import {
 	LogReviewDialog,
 	SKIP_REASON_LABELS,
 } from "@/domains/log/log-review-dialog";
+import { ScoreBadge } from "@/domains/scoring/score-badge";
 import { SeasonCountdownCard } from "@/domains/season/season-countdown-card";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
@@ -777,28 +778,6 @@ function getQsoColumns({
 			},
 		},
 	];
-}
-
-function ScoreBadge({
-	confirmed,
-	score,
-}: {
-	confirmed: boolean;
-	score: number;
-}) {
-	return (
-		<span className="inline-flex items-center gap-1.5 font-medium tabular-nums">
-			{score}
-			{confirmed ? (
-				<span
-					className="rounded-full bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] text-accent"
-					title="Patvirtintas ryšys – dvigubi taškai"
-				>
-					×2
-				</span>
-			) : null}
-		</span>
-	);
 }
 
 function SquareBadge({

@@ -33,6 +33,7 @@ import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ScoreBadge } from "@/domains/scoring/score-badge";
 import { orpc } from "@/utils/orpc";
 
 function formatDateTime(date: Date) {
@@ -166,6 +167,7 @@ export function UserQsosDialog({
 										<TableHead className="px-4">Korespondentas</TableHead>
 										<TableHead className="px-4">Diapazonas</TableHead>
 										<TableHead className="px-4">Kvadratai</TableHead>
+										<TableHead className="px-4">Taškai</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -173,7 +175,7 @@ export function UserQsosDialog({
 										<TableRow>
 											<TableCell
 												className="px-4 py-10 text-center text-muted-foreground"
-												colSpan={6}
+												colSpan={7}
 											>
 												Naudotojas neturi QSO
 											</TableCell>
@@ -220,6 +222,9 @@ export function UserQsosDialog({
 															</span>
 														)}
 													</div>
+												</TableCell>
+												<TableCell className="px-4">
+													<ScoreBadge confirmed={q.confirmed} score={q.score} />
 												</TableCell>
 											</TableRow>
 										))

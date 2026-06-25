@@ -146,8 +146,6 @@ function RouteComponent() {
 				/>
 			</div>
 
-			<ControlTimelineChart seasonId={activeSeasonId} />
-
 			<section>
 				<h2 className="mb-3 font-bold font-serif text-xl">Komandos</h2>
 				<div className="grid gap-3 md:grid-cols-3">
@@ -162,6 +160,8 @@ function RouteComponent() {
 					))}
 				</div>
 			</section>
+
+			<ControlTimelineChart seasonId={activeSeasonId} />
 
 			<section>
 				<h2 className="mb-3 font-bold font-serif text-xl">
