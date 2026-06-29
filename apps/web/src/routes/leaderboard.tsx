@@ -47,17 +47,22 @@ function RouteComponent() {
 		orpc.seasons.list.queryOptions()
 	);
 
-	const endedSeasons = [...(seasons ?? [])]
-		.filter((season) => season.status === "ended")
+	const leaderboardSeasons = [...(seasons ?? [])]
+		.filter((season) => season.status === "ended" || season.status === "active")
 		.sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime());
 
 	const [selectedSeasonId, setSelectedSeasonId] = useState<number | null>(null);
 	const [selectedSquareCode, setSelectedSquareCode] = useState<string | null>(
 		null
 	);
-	const activeSeasonId = selectedSeasonId ?? endedSeasons[0]?.id ?? null;
+	const liveSeason = leaderboardSeasons.find(
+		(season) => season.status === "active"
+	);
+	const activeSeasonId =
+		selectedSeasonId ?? liveSeason?.id ?? leaderboardSeasons[0]?.id ?? null;
 	const selectedSeason =
-		endedSeasons.find((season) => season.id === activeSeasonId) ?? null;
+		leaderboardSeasons.find((season) => season.id === activeSeasonId) ?? null;
+	const isLive = selectedSeason?.status === "active";
 
 	const { data: teamStandings } = useQuery({
 		...orpc.scoring.teamStandings.queryOptions({
@@ -75,7 +80,7 @@ function RouteComponent() {
 	const standings = teamStandings ?? [];
 	const winner = standings[0];
 
-	useWinnerConfetti(activeSeasonId, true);
+	useWinnerConfetti(activeSeasonId, !isLive);
 
 	if (isSeasonsPending) {
 		return (
@@ -85,14 +90,12 @@ function RouteComponent() {
 		);
 	}
 
-	if (endedSeasons.length === 0 || !selectedSeason) {
+	if (leaderboardSeasons.length === 0 || !selectedSeason) {
 		return (
 			<main className="container mx-auto flex max-w-4xl flex-col items-center px-4 py-24 text-center">
 				<Trophy className="mb-4 size-10 text-muted-foreground" />
 				<h1 className="font-bold font-serif text-2xl">Rezultatai</h1>
-				<p className="mt-2 text-muted-foreground">
-					Dar nėra pasibaigusių sezonų.
-				</p>
+				<p className="mt-2 text-muted-foreground">Dar nėra sezonų.</p>
 			</main>
 		);
 	}
@@ -104,14 +107,25 @@ function RouteComponent() {
 					<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.16em]">
 						Sezono rezultatai
 					</p>
-					<h1 className="mt-2 font-bold font-serif text-4xl tracking-tight">
+					<h1 className="mt-2 flex items-center gap-3 font-bold font-serif text-4xl tracking-tight">
 						{selectedSeason.name}
+						{isLive && (
+							<span className="inline-flex items-center gap-1.5 rounded-full bg-olive/15 px-2.5 py-1 font-medium font-sans text-olive text-xs">
+								<span
+									aria-hidden="true"
+									className="size-1.5 animate-pulse rounded-full bg-olive"
+								/>
+								Gyvai
+							</span>
+						)}
 					</h1>
 					<p className="mt-1 text-muted-foreground text-sm">
-						Baigėsi {formatInVilnius(selectedSeason.endsAt, "yyyy-MM-dd HH:mm")}
+						{isLive
+							? `Baigsis ${formatInVilnius(selectedSeason.endsAt, "yyyy-MM-dd HH:mm")}`
+							: `Baigėsi ${formatInVilnius(selectedSeason.endsAt, "yyyy-MM-dd HH:mm")}`}
 					</p>
 				</div>
-				{endedSeasons.length > 1 && (
+				{leaderboardSeasons.length > 1 && (
 					<Select
 						onValueChange={(value) => setSelectedSeasonId(Number(value))}
 						value={String(selectedSeason.id)}
@@ -120,7 +134,7 @@ function RouteComponent() {
 							<SelectValue>{() => selectedSeason.name}</SelectValue>
 						</SelectTrigger>
 						<SelectContent>
-							{endedSeasons.map((season) => (
+							{leaderboardSeasons.map((season) => (
 								<SelectItem key={season.id} value={String(season.id)}>
 									{season.name}
 								</SelectItem>
@@ -130,7 +144,7 @@ function RouteComponent() {
 				)}
 			</div>
 
-			{winner && (
+			{winner && !isLive && (
 				<SeasonWinnerHero
 					points={winner.points}
 					squaresControlled={winner.squaresControlled}
@@ -138,13 +152,15 @@ function RouteComponent() {
 				/>
 			)}
 
-			<div className="flex h-96 overflow-hidden rounded-3xl border border-border">
-				<MapView
-					onSquareSelect={setSelectedSquareCode}
-					seasonId={activeSeasonId}
-					selectedSquareCode={selectedSquareCode}
-				/>
-			</div>
+			{!isLive && (
+				<div className="flex h-96 overflow-hidden rounded-3xl border border-border">
+					<MapView
+						onSquareSelect={setSelectedSquareCode}
+						seasonId={activeSeasonId}
+						selectedSquareCode={selectedSquareCode}
+					/>
+				</div>
+			)}
 
 			<section>
 				<h2 className="mb-3 font-bold font-serif text-xl">Komandos</h2>

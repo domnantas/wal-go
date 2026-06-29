@@ -1,5 +1,9 @@
 import { cn } from "@WAL-GO/ui/lib/utils";
+import { useSession } from "@better-auth-ui/react";
 import { useQuery } from "@tanstack/react-query";
+import { formatDistanceToNowStrict } from "date-fns";
+import { lt } from "date-fns/locale";
+import { authClient } from "@/lib/auth-client";
 import { pluralizeLt } from "@/lib/plural";
 import { orpc } from "@/utils/orpc";
 import { TEAM_CONFIG, TEAM_LABELS, TEAMS, type Team } from "../season/team";
@@ -23,7 +27,75 @@ interface RecentActivityProps {
 	selectedSquareCode: string;
 }
 
-function RecentActivity({ seasonId, selectedSquareCode }: RecentActivityProps) {
+function RecentActivityHeading() {
+	return (
+		<p className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
+			<span
+				aria-hidden="true"
+				className="size-1.5 animate-pulse rounded-full bg-olive"
+			/>
+			Kvadrato aktyvumas (2 val.)
+		</p>
+	);
+}
+
+function RecentContacts({ seasonId, selectedSquareCode }: RecentActivityProps) {
+	const { data: contacts } = useQuery(
+		orpc.scoring.recentSquareContacts.queryOptions({
+			input: {
+				seasonId: seasonId ?? undefined,
+				squareCode: selectedSquareCode,
+			},
+		})
+	);
+
+	if (!contacts || contacts.length === 0) {
+		return null;
+	}
+
+	return (
+		<div className="mt-3 flex flex-col gap-2 border-border border-t pt-3">
+			<RecentActivityHeading />
+			<ul className="flex flex-col gap-2">
+				{contacts.map((contact) => (
+					<li
+						className="flex items-center justify-between gap-2"
+						key={`${contact.userId}-${new Date(contact.qsoAt).getTime()}`}
+					>
+						<span className="flex min-w-0 items-center gap-1.5">
+							<span
+								aria-hidden="true"
+								className={cn(
+									"size-2 shrink-0 rounded-full",
+									TEAM_CONFIG[contact.team as Team].dot
+								)}
+							/>
+							<span className="truncate font-mono font-semibold text-foreground text-xs">
+								{contact.callsign}
+							</span>
+						</span>
+						<span className="flex shrink-0 items-center gap-2">
+							<span className="font-medium text-[11px] text-muted-foreground tabular-nums">
+								{contact.band} · {contact.mode}
+							</span>
+							<span className="text-[10px] text-muted-foreground tabular-nums">
+								{formatDistanceToNowStrict(new Date(contact.qsoAt), {
+									addSuffix: true,
+									locale: lt,
+								})}
+							</span>
+						</span>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
+function RecentActivityChips({
+	seasonId,
+	selectedSquareCode,
+}: RecentActivityProps) {
 	const { data: activity } = useQuery(
 		orpc.scoring.recentSquareActivity.queryOptions({
 			input: {
@@ -39,13 +111,7 @@ function RecentActivity({ seasonId, selectedSquareCode }: RecentActivityProps) {
 
 	return (
 		<div className="mt-3 flex flex-col gap-2 border-border border-t pt-3">
-			<p className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground uppercase tracking-[0.16em]">
-				<span
-					aria-hidden="true"
-					className="size-1.5 animate-pulse rounded-full bg-olive"
-				/>
-				Aktyvumas (2 val.)
-			</p>
+			<RecentActivityHeading />
 			<div className="flex flex-wrap gap-1.5">
 				{activity.map(({ band, mode }) => (
 					<span
@@ -57,6 +123,26 @@ function RecentActivity({ seasonId, selectedSquareCode }: RecentActivityProps) {
 				))}
 			</div>
 		</div>
+	);
+}
+
+function RecentActivity({ seasonId, selectedSquareCode }: RecentActivityProps) {
+	const { data: session } = useSession(authClient);
+
+	if (session?.user) {
+		return (
+			<RecentContacts
+				seasonId={seasonId}
+				selectedSquareCode={selectedSquareCode}
+			/>
+		);
+	}
+
+	return (
+		<RecentActivityChips
+			seasonId={seasonId}
+			selectedSquareCode={selectedSquareCode}
+		/>
 	);
 }
 

@@ -67,7 +67,12 @@ Squares are clickable. Clicking stores the selected WAL code in `/map` route sta
 
 On `/map`, selecting a square scrolls its stats panel into view (`scrollIntoView`, `behavior: "smooth"`, `block: "nearest"`) — driven by an effect on the selected code, scoped to `/map` only; the homepage map does not scroll.
 
-When the selected square has recent activity (the same 2h window that drives the pulse), the stats box also lists which band/mode combinations were active there. `SelectedSquareStatsBox` queries `scoring.recentSquareActivity` (seasonId + squareCode), which groups recent QSOs by band and mode ordered by count desc; each combo renders as a `band · mode` chip. No recent QSOs → the section is hidden.
+When the selected square has recent activity (the same 2h window that drives the pulse), the stats box also lists who was active there. `SelectedSquareStatsBox`'s `RecentActivity` branches on session:
+
+- **Signed-in** users see `scoring.recentSquareContacts` (`protectedProcedure`, seasonId + squareCode): the latest contacts (limit 12, newest first) as `callsign · band/mode · relative time`, the callsign prefixed with a team-colored dot.
+- **Logged-out** visitors (public homepage) keep the anonymized `scoring.recentSquareActivity`, which groups recent QSOs by band and mode ordered by count desc; each combo renders as a `band · mode` chip.
+
+No recent QSOs → the section is hidden.
 
 ## Season sidebar
 

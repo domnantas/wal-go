@@ -1,33 +1,38 @@
 # Leaderboard
 
-The leaderboard (`/leaderboard`, route `apps/web/src/routes/leaderboard.tsx`) celebrates
-the result of a finished season: the winning team, team stats, and an individual ranking
-of operators. It is the payoff that reveals per-player team standings, which are
-intentionally hidden while a season is active.
+The leaderboard (`/leaderboard`, route `apps/web/src/routes/leaderboard.tsx`) shows the
+winning team, team stats, and an individual ranking of operators — both for the **live
+active season** and for finished seasons. Per-player callsign+team standings used to be
+hidden during active seasons; they are now visible live to signed-in users (see the player
+visibility experiment in [overview.md](overview.md)).
 
 ## Visibility
 
 - **Authenticated only.** The route guards in `beforeLoad` (same `getUser` +
   redirect-to-sign-in pattern as `/map` and `/join-season`).
-- **Header link** appears only when the viewer is signed in **and** at least one season
-  has ended. `header.tsx` queries `seasons.list` and conditionally adds the
-  `Rezultatai` link (Trophy icon) to the authenticated nav.
-- If no season has ended, the page itself shows an empty state
-  ("Dar nėra pasibaigusių sezonų").
+- **Header link** appears when the viewer is signed in **and** at least one season is
+  `active` or `ended`. `header.tsx` queries `seasons.list` and conditionally adds the
+  `Rezultatai` (Trophy) link to the authenticated nav.
+- If there are no such seasons, the page shows an empty state ("Dar nėra sezonų").
 
 ## Season selector
 
-Ended seasons (`seasons.list` filtered to `status === "ended"`) are sorted newest first.
-The page defaults to the most recent one. When more than one ended season exists, a
-`Select` dropdown lets the viewer switch between them; switching re-fetches standings and
-re-fires the winner confetti.
+Leaderboard seasons (`seasons.list` filtered to `status === "active" || "ended"`) are sorted
+newest first. The page defaults to the live active season if one exists, else the most recent
+ended one. When more than one exists, a `Select` dropdown switches between them; switching
+re-fetches standings.
+
+For the active season a **"Gyvai"** badge and a "Baigsis …" subtitle render, the winner hero
+and confetti are suppressed (`winner && !isLive`, `useWinnerConfetti(..., !isLive)`), the map
+is hidden (`!isLive`), and the standings update live as scores change.
 
 ## Map
 
-Below the winner hero, a `MapView` renders the territory control for the selected season
-(`h-96`, rounded border, no geolocation). Square selection state is local to the page;
-clicking a square highlights it on the map (same `selectedSquareCode` / `onSquareSelect`
-pattern as `/map`) but does not open a stats panel on the leaderboard.
+For **ended** seasons only (`!isLive`), a `MapView` below the winner hero renders the final
+territory control (`h-96`, rounded border, no geolocation). The live active season hides the
+map — the live map lives at `/map`. Square selection state is local to the page; clicking a
+square highlights it (same `selectedSquareCode` / `onSquareSelect` pattern as `/map`) but does
+not open a stats panel on the leaderboard.
 
 ## Control timeline
 
@@ -45,7 +50,9 @@ per-team controlled-square count at every ownership change from `square_control_
 
 ## Data
 
-All four queries are `publicProcedure`s; access is enforced at the route/header level.
+`seasons.list`, `teamStandings`, and `controlTimeline` are `publicProcedure`s;
+`individualStandings` is a `protectedProcedure` (it returns callsigns, so it requires sign-in
+even though the route is already auth-gated).
 
 - `seasons.list` — season names, dates, and derived `status`.
 - `scoring.teamStandings` (scoped to the selected season) — `{ team, points,
@@ -53,10 +60,10 @@ All four queries are `publicProcedure`s; access is enforced at the route/header 
   the three `TeamStandingCard`s (% of `TOTAL_SQUARES`).
 - `scoring.controlTimeline` (scoped to the selected season) — `{ at, yellow, green, red }`
   snapshots of controlled-square counts over time. Drives `ControlTimelineChart`.
-- `scoring.individualStandings` (scoped to the selected season) — per operator:
-  `callsign`, `team`, `points`, `qsoCount`, `squaresWorked`, ordered by points desc.
-  Banned users are excluded. Rendered as a table: rank, callsign, team, points, QSO count,
-  squares worked.
+- `scoring.individualStandings` (`protectedProcedure`, scoped to the selected season) — per
+  operator: `userId`, `callsign`, `team`, `points`, `qsoCount`, `squaresWorked`, ordered by
+  points desc. Banned users are excluded. Rendered as a table: rank, callsign, team, points,
+  QSO count, squares worked.
 
 ## Confetti
 
@@ -68,7 +75,8 @@ and respects `prefers-reduced-motion: reduce`.
 
 Where it runs with `enabled`:
 
-- **Leaderboard** — always (the page only renders for ended seasons).
+- **Leaderboard** — only for the selected **ended** season (`!isLive`); suppressed while a
+  live active season is shown.
 - **Map** (`/map`) and **homepage** (`/`) — only **between seasons**: no active season but a
   recently ended one exists (`!activeSeason && !!recentlyEndedSeason`). Scoped to the
   recently ended season's id.

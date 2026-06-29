@@ -18,7 +18,7 @@ import {
 } from "drizzle-orm";
 import { z } from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure, publicProcedure } from "../index";
 import { computeLeader, TEAMS, type Team } from "../scoring/control";
 import { getCurrentSeason } from "./seasons";
 
@@ -74,7 +74,7 @@ const squares = publicProcedure
 		}));
 	});
 
-const individualStandings = publicProcedure
+const individualStandings = protectedProcedure
 	.input(scoringInput)
 	.handler(async ({ context, input }) => {
 		const seasonId = await resolveSeasonId(context.db, input.seasonId);
@@ -330,6 +330,51 @@ const recentSquareActivity = publicProcedure
 		return rows;
 	});
 
+const RECENT_CONTACTS_LIMIT = 12;
+
+const recentSquareContacts = protectedProcedure
+	.input(recentSquareActivityInput)
+	.handler(async ({ context, input }) => {
+		const seasonId = await resolveSeasonId(context.db, input.seasonId);
+		if (seasonId === null) {
+			return [];
+		}
+
+		const rows = await context.db
+			.select({
+				userId: qso.userId,
+				callsign: user.name,
+				team: seasonMembership.team,
+				band: qso.band,
+				mode: qso.mode,
+				qsoAt: qso.qsoAt,
+			})
+			.from(qso)
+			.innerJoin(user, eq(user.id, qso.userId))
+			.innerJoin(
+				seasonMembership,
+				and(
+					eq(seasonMembership.userId, qso.userId),
+					eq(seasonMembership.seasonId, qso.seasonId)
+				)
+			)
+			.where(
+				and(
+					eq(qso.seasonId, seasonId),
+					eq(qso.operatorSquare, input.squareCode),
+					eq(user.banned, false),
+					gte(
+						qso.qsoAt,
+						sql`now() - make_interval(hours => ${RECENT_ACTIVITY_HOURS})`
+					)
+				)
+			)
+			.orderBy(desc(qso.qsoAt))
+			.limit(RECENT_CONTACTS_LIMIT);
+
+		return rows;
+	});
+
 export const scoringRouter = {
 	squares,
 	individualStandings,
@@ -338,4 +383,5 @@ export const scoringRouter = {
 	activityFeed,
 	recentSquares,
 	recentSquareActivity,
+	recentSquareContacts,
 };

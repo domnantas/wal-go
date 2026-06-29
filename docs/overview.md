@@ -58,7 +58,9 @@ Unmatched routes render `NotFound` (`components/not-found.tsx`) via `defaultNotF
 
 ## Activity visibility
 
-To keep the game feeling alive without revealing the hidden roster, the map and homepage show two anonymized liveness signals (team + square + time, never a callsign): an **activity feed** of recent square takeovers and a **map pulse** on squares with a contact in the last 2 hours. See [activity-feed.md](activity-feed.md).
+To keep the game feeling alive, the map and homepage show two liveness signals: an **activity feed** of recent square takeovers and a **map pulse** on squares with a contact in the last 2 hours. See [activity-feed.md](activity-feed.md).
+
+**Player visibility (experiment).** The callsign→team roster used to be a secret hidden during active seasons. It is now visible to **signed-in users** — live individual standings ([leaderboard.md](leaderboard.md)) and callsigns in the square-detail activity feed ([map.md](map.md)). Logged-out visitors keep the anonymized experience (team + square + time, never a callsign) on the public homepage.
 
 ## Related Docs
 

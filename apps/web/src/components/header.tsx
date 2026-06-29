@@ -44,7 +44,9 @@ export default function Header() {
 	});
 	const showJoinSeason =
 		isAuthenticated && !!currentSeason && !isMembershipPending && !membership;
-	const hasEndedSeason = !!seasons?.some((season) => season.status === "ended");
+	const hasLeaderboardSeason = !!seasons?.some(
+		(season) => season.status === "active" || season.status === "ended"
+	);
 	const baseAuthLinks = [
 		{ to: "/map", label: "Žemėlapis", icon: MapIcon, exact: false },
 		{ to: "/log", label: "Žurnalas", icon: NotebookPen, exact: false },
@@ -55,7 +57,7 @@ export default function Header() {
 		icon: Trophy,
 		exact: false,
 	} as const;
-	const authLinks = hasEndedSeason
+	const authLinks = hasLeaderboardSeason
 		? ([...baseAuthLinks, leaderboardLink] as const)
 		: baseAuthLinks;
 	const publicLinks = [

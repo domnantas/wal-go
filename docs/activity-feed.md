@@ -1,6 +1,12 @@
 # Activity Feed
 
-In-app liveness signals show game activity without leaking the callsign-to-team mapping. They expose team, square, and time only, never callsigns or user ids.
+In-app liveness signals show game activity. The two signals documented here — the takeover
+feed and the map pulse — stay anonymized (team, square, and time only, never callsigns or
+user ids) so they are safe for the public, logged-out homepage. The separate callsign→team
+roster is now visible to signed-in users elsewhere (player visibility experiment, see
+[overview.md](overview.md)): live individual standings ([leaderboard.md](leaderboard.md)) and
+the square-detail contact list (`scoring.recentSquareContacts`, [map.md](map.md)), which is the
+authed counterpart that shows callsigns.
 
 ## Activity feed
 
@@ -57,5 +63,8 @@ square codes with `qso.qsoAt >= now() - 2 hours` for the season, excluding banne
 
 ## Privacy invariant
 
-No endpoint here returns `userId`, `user.name`, or a callsign. The feed exposes team + square
-+ time; the pulse exposes square only. Preserves the hidden-roster gameplay.
+The endpoints documented here — `scoring.activityFeed` and `scoring.recentSquares` — never
+return `userId`, `user.name`, or a callsign. The feed exposes team + square + time; the pulse
+exposes square only. This keeps the **public homepage** clean for logged-out visitors.
+Callsign-revealing endpoints (`individualStandings`, `recentSquareContacts`) are all
+`protectedProcedure`s gated to signed-in users.
