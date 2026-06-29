@@ -21,6 +21,10 @@ The backend validates WAL codes are valid Lithuanian cells. The contact square m
 
 In the Add QSO dialog, pressing Space while the callsign field is focused moves focus to **Mano kvadratas** when that field is empty. If it already has a value, focus moves to **Korespondento kvadratas** instead. The space is used only as a navigation shortcut and is not added to the callsign.
 
+### Auto-advancing time
+
+In the Add QSO dialog (`QsoForm`'s `autoTime` prop, set only by `AddQsoDialog`) the date/time field auto-updates to the current time every 5s, so an operator logging live always has "now" pre-filled. The first manual edit of either the date (calendar select) or the time input stops the ticking (`isTimeManualRef`) — the user's value is then left alone. With **Neuždaryti lango**, a successful save resets the manual flag so the next QSO resumes auto-advancing from the current time. The edit dialog never auto-advances.
+
 ### Blur validation
 
 Fields validate on blur only after the user has edited them (`handleFieldBlur` gates on TanStack Form's sticky `field.state.meta.isDirty`). Pristine fields do not show "required" errors while users tab through the dialog or close it. Full validation still runs on submit.

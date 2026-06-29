@@ -61,6 +61,7 @@ export const MODE_OPTIONS = ["CW", "SSB", "FM", "DIGI"] as const;
 export const DATE_TIME_INPUT_FORMAT = "yyyy-MM-dd'T'HH:mm";
 const TIME_INPUT_FORMAT = "HH:mm";
 const DATE_BUTTON_FORMAT = "PPP";
+const AUTO_TIME_INTERVAL_MS = 5000;
 
 export interface EditableQso {
 	band: string;
@@ -224,6 +225,7 @@ export function qsoToFormValues(qso: EditableQso): QsoFormState {
 }
 
 export function QsoForm({
+	autoTime = false,
 	defaultValues,
 	enableCallsignSpaceNavigation = false,
 	formError,
@@ -239,6 +241,7 @@ export function QsoForm({
 	requiresContactSquare = false,
 	submitLabel,
 }: {
+	autoTime?: boolean;
 	defaultValues: QsoFormState;
 	enableCallsignSpaceNavigation?: boolean;
 	formError: null | string;
@@ -263,6 +266,7 @@ export function QsoForm({
 	const operatorSquareRef = useRef<HTMLInputElement>(null);
 	const contactSquareRef = useRef<HTMLInputElement>(null);
 	const refocusAfterSubmitRef = useRef(false);
+	const isTimeManualRef = useRef(false);
 
 	useEffect(() => {
 		if (!isPending && refocusAfterSubmitRef.current) {
@@ -293,10 +297,26 @@ export function QsoForm({
 			if (keepOpen && result !== false) {
 				form.resetField("contactCallsign");
 				form.resetField("contactSquare");
+				isTimeManualRef.current = false;
 				refocusAfterSubmitRef.current = true;
 			}
 		},
 	});
+
+	useEffect(() => {
+		if (!autoTime) {
+			return;
+		}
+		const tick = () => {
+			if (isTimeManualRef.current) {
+				return;
+			}
+			form.setFieldValue("qsoAt", format(new Date(), DATE_TIME_INPUT_FORMAT));
+		};
+		tick();
+		const id = setInterval(tick, AUTO_TIME_INTERVAL_MS);
+		return () => clearInterval(id);
+	}, [autoTime, form]);
 
 	const handleGeolocationSquare = useCallback(
 		(wal: string) => {
@@ -408,6 +428,7 @@ export function QsoForm({
 														if (!date) {
 															return;
 														}
+														isTimeManualRef.current = true;
 														onClearError();
 														handleFieldChange(
 															field,
@@ -425,6 +446,7 @@ export function QsoForm({
 											name="qsoAtTime"
 											onBlur={() => handleFieldBlur(field)}
 											onChange={(event) => {
+												isTimeManualRef.current = true;
 												onClearError();
 												handleFieldChange(
 													field,

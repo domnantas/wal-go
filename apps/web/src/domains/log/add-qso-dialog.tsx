@@ -115,6 +115,7 @@ export function AddQsoDialog({
 					<DialogDescription>Įveskite ryšį aktyviame sezone</DialogDescription>
 				</DialogHeader>
 				<QsoForm
+					autoTime
 					defaultValues={getDefaultValues()}
 					enableCallsignSpaceNavigation
 					formError={formError}
