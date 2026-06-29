@@ -16,7 +16,7 @@ import type {
 } from "./types";
 
 const BETA_GAME_DUPLICATE_TIME_ZONE = "Europe/Vilnius";
-const CONFIRMATION_WINDOW_SECONDS = 300;
+const CONFIRMATION_WINDOW_SECONDS = 900;
 
 function getBasePoints(mode: string): number {
 	return mode === "DIGI" ? 1 : 2;
