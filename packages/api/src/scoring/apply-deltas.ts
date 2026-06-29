@@ -76,18 +76,37 @@ export async function applyScoreDeltas(
 	const affectedSquares = [...new Set(deltas.map((d) => d.squareCode))];
 	const before = await snapshotLeaders(tx, seasonId, affectedSquares);
 
-	const positiveDeltas = deltas.filter((d) => d.pointsDelta > 0);
-	const negativeDeltas = deltas.filter((d) => d.pointsDelta < 0);
+	const squareTotals = new Map<
+		string,
+		{ squareCode: string; team: ScoreDelta["team"]; points: number }
+	>();
+	for (const delta of deltas) {
+		const key = `${delta.squareCode}:${delta.team}`;
+		const existing = squareTotals.get(key);
+		if (existing) {
+			existing.points += delta.pointsDelta;
+		} else {
+			squareTotals.set(key, {
+				squareCode: delta.squareCode,
+				team: delta.team,
+				points: delta.pointsDelta,
+			});
+		}
+	}
 
-	if (positiveDeltas.length > 0) {
+	const positiveSquareTotals = [...squareTotals.values()].filter(
+		(s) => s.points > 0
+	);
+
+	if (positiveSquareTotals.length > 0) {
 		await tx
 			.insert(squareScore)
 			.values(
-				positiveDeltas.map((d) => ({
+				positiveSquareTotals.map((s) => ({
 					seasonId,
-					squareCode: d.squareCode,
-					team: d.team,
-					points: d.pointsDelta,
+					squareCode: s.squareCode,
+					team: s.team,
+					points: s.points,
 				}))
 			)
 			.onConflictDoUpdate({
@@ -102,15 +121,19 @@ export async function applyScoreDeltas(
 			});
 	}
 
-	for (const delta of negativeDeltas) {
+	const negativeSquareTotals = [...squareTotals.values()].filter(
+		(s) => s.points < 0
+	);
+
+	for (const square of negativeSquareTotals) {
 		await tx
 			.update(squareScore)
-			.set({ points: sql`${squareScore.points} + ${delta.pointsDelta}` })
+			.set({ points: sql`${squareScore.points} + ${square.points}` })
 			.where(
 				and(
 					eq(squareScore.seasonId, seasonId),
-					eq(squareScore.squareCode, delta.squareCode),
-					eq(squareScore.team, delta.team)
+					eq(squareScore.squareCode, square.squareCode),
+					eq(squareScore.team, square.team)
 				)
 			);
 	}

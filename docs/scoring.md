@@ -151,7 +151,7 @@ Scores are stored, not computed on read (full-season aggregation across tens of 
 | `user_season_score` | `season_id`, `user_id`, `points` | Individual leaderboard. Unique on `(season_id, user_id)`. `points >= 0` check. |
 | `square_control_history` | `season_id`, `square_code`, `before_team`, `after_team`, `created_at` | Append-only log of takeovers (ownership changes). Teams nullable (null = uncontrolled). Indexed on `(season_id, created_at)`. Powers the in-app activity feed ([activity-feed.md](activity-feed.md)) and the leaderboard control-over-time chart ([leaderboard.md](leaderboard.md)). Rows written by `applyScoreDeltas` in the same transaction as the score change. |
 
-Both update **in the same transaction** as the QSO insert/delete. Increments use `INSERT ... ON CONFLICT DO UPDATE` on the unique key. A square's owner is **derived on read** (the `team` with `MAX(points)`, checked for strict majority), never stored.
+Both update **in the same transaction** as the QSO insert/delete. Increments use `INSERT ... ON CONFLICT DO UPDATE` on the unique key. `applyScoreDeltas` first nets the deltas per `(square_code, team)` (and per `(user_id)`) into a single total before the batch insert — a multi-row insert cannot reference the same conflict target twice (`ON CONFLICT DO UPDATE command cannot affect row a second time`), which happens when one upload scores several QSOs on the same square/team. Positive nets are inserted; negative nets are applied as `UPDATE`. A square's owner is **derived on read** (the `team` with `MAX(points)`, checked for strict majority), never stored.
 
 ### Map data delivery
 
