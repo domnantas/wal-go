@@ -63,7 +63,46 @@ const WAL_GRID_LINE_LAYER_ID = "wal-grid-lines";
 const WAL_GRID_SELECTED_LINE_LAYER_ID = "wal-grid-selected-line";
 const WAL_GRID_PULSE_LINE_LAYER_ID = "wal-grid-pulse-line";
 const WAL_GRID_LABEL_LAYER_ID = "wal-grid-labels";
+const WAL_CONTACT_SOURCE_ID = "wal-contact-lines";
+const WAL_CONTACT_LINE_LAYER_ID = "wal-contact-lines-line";
 const WAL_GRID_GEOJSON = createWalGridFeatureCollection();
+
+// Center [lng, lat] of every WAL square, for anchoring the contact lines.
+const WAL_CENTROIDS = new Map<string, [number, number]>(
+	WAL_GRID_GEOJSON.features.map((feature) => {
+		const ring = feature.geometry.coordinates[0];
+		const [west, south] = ring[0];
+		const [east, north] = ring[2];
+		return [feature.properties.wal, [(west + east) / 2, (south + north) / 2]];
+	})
+);
+
+const EMPTY_FEATURE_COLLECTION = {
+	type: "FeatureCollection" as const,
+	features: [] as unknown[],
+};
+
+// Dash-array steps that slide the dashes one full period for a seamless loop.
+const CONTACT_DASH_LENGTH = 4;
+const CONTACT_DASH_GAP = 3;
+const CONTACT_DASH_PERIOD = CONTACT_DASH_LENGTH + CONTACT_DASH_GAP;
+const CONTACT_DASH_STEPS = 28;
+const CONTACT_DASH_SEQUENCE: number[][] = Array.from(
+	{ length: CONTACT_DASH_STEPS },
+	(_, step) => {
+		const offset = (CONTACT_DASH_PERIOD * step) / CONTACT_DASH_STEPS;
+		// Keep a constant 4-element array so the dash texture doesn't pop per loop.
+		if (offset < CONTACT_DASH_LENGTH) {
+			return [CONTACT_DASH_LENGTH - offset, CONTACT_DASH_GAP, offset, 0];
+		}
+		return [
+			0,
+			CONTACT_DASH_PERIOD - offset,
+			CONTACT_DASH_LENGTH,
+			offset - CONTACT_DASH_LENGTH,
+		];
+	}
+);
 const CLICKABLE_WAL_GRID_LAYER_IDS = [
 	WAL_GRID_FILL_LAYER_ID,
 	WAL_GRID_LINE_LAYER_ID,
@@ -188,6 +227,55 @@ function updateSelectedSquareFilter(
 	);
 }
 
+interface ContactLine {
+	contactSquare: string | null;
+	operatorSquare: string;
+	team: Team;
+}
+
+function buildContactLinesGeoJSON(contacts: ContactLine[]) {
+	const seen = new Set<string>();
+	const features: unknown[] = [];
+	for (const contact of contacts) {
+		const { operatorSquare, contactSquare, team } = contact;
+		if (!contactSquare || contactSquare === operatorSquare) {
+			continue;
+		}
+		const origin = WAL_CENTROIDS.get(operatorSquare);
+		const destination = WAL_CENTROIDS.get(contactSquare);
+		if (!(origin && destination)) {
+			continue;
+		}
+		const key = `${operatorSquare}-${contactSquare}-${team}`;
+		if (seen.has(key)) {
+			continue;
+		}
+		seen.add(key);
+		features.push({
+			type: "Feature",
+			properties: { team },
+			geometry: { type: "LineString", coordinates: [origin, destination] },
+		});
+	}
+
+	return { type: "FeatureCollection" as const, features };
+}
+
+function updateContactLines(
+	map: import("maplibre-gl").Map,
+	contacts: ContactLine[]
+) {
+	const source = map.getSource(WAL_CONTACT_SOURCE_ID);
+	if (!source || source.type !== "geojson") {
+		return;
+	}
+	(source as import("maplibre-gl").GeoJSONSource).setData(
+		buildContactLinesGeoJSON(contacts) as Parameters<
+			import("maplibre-gl").GeoJSONSource["setData"]
+		>[0]
+	);
+}
+
 function squareFromCoords(latitude: number, longitude: number): null | string {
 	const wal = normalizeWalSquare(calculateWal(latitude, longitude));
 	return isValidWalSquare(wal) ? wal : null;
@@ -262,6 +350,22 @@ export function MapView({
 
 	const hasRecentSquares = (recentSquares?.length ?? 0) > 0;
 
+	// Anonymized operator→contact pairs; public, so lines show on the logged-out map.
+	const { data: contacts } = useQuery(
+		orpc.scoring.recentContactLines.queryOptions({
+			input: { seasonId: seasonId ?? undefined },
+			refetchInterval: 60_000,
+		})
+	);
+
+	const contactsRef = useRef<ContactLine[]>([]);
+	useEffect(() => {
+		contactsRef.current = contacts ?? [];
+	}, [contacts]);
+
+	const hasContactLines =
+		buildContactLinesGeoJSON(contacts ?? []).features.length > 0;
+
 	useEffect(() => {
 		onSquareSelectRef.current = onSquareSelect;
 	}, [onSquareSelect]);
@@ -284,6 +388,7 @@ export function MapView({
 		const handleStyleLoad = () => {
 			addWalGridLayers(map, walGridTheme);
 			updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
+			updateContactLines(map, contactsRef.current);
 			const data = squaresDataRef.current;
 			if (data) {
 				updateSourceWithTeamData(map, data, recentSquaresRef.current);
@@ -356,6 +461,43 @@ export function MapView({
 		}
 		updateSelectedSquareFilter(map, selectedSquareCode);
 	}, [selectedSquareCode]);
+
+	useEffect(() => {
+		const map = mapRef.current;
+		if (!map) {
+			return;
+		}
+		updateContactLines(map, contacts ?? []);
+	}, [contacts]);
+
+	// Flow the dashes; skipped when no lines or under prefers-reduced-motion.
+	useEffect(() => {
+		const prefersReducedMotion = window.matchMedia?.(
+			"(prefers-reduced-motion: reduce)"
+		).matches;
+		if (!hasContactLines || prefersReducedMotion) {
+			return;
+		}
+
+		const STEP_MS = 80;
+		let lastStep = -1;
+		let frame = 0;
+		const animate = (now: number) => {
+			const map = mapRef.current;
+			const step = Math.floor(now / STEP_MS) % CONTACT_DASH_SEQUENCE.length;
+			if (step !== lastStep && map?.getLayer(WAL_CONTACT_LINE_LAYER_ID)) {
+				lastStep = step;
+				map.setPaintProperty(
+					WAL_CONTACT_LINE_LAYER_ID,
+					"line-dasharray",
+					CONTACT_DASH_SEQUENCE[step]
+				);
+			}
+			frame = requestAnimationFrame(animate);
+		};
+		frame = requestAnimationFrame(animate);
+		return () => cancelAnimationFrame(frame);
+	}, [hasContactLines]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: initial style captured at mount only
 	useEffect(() => {
@@ -444,6 +586,7 @@ export function MapView({
 			map.on("style.load", () => {
 				addWalGridLayers(map, walGridTheme);
 				updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
+				updateContactLines(map, contactsRef.current);
 				const data = squaresDataRef.current;
 				if (data) {
 					updateSourceWithTeamData(map, data, recentSquaresRef.current);
@@ -620,6 +763,48 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 				"line-color": theme.selectedLineColor,
 				"line-opacity": 1,
 				"line-width": 2,
+			},
+		});
+	}
+
+	if (!map.getSource(WAL_CONTACT_SOURCE_ID)) {
+		map.addSource(WAL_CONTACT_SOURCE_ID, {
+			type: "geojson",
+			data: EMPTY_FEATURE_COLLECTION as Parameters<
+				import("maplibre-gl").GeoJSONSource["setData"]
+			>[0],
+		});
+	}
+
+	const contactColorExpression = [
+		"match",
+		["get", "team"],
+		"yellow",
+		theme.teamFillColors.yellow,
+		"green",
+		theme.teamFillColors.green,
+		"red",
+		theme.teamFillColors.red,
+		theme.selectedLineColor,
+	] as unknown as import("maplibre-gl").ExpressionSpecification;
+
+	if (map.getLayer(WAL_CONTACT_LINE_LAYER_ID)) {
+		map.setPaintProperty(
+			WAL_CONTACT_LINE_LAYER_ID,
+			"line-color",
+			contactColorExpression
+		);
+	} else {
+		map.addLayer({
+			id: WAL_CONTACT_LINE_LAYER_ID,
+			type: "line",
+			source: WAL_CONTACT_SOURCE_ID,
+			layout: { "line-cap": "butt", "line-join": "round" },
+			paint: {
+				"line-color": contactColorExpression,
+				"line-opacity": 0.9,
+				"line-width": 2,
+				"line-dasharray": [CONTACT_DASH_LENGTH, CONTACT_DASH_GAP],
 			},
 		});
 	}

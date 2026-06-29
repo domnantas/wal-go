@@ -63,8 +63,9 @@ square codes with `qso.qsoAt >= now() - 2 hours` for the season, excluding banne
 
 ## Privacy invariant
 
-The endpoints documented here — `scoring.activityFeed` and `scoring.recentSquares` — never
-return `userId`, `user.name`, or a callsign. The feed exposes team + square + time; the pulse
-exposes square only. This keeps the **public homepage** clean for logged-out visitors.
+The public liveness endpoints — `scoring.activityFeed`, `scoring.recentSquares`, and
+`scoring.recentContactLines` — never return `userId`, `user.name`, or a callsign. The feed
+exposes team + square + time; the pulse exposes square only; the contact lines expose
+operator/contact squares + team. This keeps the **public homepage and logged-out map** clean.
 Callsign-revealing endpoints (`individualStandings`, `recentSquareContacts`) are all
 `protectedProcedure`s gated to signed-in users.

@@ -14,6 +14,7 @@ import {
 	desc,
 	eq,
 	gte,
+	isNotNull,
 	sql,
 } from "drizzle-orm";
 import { z } from "zod";
@@ -292,6 +293,49 @@ const recentSquares = publicProcedure
 		return rows;
 	});
 
+const RECENT_CONTACT_LINES_LIMIT = 100;
+
+// Anonymized operator→contact square pairs for the map lines (no callsign/user id).
+const recentContactLines = publicProcedure
+	.input(scoringInput)
+	.handler(async ({ context, input }) => {
+		const seasonId = await resolveSeasonId(context.db, input.seasonId);
+		if (seasonId === null) {
+			return [];
+		}
+
+		const rows = await context.db
+			.select({
+				operatorSquare: qso.operatorSquare,
+				contactSquare: qso.contactSquare,
+				team: seasonMembership.team,
+			})
+			.from(qso)
+			.innerJoin(user, eq(user.id, qso.userId))
+			.innerJoin(
+				seasonMembership,
+				and(
+					eq(seasonMembership.userId, qso.userId),
+					eq(seasonMembership.seasonId, qso.seasonId)
+				)
+			)
+			.where(
+				and(
+					eq(qso.seasonId, seasonId),
+					eq(user.banned, false),
+					isNotNull(qso.contactSquare),
+					gte(
+						qso.qsoAt,
+						sql`now() - make_interval(hours => ${RECENT_ACTIVITY_HOURS})`
+					)
+				)
+			)
+			.orderBy(desc(qso.qsoAt))
+			.limit(RECENT_CONTACT_LINES_LIMIT);
+
+		return rows;
+	});
+
 const recentSquareActivityInput = z.object({
 	seasonId: z.number().int().positive().optional(),
 	squareCode: z.string().min(1),
@@ -384,4 +428,5 @@ export const scoringRouter = {
 	recentSquares,
 	recentSquareActivity,
 	recentSquareContacts,
+	recentContactLines,
 };

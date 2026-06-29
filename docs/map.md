@@ -74,6 +74,23 @@ When the selected square has recent activity (the same 2h window that drives the
 
 No recent QSOs → the section is hidden.
 
+### Contact lines
+
+The map draws animated dashed "ant-path" lines from each recent contact's operator square to
+its contact square, colored by the operator's team — always on, independent of square
+selection, and **visible on the public logged-out map**. Data is `scoring.recentContactLines`
+(`publicProcedure`, seasonId): anonymized `{ operatorSquare, contactSquare, team }` for QSOs in
+the last 2 hours with a non-null `contactSquare`, banned users excluded, newest 100. It exposes
+only squares + team (never a callsign / user id), preserving the same privacy invariant as
+`recentSquares`.
+
+`MapView` computes square centers from the WAL grid polygons (`WAL_CENTROIDS`) and feeds a
+dedicated `wal-contact-lines` GeoJSON source / line layer (operator→contact LineStrings,
+deduped by operator+contact+team). The dash flow is driven by a `requestAnimationFrame` loop
+stepping through `CONTACT_DASH_SEQUENCE` (skipped under `prefers-reduced-motion`, same battery
+rationale as the recent-activity pulse). Contacts whose squares aren't in the grid, or with no
+`contactSquare` (e.g. the alpha rule set doesn't require it), draw no line.
+
 ## Season sidebar
 
 Starts with season timing. Active season → progress through the season. When an active season ends in-session, the slot switches to that season's results. On a fresh load with no active season → countdown if the next season starts within three days, plus the most recently ended results below.
