@@ -90,7 +90,8 @@ const CONTACT_DASH_STEPS = 28;
 const CONTACT_DASH_SEQUENCE: number[][] = Array.from(
 	{ length: CONTACT_DASH_STEPS },
 	(_, step) => {
-		const offset = (CONTACT_DASH_PERIOD * step) / CONTACT_DASH_STEPS;
+		const offset =
+			CONTACT_DASH_PERIOD - (CONTACT_DASH_PERIOD * step) / CONTACT_DASH_STEPS;
 		// Keep a constant 4-element array so the dash texture doesn't pop per loop.
 		if (offset < CONTACT_DASH_LENGTH) {
 			return [CONTACT_DASH_LENGTH - offset, CONTACT_DASH_GAP, offset, 0];
