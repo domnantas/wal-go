@@ -10,10 +10,9 @@ visibility experiment in [overview.md](overview.md)).
 
 - **Authenticated only.** The route guards in `beforeLoad` (same `getUser` +
   redirect-to-sign-in pattern as `/map` and `/join-season`).
-- **Header link** appears when the viewer is signed in **and** at least one season is
-  `active` or `ended`. `header.tsx` queries `seasons.list` and conditionally adds the
-  `Rezultatai` (Trophy) link to the authenticated nav.
-- If there are no such seasons, the page shows an empty state ("Dar nėra sezonų").
+- **Header link** (`Rezultatai`, Trophy) is always present in the authenticated nav. The
+  seasons check lives in the route itself, not the header.
+- If there are no `active`/`ended` seasons, the page shows an empty state ("Dar nėra sezonų").
 
 ## Season selector
 
