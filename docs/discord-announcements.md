@@ -1,6 +1,6 @@
 # Discord announcements
 
-Posts a Discord message whenever a square changes its controlling team, so the community channel reflects takeovers as they happen.
+Posts a Discord message whenever a square changes its controlling team, so the community channel reflects takeovers as they happen. For automatic team-role assignment (a separate feature with its own bot token), see [discord-roles.md](discord-roles.md).
 
 ## Control rule
 

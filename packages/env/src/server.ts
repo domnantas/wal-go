@@ -27,4 +27,10 @@ export const env = {
 	get DISCORD_WEBHOOK_URL() {
 		return process.env.DISCORD_WEBHOOK_URL;
 	},
+	get DISCORD_CLIENT_ID() {
+		return process.env.DISCORD_CLIENT_ID;
+	},
+	get DISCORD_CLIENT_SECRET() {
+		return process.env.DISCORD_CLIENT_SECRET;
+	},
 } as const;

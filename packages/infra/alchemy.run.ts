@@ -188,6 +188,15 @@ export default Stack(
 				...(process.env.DISCORD_WEBHOOK_URL
 					? { DISCORD_WEBHOOK_URL: Secret("DISCORD_WEBHOOK_URL") }
 					: {}),
+				// Optional: Discord linked-role team assignment. Needs the OAuth
+				// client pair; a no-op when unset. Bound only when present (preview
+				// deploys may omit them).
+				...(process.env.DISCORD_CLIENT_SECRET
+					? { DISCORD_CLIENT_SECRET: Secret("DISCORD_CLIENT_SECRET") }
+					: {}),
+				...(process.env.DISCORD_CLIENT_ID
+					? { DISCORD_CLIENT_ID: Variable("DISCORD_CLIENT_ID") }
+					: {}),
 				// Optional: PostHog is disabled client-side when the token is unset,
 				// so only bind it when present (e.g. local dev may omit it).
 				...(process.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN

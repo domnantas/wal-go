@@ -1,6 +1,7 @@
 import { Settings } from "@WAL-GO/ui/components/settings/settings";
 import { sessionOptions } from "@better-auth-ui/react";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { DiscordSettings } from "@/domains/settings/discord-settings";
 import { NewsletterSettings } from "@/domains/settings/newsletter-settings";
 import { getUser } from "@/functions/get-user";
 import { authClient } from "@/lib/auth-client";
@@ -28,6 +29,7 @@ function SettingsPage() {
 	return (
 		<div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4 md:gap-6 md:p-6">
 			<Settings path={path} />
+			{path === "account" && <DiscordSettings />}
 			{path === "account" && <NewsletterSettings />}
 		</div>
 	);

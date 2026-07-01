@@ -13,6 +13,7 @@ import { z } from "zod";
 import { uploadNewsletterImage } from "../assets/newsletter-images";
 import { adminProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
+import { syncRoleConnectionInBackground } from "../notifications/discord-roles";
 import {
 	sendNewsletter,
 	sendNewsletterTest,
@@ -395,15 +396,21 @@ const addMembership = adminProcedure
 		if (!row) {
 			throw new ORPCError("INTERNAL_SERVER_ERROR");
 		}
+		syncRoleConnectionInBackground(context.db, input.userId);
 		return row;
 	});
 
 const removeMembership = adminProcedure
 	.input(z.object({ membershipId: z.number().int().positive() }))
 	.handler(async ({ context, input }) => {
-		await context.db
+		const removed = await context.db
 			.delete(seasonMembership)
-			.where(eq(seasonMembership.id, input.membershipId));
+			.where(eq(seasonMembership.id, input.membershipId))
+			.returning({ userId: seasonMembership.userId });
+		const removedUserId = removed[0]?.userId;
+		if (removedUserId) {
+			syncRoleConnectionInBackground(context.db, removedUserId);
+		}
 	});
 
 const setMembershipTeam = adminProcedure
@@ -419,9 +426,11 @@ const setMembershipTeam = adminProcedure
 			.set({ team: input.team })
 			.where(eq(seasonMembership.id, input.membershipId))
 			.returning();
-		if (!rows[0]) {
+		const updated = rows[0];
+		if (!updated) {
 			throw new ORPCError("NOT_FOUND", { message: "Narystė nerasta" });
 		}
+		syncRoleConnectionInBackground(context.db, updated.userId);
 	});
 
 const QSOS_PAGE_SIZE = 50;

@@ -15,6 +15,10 @@ declare global {
 		BETTER_AUTH_URL?: string;
 		CORS_ORIGIN?: string;
 		DATABASE_URL?: string;
+		// Discord linked-role team assignment (see docs/discord-roles.md). Both
+		// optional: the feature silently disables when unset.
+		DISCORD_CLIENT_ID?: string;
+		DISCORD_CLIENT_SECRET?: string;
 		DISCORD_WEBHOOK_URL?: string;
 		// Cloudflare Email Sending `send_email` binding (see infra alchemy.run.ts).
 		// Typed with the builder-form `send` we use; the runtime binding also

@@ -1,4 +1,12 @@
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+	boolean,
+	index,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -6,6 +14,8 @@ export const user = pgTable("user", {
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text("image"),
+	// Discord handle captured at link time, shown in settings. Null when unlinked.
+	discordUsername: text("discord_username"),
 	role: text("role").default("user").notNull(),
 	banned: boolean("banned").default(false).notNull(),
 	banReason: text("ban_reason"),
@@ -58,7 +68,14 @@ export const account = pgTable(
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
 	},
-	(table) => [index("account_userId_idx").on(table.userId)]
+	(table) => [
+		index("account_userId_idx").on(table.userId),
+		// A Discord identity may link to at most one WAL GO user, so one human
+		// can't claim two teams. Partial: only the Discord provider rows.
+		uniqueIndex("account_discord_accountId_uq")
+			.on(table.accountId)
+			.where(sql`${table.providerId} = 'discord'`),
+	]
 );
 
 export const verification = pgTable(

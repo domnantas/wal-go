@@ -3,6 +3,7 @@ import { season, seasonMembership } from "@WAL-GO/db/schema/seasons";
 import { ORPCError } from "@orpc/server";
 import { and, asc, count, eq, gte, lte } from "drizzle-orm";
 import { protectedProcedure, publicProcedure } from "../index";
+import { syncRoleConnectionInBackground } from "../notifications/discord-roles";
 import { getScoringRuleSet } from "../scoring/index";
 
 const TEAMS = ["yellow", "green", "red"] as const;
@@ -164,7 +165,7 @@ const join = protectedProcedure.handler(async ({ context }) => {
 	const userId = context.session.user.id;
 	const seasonId = currentSeason.id;
 
-	return await context.db.transaction(async (tx) => {
+	const result = await context.db.transaction(async (tx) => {
 		const existing = await tx
 			.select()
 			.from(seasonMembership)
@@ -223,6 +224,10 @@ const join = protectedProcedure.handler(async ({ context }) => {
 			},
 		};
 	});
+
+	// Post-commit, best-effort: a new membership may grant a Discord team role.
+	syncRoleConnectionInBackground(context.db, userId);
+	return result;
 });
 
 export const seasonsRouter = {

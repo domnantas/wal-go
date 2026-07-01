@@ -13,7 +13,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { createElement } from "react";
 
 type Db = Awaited<ReturnType<typeof createDb>>;
@@ -77,7 +77,55 @@ export function createAuth(db: Db) {
 				enabled: true,
 			},
 		},
+		// Discord is link-only (email/password stays primary). Registered solely
+		// to power "Susieti Discord" for team roles; absent when unconfigured so
+		// the feature silently disables. `role_connections.write` lets us push the
+		// linked-role metadata Discord uses to grant roles. See docs/discord-roles.md.
+		socialProviders:
+			env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET
+				? {
+						discord: {
+							clientId: env.DISCORD_CLIENT_ID,
+							clientSecret: env.DISCORD_CLIENT_SECRET,
+							scope: ["identify", "role_connections.write"],
+						},
+					}
+				: undefined,
+		account: {
+			accountLinking: {
+				enabled: true,
+				trustedProviders: ["discord"],
+				allowDifferentEmails: true,
+			},
+		},
 		databaseHooks: {
+			account: {
+				create: {
+					// One Discord identity may map to at most one WAL GO user, so a
+					// single human can't claim two teams. The partial unique index is
+					// the hard backstop; this yields a friendly error first.
+					before: async (createdAccount) => {
+						if (createdAccount.providerId !== "discord") {
+							return;
+						}
+						const existing = await db
+							.select({ userId: schema.account.userId })
+							.from(schema.account)
+							.where(
+								and(
+									eq(schema.account.providerId, "discord"),
+									eq(schema.account.accountId, createdAccount.accountId)
+								)
+							)
+							.limit(1);
+						if (existing.length > 0) {
+							throw new APIError("CONFLICT", {
+								message: "Ši Discord paskyra jau susieta su kitu naudotoju",
+							});
+						}
+					},
+				},
+			},
 			user: {
 				create: {
 					// Opt new users into the newsletter. Best-effort: a failure must
