@@ -3,7 +3,11 @@ import {
 	isValidCallsign,
 	normalizeCallsign,
 } from "@WAL-GO/callsign";
-import { isValidWalSquare, normalizeWalSquare } from "@WAL-GO/grid";
+import {
+	isValidWalSquare,
+	normalizeWalSquare,
+	walFromMaidenhead,
+} from "@WAL-GO/grid";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Calendar } from "@WAL-GO/ui/components/calendar";
 import { DialogFooter } from "@WAL-GO/ui/components/dialog";
@@ -89,6 +93,18 @@ export interface QsoFormPayload {
 	mode: (typeof MODE_OPTIONS)[number];
 	operatorSquare: string;
 	qsoAt: string;
+}
+
+const MAIDENHEAD_LOCATOR_LENGTH = 6;
+
+// Accept a WWL locator in a WAL square field: a full 6-char Maidenhead locator
+// is auto-converted to its WAL square, everything else passes through uppercased.
+function walOrLocatorValue(raw: string) {
+	const value = raw.toUpperCase();
+	if (value.length === MAIDENHEAD_LOCATOR_LENGTH) {
+		return walFromMaidenhead(value) ?? value;
+	}
+	return value;
 }
 
 const requiredText = (message: string) => z.string().trim().min(1, message);
@@ -561,12 +577,15 @@ export function QsoForm({
 									autoCapitalize="characters"
 									disabled={isPending}
 									id="operatorSquare"
-									maxLength={3}
+									maxLength={MAIDENHEAD_LOCATOR_LENGTH}
 									name="operatorSquare"
 									onBlur={() => handleFieldBlur(field)}
 									onChange={(event) => {
 										onClearError();
-										handleFieldChange(field, event.target.value.toUpperCase());
+										handleFieldChange(
+											field,
+											walOrLocatorValue(event.target.value)
+										);
 									}}
 									placeholder="A05"
 									ref={operatorSquareRef}
@@ -607,12 +626,15 @@ export function QsoForm({
 									autoCapitalize="characters"
 									disabled={isPending}
 									id="contactSquare"
-									maxLength={3}
+									maxLength={MAIDENHEAD_LOCATOR_LENGTH}
 									name="contactSquare"
 									onBlur={() => handleFieldBlur(field)}
 									onChange={(event) => {
 										onClearError();
-										handleFieldChange(field, event.target.value.toUpperCase());
+										handleFieldChange(
+											field,
+											walOrLocatorValue(event.target.value)
+										);
 									}}
 									placeholder="B12 / DX"
 									ref={contactSquareRef}

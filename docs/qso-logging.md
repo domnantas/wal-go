@@ -14,8 +14,10 @@ Available after joining the active season. Fields:
 | QSO date/time | Yes | Stored as a timezone-aware timestamp. |
 | Band | Yes | From the supported band list. |
 | Mode | Yes | From the supported mode list. |
-| Operator WAL square | Yes | Explicit WAL code, e.g. `A05`. |
-| Contact WAL square | No | Explicit WAL code when known. |
+| Operator WAL square | Yes | Explicit WAL code, e.g. `A05`, or a WWL locator (see below). |
+| Contact WAL square | No | Explicit WAL code when known, or a WWL locator. |
+
+Both square fields also accept a **WWL (Maidenhead) locator**. As soon as a full 6-character locator (e.g. `KO24PR`) is typed, `QsoForm`'s `walOrLocatorValue` converts it to its WAL square via `walFromMaidenhead` (`@WAL-GO/grid`). A locator outside the WAL grid is left as-is and fails square validation. Shorter/partial input passes through uppercased.
 
 The backend validates WAL codes are valid Lithuanian cells. The contact square may also be `DX` for stations outside WAL territory — this is allowed for any callsign (including `LY` operating abroad, e.g. `YL/LY1JA`). Duplicate detection, scoring, and deletion all apply.
 
