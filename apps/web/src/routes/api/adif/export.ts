@@ -12,6 +12,17 @@ import { and, asc, gte, lte } from "drizzle-orm";
 // game-duplicate day-boundary logic in packages/api/src/scoring/*.ts.
 const TIME_ZONE = "Europe/Vilnius";
 
+// Past months are effectively immutable (only change if a QSO is deleted
+// after the fact), so cache aggressively at the edge. A stale cache after a
+// manual data correction needs a manual purge in the Cloudflare dashboard.
+const CACHE_CONTROL = "public, max-age=86400";
+
+interface EdgeCache {
+	match(request: Request): Promise<Response | undefined>;
+	put(request: Request, response: Response): Promise<void>;
+}
+declare const caches: { default: EdgeCache };
+
 function parseMonthParams(url: URL): { year: number; month: number } | null {
 	const year = Number.parseInt(url.searchParams.get("year") ?? "", 10);
 	const month = Number.parseInt(url.searchParams.get("month") ?? "", 10);
@@ -63,6 +74,12 @@ async function handleExport(request: Request): Promise<Response> {
 		return new Response("Only past months are available", { status: 400 });
 	}
 
+	const cacheKey = new Request(new URL(request.url).toString());
+	const cached = await caches.default.match(cacheKey);
+	if (cached) {
+		return cached;
+	}
+
 	const db = await getDb();
 
 	const rows = await db
@@ -79,9 +96,14 @@ async function handleExport(request: Request): Promise<Response> {
 		.orderBy(asc(qso.qsoAt));
 
 	const adifText = generateAdif(rows);
-	return new Response(adifText, {
-		headers: { "Content-Type": "text/plain; charset=utf-8" },
+	const response = new Response(adifText, {
+		headers: {
+			"Content-Type": "text/plain; charset=utf-8",
+			"Cache-Control": CACHE_CONTROL,
+		},
 	});
+	await caches.default.put(cacheKey, response.clone());
+	return response;
 }
 
 export const Route = createFileRoute("/api/adif/export")({

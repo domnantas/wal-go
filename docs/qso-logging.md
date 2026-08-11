@@ -169,6 +169,8 @@ Month boundaries use `Europe/Vilnius` (same zone as game-duplicate day boundarie
 
 On success, `200` with `Content-Type: text/plain; charset=utf-8` and the ADIF body. QSOs are **not** filtered by `confirmed`.
 
+**Edge caching:** since only past (closed) months are servable, responses are immutable in practice — cached at the Cloudflare edge via the Workers Cache API (`caches.default`), keyed by request URL only (the `Authorization` header is excluded from the cache key, so the first authorized request warms the cache for everyone), `Cache-Control: public, max-age=86400` (24 hours). If a past month's QSOs are corrected after export (e.g. an admin deletes/edits one), the cached response goes stale until it expires — purge it manually via the Cloudflare dashboard (Caching → Configuration → Purge by URL) if an immediate refresh is needed.
+
 ### Field mapping (export)
 
 Mirrors the import mapping (see § ADIF field mapping above), in reverse — `generateAdif` (`@WAL-GO/log-parse`):
