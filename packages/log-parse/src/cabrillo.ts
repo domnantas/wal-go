@@ -1,4 +1,4 @@
-import { walFromMaidenhead } from "@WAL-GO/grid";
+import { walFromMaidenhead, walOrLocatorValue } from "@WAL-GO/grid";
 import { parseCabrilloBand } from "./bands";
 import { mapMode } from "./modes";
 import type { DraftQso, SkipReason } from "./types";
@@ -125,7 +125,12 @@ function parseQsoLine(
 		issues.push("invalidCallsign");
 	}
 
-	const operatorSquare = mySquareRaw || fallbackOperatorSquare;
+	// A WWL locator in the exchange square is auto-converted to its WAL square,
+	// same as the add QSO dialog.
+	const operatorSquare = mySquareRaw
+		? walOrLocatorValue(mySquareRaw)
+		: fallbackOperatorSquare;
+	const contactSquare = theirSquareRaw ? walOrLocatorValue(theirSquareRaw) : "";
 
 	return {
 		index: lineNumber,
@@ -135,8 +140,8 @@ function parseQsoLine(
 		band,
 		mode,
 		qsoAt,
-		operatorSquare: operatorSquare.toUpperCase(),
-		contactSquare: theirSquareRaw.toUpperCase(),
+		operatorSquare,
+		contactSquare,
 		issues,
 	};
 }

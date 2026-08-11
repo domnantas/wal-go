@@ -113,3 +113,18 @@ export function walFromMaidenhead(locator: string) {
 	const square = calculateWal(coordinates.latitude, coordinates.longitude);
 	return isValidWalSquare(square) ? square : null;
 }
+
+export const MAIDENHEAD_LOCATOR_LENGTH = 6;
+
+/**
+ * Accept a WWL locator in a WAL square field: a full 6-character Maidenhead
+ * locator is auto-converted to its WAL square, everything else passes
+ * through uppercased.
+ */
+export function walOrLocatorValue(raw: string) {
+	const value = raw.trim().toUpperCase();
+	if (value.length === MAIDENHEAD_LOCATOR_LENGTH) {
+		return walFromMaidenhead(value) ?? value;
+	}
+	return value;
+}

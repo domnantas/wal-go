@@ -5,8 +5,9 @@ import {
 } from "@WAL-GO/callsign";
 import {
 	isValidWalSquare,
+	MAIDENHEAD_LOCATOR_LENGTH,
 	normalizeWalSquare,
-	walFromMaidenhead,
+	walOrLocatorValue,
 } from "@WAL-GO/grid";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Calendar } from "@WAL-GO/ui/components/calendar";
@@ -93,18 +94,6 @@ export interface QsoFormPayload {
 	mode: (typeof MODE_OPTIONS)[number];
 	operatorSquare: string;
 	qsoAt: string;
-}
-
-const MAIDENHEAD_LOCATOR_LENGTH = 6;
-
-// Accept a WWL locator in a WAL square field: a full 6-char Maidenhead locator
-// is auto-converted to its WAL square, everything else passes through uppercased.
-function walOrLocatorValue(raw: string) {
-	const value = raw.toUpperCase();
-	if (value.length === MAIDENHEAD_LOCATOR_LENGTH) {
-		return walFromMaidenhead(value) ?? value;
-	}
-	return value;
 }
 
 const requiredText = (message: string) => z.string().trim().min(1, message);

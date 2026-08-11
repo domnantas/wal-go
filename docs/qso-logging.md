@@ -17,7 +17,7 @@ Available after joining the active season. Fields:
 | Operator WAL square | Yes | Explicit WAL code, e.g. `A05`, or a WWL locator (see below). |
 | Contact WAL square | No | Explicit WAL code when known, or a WWL locator. |
 
-Both square fields also accept a **WWL (Maidenhead) locator**. As soon as a full 6-character locator (e.g. `KO24PR`) is typed, `QsoForm`'s `walOrLocatorValue` converts it to its WAL square via `walFromMaidenhead` (`@WAL-GO/grid`). A locator outside the WAL grid is left as-is and fails square validation. Shorter/partial input passes through uppercased.
+Both square fields also accept a **WWL (Maidenhead) locator**. As soon as a full 6-character locator (e.g. `KO24PR`) is typed, `walOrLocatorValue` (`@WAL-GO/grid`) converts it to its WAL square via `walFromMaidenhead`. A locator outside the WAL grid is left as-is and fails square validation. Shorter/partial input passes through uppercased. The same helper is reused by `@WAL-GO/log-parse` for Cabrillo/ADIF import — see below.
 
 The backend validates WAL codes are valid Lithuanian cells. The contact square may also be `DX` for stations outside WAL territory — this is allowed for any callsign (including `LY` operating abroad, e.g. `YL/LY1JA`). Duplicate detection, scoring, and deletion all apply.
 
@@ -97,7 +97,7 @@ QSO: <freq> <mo> <date> <time> <mycall> <rst> <mysquare> <dxcall> <rst> <theirsq
 | `dxcall` | Contact callsign |
 | `theirsquare` | Contact's WAL square (optional) |
 
-The exchange is parsed by **anchoring on the two RST reports** (`mycall RST [mysquare] dxcall RST [theirsquare]`), not fixed columns, so an omitted square doesn't shift fields. A missing contact square is empty; a missing operator square leaves `operatorSquare` empty (fixable `invalidSquare`) rather than pulling RST into the callsign slot. Square fields stay raw even when malformed (e.g. `ZZ9`), **except** a pure-digit exchange (e.g. `001`), which some loggers emit as a serial number instead of a WAL square — it is ignored (empty square), since a real WAL square always has a leading letter. RST anchoring also requires the report to follow a letter-bearing token, so a serial is never mistaken for an RST. `malformedLine` is reserved for lines with no recognisable two stations. The `CALLSIGN:` header populates `stationCallsign`; `CONTEST:` is no longer required or rejected.
+The exchange is parsed by **anchoring on the two RST reports** (`mycall RST [mysquare] dxcall RST [theirsquare]`), not fixed columns, so an omitted square doesn't shift fields. A missing contact square is empty; a missing operator square leaves `operatorSquare` empty (fixable `invalidSquare`) rather than pulling RST into the callsign slot. A non-empty exchange square is passed through `walOrLocatorValue` (`@WAL-GO/grid`), so a full 6-character WWL locator in the exchange converts to its WAL square; other values stay raw even when malformed (e.g. `ZZ9`), **except** a pure-digit exchange (e.g. `001`), which some loggers emit as a serial number instead of a WAL square — it is ignored (empty square) before conversion, since a real WAL square always has a leading letter. RST anchoring also requires the report to follow a letter-bearing token, so a serial is never mistaken for an RST. `malformedLine` is reserved for lines with no recognisable two stations. The `CALLSIGN:` header populates `stationCallsign`; `CONTEST:` is no longer required or rejected.
 
 #### GRID-LOCATOR fallback
 
@@ -116,6 +116,8 @@ Records are `<NAME:len[:type]>value` fields ended by `<EOR>`, header ended by `<
 | `MY_SIG_INFO` | Operator WAL square (falls back to `MY_GRIDSQUARE`) |
 | `SIG_INFO` | Contact WAL square (empty or `DX` ⇒ none; falls back to `GRIDSQUARE`) |
 | `STATION_CALLSIGN` / `OPERATOR` | Station callsign |
+
+A non-empty `MY_SIG_INFO`/`SIG_INFO` is passed through `walOrLocatorValue` (`@WAL-GO/grid`), so a full 6-character WWL locator entered in either field converts to its WAL square, same as the manual form.
 
 `MY_SIG`/`SIG` are expected to be `WAL` but **ignored** — a missing/different value doesn't reject. The header `STATION_CALLSIGN` (or `OPERATOR`) is the per-record operator fallback: a record without its own value inherits it.
 

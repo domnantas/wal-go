@@ -1,4 +1,4 @@
-import { walFromMaidenhead } from "@WAL-GO/grid";
+import { walFromMaidenhead, walOrLocatorValue } from "@WAL-GO/grid";
 import { parseAdifBand } from "./bands";
 import { mapMode } from "./modes";
 import type { DraftQso, SkipReason } from "./types.ts";
@@ -162,15 +162,18 @@ function recordToDraft(
 		issues.push("invalidCallsign");
 	}
 
-	// MY_SIG/SIG are expected to be "WAL" but are intentionally ignored. When a
-	// square is absent, fall back to the Maidenhead grid (MY_GRIDSQUARE /
-	// GRIDSQUARE) converted to a WAL square.
-	const operatorSquare =
-		(fields.get("my_sig_info") ?? "").trim().toUpperCase() ||
-		gridFallback(fields.get("my_gridsquare"));
-	const contactSquare =
-		(fields.get("sig_info") ?? "").trim().toUpperCase() ||
-		gridFallback(fields.get("gridsquare"));
+	// MY_SIG/SIG are expected to be "WAL" but are intentionally ignored. A
+	// WWL locator entered in SIG_INFO is auto-converted to its WAL square, same
+	// as the add QSO dialog. When a square is absent, fall back to the
+	// Maidenhead grid (MY_GRIDSQUARE / GRIDSQUARE) converted to a WAL square.
+	const mySigInfo = (fields.get("my_sig_info") ?? "").trim();
+	const operatorSquare = mySigInfo
+		? walOrLocatorValue(mySigInfo)
+		: gridFallback(fields.get("my_gridsquare"));
+	const sigInfo = (fields.get("sig_info") ?? "").trim();
+	const contactSquare = sigInfo
+		? walOrLocatorValue(sigInfo)
+		: gridFallback(fields.get("gridsquare"));
 
 	return {
 		index,
