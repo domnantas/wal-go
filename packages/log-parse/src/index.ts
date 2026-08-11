@@ -3,8 +3,9 @@ import { parseCabrillo } from "./cabrillo";
 import { detectLogFormat } from "./detect";
 import type { DraftQso, ParseResult } from "./types.ts";
 
+export type { AdifExportQso } from "./adif";
 // biome-ignore lint/performance/noBarrelFile: single public entrypoint for the package
-export { parseAdif, parseAdifDateTime } from "./adif";
+export { generateAdif, parseAdif, parseAdifDateTime } from "./adif";
 export {
 	freqToBand,
 	parseAdifBand,

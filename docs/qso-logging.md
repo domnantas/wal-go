@@ -154,6 +154,36 @@ The dialog also flags **within-log** duplicates (exact and game, between rows of
 
 After a successful commit the dropzone shows a summary plus collapsible tables of imported and skipped rows.
 
+## ADIF Export API
+
+`GET /api/adif/export?year=YYYY&month=MM` — public, unauthenticated raw route (`apps/web/src/routes/api/adif/export.ts`) returning **all** QSOs (every user, every team) logged in the given calendar month as ADIF text. Built for external logging-software integrations, not the web UI.
+
+Auth: static bearer key, `Authorization: Bearer <key>`, compared against the `ADIF_EXPORT_API_KEY` secret (see [infra.md](infra.md)). No per-user tokens — one key, shared with the integration admin out of band. Missing/wrong key or unset secret → `401`.
+
+Month boundaries use `Europe/Vilnius` (same zone as game-duplicate day boundaries, see [scoring.md](scoring.md)), via `TZDate` + `startOfMonth`/`endOfMonth`.
+
+| Check | Failure |
+|---|---|
+| `year`/`month` present, integers, `month` 1-12 | `400` |
+| Requested month strictly before the current Vilnius month | `400` (current/future months rejected) |
+
+On success, `200` with `Content-Type: text/plain; charset=utf-8` and the ADIF body. QSOs are **not** filtered by `confirmed`.
+
+### Field mapping (export)
+
+Mirrors the import mapping (see § ADIF field mapping above), in reverse — `generateAdif` (`@WAL-GO/log-parse`):
+
+| DB field | ADIF field |
+|---|---|
+| `contactCallsign` | `CALL` |
+| `qsoAt` (UTC) | `QSO_DATE` (YYYYMMDD) + `TIME_ON` (HHMMSS) |
+| `band` | `BAND` |
+| `mode` | `MODE` |
+| `operatorSquare` | `MY_SIG_INFO` (+ `MY_SIG=WAL`) |
+| `contactSquare` | `SIG_INFO` (+ `SIG=WAL`), omitted when absent |
+
+**`DIGI` caveat:** the DB's `DIGI` mode is a lossy bucket for RTTY/FT8/FT4/PSK/JT65/etc. — the original submode isn't retained on import, so export emits `MODE=DIGI` as-is. This isn't a standard ADIF mode token; it's the only faithful choice given the data actually stored.
+
 ## QSO Storage
 
 Each accepted QSO links to the submitting user, the active season at submission, the operator WAL square that received points, and the optional contact square.

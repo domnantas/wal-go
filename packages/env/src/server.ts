@@ -12,6 +12,9 @@ function required(key: string): string {
 }
 
 export const env = {
+	get ADIF_EXPORT_API_KEY() {
+		return process.env.ADIF_EXPORT_API_KEY;
+	},
 	get CORS_ORIGIN() {
 		return process.env.CORS_ORIGIN;
 	},

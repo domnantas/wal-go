@@ -135,6 +135,7 @@ Required GitHub secrets:
 | `PLANETSCALE_ORGANIZATION` | PlanetScale organization slug |
 | `BETTER_AUTH_SECRET` | better-auth secret key |
 | `GITHUB_TOKEN` | PR preview comment token (auto-provided by Actions) |
+| `ADIF_EXPORT_API_KEY` | Optional. Bearer key for the public ADIF export API (see [qso-logging.md](qso-logging.md)). Endpoint returns `401` for every request when unset. Generate with e.g. `openssl rand -hex 32`. |
 
 The Cloudflare token must be the **raw** token value (store `abc...`, not `Bearer abc...` or the token ID), scoped to `CLOUDFLARE_ACCOUNT_ID`, allowing: Account Settings Read, Workers Scripts Edit, Hyperdrive Edit, Secrets Store Edit (or Read + Write if split).
 
@@ -167,6 +168,7 @@ PLANETSCALE_ORGANIZATION=
 BETTER_AUTH_SECRET=
 CORS_ORIGIN=
 BETTER_AUTH_URL=
+ADIF_EXPORT_API_KEY=
 ```
 
 ## Preview lifecycle & manual recovery

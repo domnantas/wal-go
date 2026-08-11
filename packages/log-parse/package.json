@@ -10,7 +10,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@WAL-GO/grid": "workspace:*"
+    "@WAL-GO/grid": "workspace:*",
+    "@date-fns/tz": "^1.4.1",
+    "date-fns": "catalog:"
   },
   "devDependencies": {
     "@WAL-GO/config": "workspace:*",

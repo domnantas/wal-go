@@ -1,4 +1,6 @@
 import { walFromMaidenhead, walOrLocatorValue } from "@WAL-GO/grid";
+import { TZDate } from "@date-fns/tz";
+import { format } from "date-fns";
 import { parseAdifBand } from "./bands";
 import { mapMode } from "./modes";
 import type { DraftQso, SkipReason } from "./types.ts";
@@ -211,4 +213,52 @@ export function parseAdif(content: string): AdifResult {
 			recordToDraft(record, i + 1, headerStation)
 		),
 	};
+}
+
+export interface AdifExportQso {
+	band: string;
+	contactCallsign: string;
+	contactSquare: string | null;
+	mode: string;
+	operatorSquare: string;
+	qsoAt: Date;
+}
+
+function formatAdifDateTime(date: Date): { qsoDate: string; timeOn: string } {
+	const utc = new TZDate(date, "UTC");
+	return {
+		qsoDate: format(utc, "yyyyMMdd"),
+		timeOn: format(utc, "HHmmss"),
+	};
+}
+
+function adifField(name: string, value: string): string {
+	return `<${name}:${value.length}>${value}`;
+}
+
+/**
+ * Serialize QSOs to ADIF text. `MODE=DIGI` is emitted as-is for DIGI-mode
+ * QSOs — ADIF has no standard token for it and the original submode isn't
+ * retained on import, so this is the only faithful (if non-standard) choice.
+ */
+export function generateAdif(qsos: AdifExportQso[]): string {
+	const header =
+		"WAL GO ADIF export\n<ADIF_VER:5>3.1.4\n<PROGRAMID:6>WAL GO\n<EOH>\n";
+	const records = qsos.map((qso) => {
+		const { qsoDate, timeOn } = formatAdifDateTime(qso.qsoAt);
+		const fields = [
+			adifField("CALL", qso.contactCallsign),
+			adifField("QSO_DATE", qsoDate),
+			adifField("TIME_ON", timeOn),
+			adifField("BAND", qso.band),
+			adifField("MODE", qso.mode),
+			adifField("MY_SIG", "WAL"),
+			adifField("MY_SIG_INFO", qso.operatorSquare),
+			...(qso.contactSquare
+				? [adifField("SIG", "WAL"), adifField("SIG_INFO", qso.contactSquare)]
+				: []),
+		];
+		return `${fields.join(" ")} <EOR>`;
+	});
+	return header + records.map((record) => `${record}\n`).join("");
 }

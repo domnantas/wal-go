@@ -126,6 +126,9 @@ importers:
       '@better-auth-ui/react':
         specifier: ^1.6.14
         version: 1.6.14(c5156be3708db6e0e4f25636ca3f7e22)
+      '@date-fns/tz':
+        specifier: ^1.4.1
+        version: 1.4.1
       '@orpc/client':
         specifier: 'catalog:'
         version: 1.13.14(@opentelemetry/api@1.9.1)
@@ -186,6 +189,9 @@ importers:
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 1.0.0-rc.3(@cloudflare/workers-types@4.20260421.1)(@effect/sql-pg@4.0.0-beta.71(effect@4.0.0-beta.71))(@libsql/client@0.17.3)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(effect@4.0.0-beta.71)(mysql2@3.22.4(@types/node@25.6.0))(pg@8.20.0)(postgres@3.4.9)(zod@4.3.6)
       lucide-react:
         specifier: ^1.8.0
         version: 1.8.0(react@19.2.5)
@@ -518,6 +524,12 @@ importers:
       '@WAL-GO/grid':
         specifier: workspace:*
         version: link:../grid
+      '@date-fns/tz':
+        specifier: ^1.4.1
+        version: 1.4.1
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
     devDependencies:
       '@WAL-GO/config':
         specifier: workspace:*
@@ -1444,11 +1456,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild/aix-ppc64@0.25.10':
     resolution: {integrity: sha512-0NFWnA+7l41irNuaSVlLfgNT12caWJVLzp5eAVhZ0z1qpxbockccEt3s+149rE64VUI3Ml2zt8Nv5JVc4QXTsw==}

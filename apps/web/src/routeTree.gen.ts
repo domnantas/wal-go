@@ -23,6 +23,7 @@ import { Route as IngestSplatRouteImport } from './routes/ingest/$'
 import { Route as AuthPathRouteImport } from './routes/auth/$path'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAdifExportRouteImport } from './routes/api/adif/export'
 
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
@@ -94,6 +95,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdifExportRoute = ApiAdifExportRouteImport.update({
+  id: '/api/adif/export',
+  path: '/api/adif/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
+  '/api/adif/export': typeof ApiAdifExportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
+  '/api/adif/export': typeof ApiAdifExportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
   '/settings/$path': typeof SettingsPathRoute
+  '/api/adif/export': typeof ApiAdifExportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/auth/$path'
     | '/ingest/$'
     | '/settings/$path'
+    | '/api/adif/export'
     | '/api/auth/$'
     | '/api/rpc/$'
   fileRoutesByTo: FileRoutesByTo
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/auth/$path'
     | '/ingest/$'
     | '/settings/$path'
+    | '/api/adif/export'
     | '/api/auth/$'
     | '/api/rpc/$'
   id:
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/auth/$path'
     | '/ingest/$'
     | '/settings/$path'
+    | '/api/adif/export'
     | '/api/auth/$'
     | '/api/rpc/$'
   fileRoutesById: FileRoutesById
@@ -208,6 +220,7 @@ export interface RootRouteChildren {
   AuthPathRoute: typeof AuthPathRoute
   IngestSplatRoute: typeof IngestSplatRoute
   SettingsPathRoute: typeof SettingsPathRoute
+  ApiAdifExportRoute: typeof ApiAdifExportRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/adif/export': {
+      id: '/api/adif/export'
+      path: '/api/adif/export'
+      fullPath: '/api/adif/export'
+      preLoaderRoute: typeof ApiAdifExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -328,6 +348,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthPathRoute: AuthPathRoute,
   IngestSplatRoute: IngestSplatRoute,
   SettingsPathRoute: SettingsPathRoute,
+  ApiAdifExportRoute: ApiAdifExportRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }

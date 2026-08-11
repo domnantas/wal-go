@@ -183,6 +183,11 @@ export default Stack(
 					: {}),
 				BETTER_AUTH_SECRET: Secret("BETTER_AUTH_SECRET"),
 				...(isProd ? {} : { DATABASE_URL: role.connectionUrl }),
+				// Optional: the public ADIF export API returns 401 for every request
+				// when unset, so only bind it when present (preview deploys may omit it).
+				...(process.env.ADIF_EXPORT_API_KEY
+					? { ADIF_EXPORT_API_KEY: Secret("ADIF_EXPORT_API_KEY") }
+					: {}),
 				// Optional: announcements are disabled when the secret is unset, so
 				// only bind it when present (e.g. preview deploys may omit it).
 				...(process.env.DISCORD_WEBHOOK_URL
