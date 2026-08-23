@@ -69,9 +69,6 @@ function RulesComponent() {
 	return (
 		<main className="mx-auto max-w-3xl px-6 py-16">
 			<div className="mb-12">
-				<p className="font-mono text-[11px] text-muted-foreground uppercase tracking-[0.14em]">
-					WAL GO · Beta sezonas
-				</p>
 				<h1 className="mt-6 font-bold font-serif text-5xl leading-[1.02] tracking-tight md:text-6xl">
 					Žaidimo <em className="text-olive italic">taisyklės</em>
 				</h1>
@@ -119,13 +116,6 @@ function RulesComponent() {
 					Vienu metu gali būti aktyvus tik vienas sezonas. QSO gali būti
 					registruojami tik aktyvaus sezono metu.
 				</Rule>
-				<Rule n="3.3">
-					Alpha ir Beta sezonų trukmė gali skirtis nuo vėlesnių sezonų.
-				</Rule>
-				<Note>
-					Alpha ir Beta sezonų metu taisyklės gali būti tikslinamos. Apie
-					reikšmingus pakeitimus žaidėjai bus informuojami.
-				</Note>
 			</RuleSection>
 
 			<RuleSection id="komandos" number="4" title="Komandos">
@@ -188,8 +178,8 @@ function RulesComponent() {
 								],
 								[
 									"Korespondento WAL kvadratas",
-									"Taip",
-									"Kuriame kvadrate yra korespondentas",
+									"Ne",
+									"Kuriame kvadrate yra korespondentas (jei žinoma)",
 								],
 							].map(([field, req, note]) => (
 								<tr key={field}>
@@ -226,10 +216,9 @@ function RulesComponent() {
 					Latvijos pusėje — QSO neįskaitomas. Jei Lietuvos pusėje — įskaitomas.
 				</Note>
 				<Rule changed n="6.4">
-					Korespondento WAL kvadratas yra <strong>privalomas</strong> — laukas
-					negali likti tuščias. Ryšiai su užsienio stotimis (DX) yra leidžiami
-					ir įskaitomi: tokiu atveju korespondento kvadrato lauke įveskite{" "}
-					<code className="rounded bg-muted px-1 font-mono text-xs">DX</code>.
+					Korespondento WAL kvadratas yra neprivalomas. Ryšiai su užsienio
+					stotimis (DX) yra leidžiami — tokiu atveju korespondento kvadrato
+					lauką palikite tuščią arba įveskite DX.
 				</Rule>
 				<Rule n="6.5">
 					Registruoti ryšius galima tik aktyvaus sezono metu. Pasibaigus
@@ -246,7 +235,7 @@ function RulesComponent() {
 			</RuleSection>
 
 			<RuleSection id="taskų-sistema" number="7" title="Taškų sistema">
-				<Rule changed n="7.1">
+				<Rule n="7.1">
 					Kiekvienas QSO suteikia taškų žaidėjo komandai operatoriaus WAL
 					kvadrate pagal moduliaciją:
 				</Rule>
@@ -266,7 +255,7 @@ function RulesComponent() {
 						</div>
 					))}
 				</div>
-				<Rule changed n="7.2">
+				<Rule n="7.2">
 					QSO taškai <strong>padvigubinami</strong>, kai ryšys yra{" "}
 					<strong>patvirtintas</strong> — kai abi stotys užregistruoja tą patį
 					ryšį WAL GO sistemoje. Patvirtinimas nustatomas, kai abiejų stočių

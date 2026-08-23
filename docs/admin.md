@@ -41,8 +41,8 @@ Via `admin.users.*` (`admin.users.qsos` lists a single user's QSOs across season
 
 ### Seasons
 
-- List all seasons (name, dates, derived status).
-- Create (name + start/end datetime), edit, delete (confirmation; cascades to memberships and QSOs).
+- List all seasons (name, dates, scoring rule set, derived status).
+- Create (name + start/end datetime + scoring rule set), edit, delete (confirmation; cascades to memberships and QSOs). Rule set defaults to the latest value on create; see [scoring.md](scoring.md) for what each value means — it's a versioned identity, so an existing season's value should only change to fix a mistake, never to alter how it already scored.
 - Manage memberships via the per-season "Nariai" dialog.
 
 Via `admin.seasons.*`.

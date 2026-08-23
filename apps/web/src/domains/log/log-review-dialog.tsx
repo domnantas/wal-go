@@ -476,7 +476,7 @@ export function LogReviewDialog({
 																event.target.value
 															)
 														}
-														placeholder="B12 / DX"
+														placeholder="B12"
 														value={row.contactSquare}
 													/>
 													<FillDownButton

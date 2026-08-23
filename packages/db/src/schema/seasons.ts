@@ -10,7 +10,11 @@ import {
 import { user } from "./auth.ts";
 
 export const teamColor = pgEnum("team_color", ["yellow", "green", "red"]);
-export const scoringRuleSetEnum = pgEnum("scoring_rule_set", ["alpha", "beta"]);
+export const scoringRuleSetEnum = pgEnum("scoring_rule_set", [
+	"alpha",
+	"beta",
+	"2026-2027",
+]);
 
 export const season = pgTable("season", {
 	id: integer("id").primaryKey().generatedAlwaysAsIdentity(),

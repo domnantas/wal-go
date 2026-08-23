@@ -19,7 +19,7 @@ Available after joining the active season. Fields:
 
 Both square fields also accept a **WWL (Maidenhead) locator**. As soon as a full 6-character locator (e.g. `KO24PR`) is typed, `walOrLocatorValue` (`@WAL-GO/grid`) converts it to its WAL square via `walFromMaidenhead`. A locator outside the WAL grid is left as-is and fails square validation. Shorter/partial input passes through uppercased. The same helper is reused by `@WAL-GO/log-parse` for Cabrillo/ADIF import — see below.
 
-The backend validates WAL codes are valid Lithuanian cells. The contact square may also be `DX` for stations outside WAL territory — this is allowed for any callsign (including `LY` operating abroad, e.g. `YL/LY1JA`). Duplicate detection, scoring, and deletion all apply.
+The backend validates WAL codes are valid Lithuanian cells. Leaving the contact square blank is normal for stations outside WAL territory or when the square is unknown — it just means the QSO can't be confirmed (see [scoring.md](scoring.md)). The legacy literal `DX` is still accepted (older rows, older clients) and behaves identically to blank. Duplicate detection, scoring, and deletion all apply.
 
 In the Add QSO dialog, pressing Space while the callsign field is focused moves focus to **Mano kvadratas** when that field is empty. If it already has a value, focus moves to **Korespondento kvadratas** instead. The space is used only as a navigation shortcut and is not added to the callsign.
 

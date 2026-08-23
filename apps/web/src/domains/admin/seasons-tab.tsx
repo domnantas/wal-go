@@ -20,6 +20,13 @@ import {
 } from "@WAL-GO/ui/components/dialog";
 import { Input } from "@WAL-GO/ui/components/input";
 import { Label } from "@WAL-GO/ui/components/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@WAL-GO/ui/components/select";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
 	Table,
@@ -38,13 +45,22 @@ import { toast } from "sonner";
 import { orpc } from "@/utils/orpc";
 import { MembershipsDialog } from "./memberships-dialog";
 
+type ScoringRuleSet = "alpha" | "beta" | "2026-2027";
+
 interface SeasonRow {
 	endsAt: Date;
 	id: number;
 	name: string;
+	scoringRuleSet: ScoringRuleSet;
 	startsAt: Date;
 	status: "active" | "ended" | "upcoming";
 }
+
+const SCORING_RULE_SET_LABELS: Record<ScoringRuleSet, string> = {
+	alpha: "Alpha",
+	beta: "Beta",
+	"2026-2027": "2026-2027",
+};
 
 const STATUS_LABELS: Record<SeasonRow["status"], string> = {
 	active: "Aktyvus",
@@ -155,6 +171,7 @@ export function SeasonsTab() {
 							<TableHead className="px-4">Pavadinimas</TableHead>
 							<TableHead className="px-4">Pradžia</TableHead>
 							<TableHead className="px-4">Pabaiga</TableHead>
+							<TableHead className="px-4">Taisyklės</TableHead>
 							<TableHead className="px-4">Būsena</TableHead>
 							<TableHead className="px-4 text-right">Veiksmai</TableHead>
 						</TableRow>
@@ -168,6 +185,9 @@ export function SeasonsTab() {
 								</TableCell>
 								<TableCell className="px-4 text-muted-foreground tabular-nums">
 									{formatDateTime(new Date(s.endsAt))}
+								</TableCell>
+								<TableCell className="px-4 text-muted-foreground">
+									{SCORING_RULE_SET_LABELS[s.scoringRuleSet]}
 								</TableCell>
 								<TableCell className="px-4">
 									<span className={STATUS_CLASSES[s.status]}>
@@ -259,6 +279,9 @@ function SeasonFormDialog({
 	const [endsAt, setEndsAt] = useState(
 		season ? toDatetimeLocal(new Date(season.endsAt)) : ""
 	);
+	const [scoringRuleSet, setScoringRuleSet] = useState<ScoringRuleSet>(
+		season?.scoringRuleSet ?? "2026-2027"
+	);
 
 	const listKey = orpc.admin.seasons.list.queryOptions().queryKey;
 
@@ -274,6 +297,7 @@ function SeasonFormDialog({
 						name: data.name,
 						startsAt: startsAtDate,
 						endsAt: endsAtDate,
+						scoringRuleSet: data.scoringRuleSet,
 						status: deriveStatus(startsAtDate, endsAtDate),
 					},
 				]);
@@ -287,7 +311,10 @@ function SeasonFormDialog({
 
 	const update = useMutation(
 		orpc.admin.seasons.update.mutationOptions({
-			onSuccess: (_, { id, name: newName, startsAt: s, endsAt: e }) => {
+			onSuccess: (
+				_,
+				{ id, name: newName, startsAt: s, endsAt: e, scoringRuleSet: rs }
+			) => {
 				const startsAtDate = new Date(s);
 				const endsAtDate = new Date(e);
 				queryClient.setQueryData(
@@ -300,6 +327,7 @@ function SeasonFormDialog({
 										name: newName,
 										startsAt: startsAtDate,
 										endsAt: endsAtDate,
+										scoringRuleSet: rs,
 										status: deriveStatus(startsAtDate, endsAtDate),
 									}
 								: row
@@ -325,9 +353,15 @@ function SeasonFormDialog({
 				name,
 				startsAt: startsAtIso,
 				endsAt: endsAtIso,
+				scoringRuleSet,
 			});
 		} else {
-			create.mutate({ name, startsAt: startsAtIso, endsAt: endsAtIso });
+			create.mutate({
+				name,
+				startsAt: startsAtIso,
+				endsAt: endsAtIso,
+				scoringRuleSet,
+			});
 		}
 	}
 
@@ -377,6 +411,28 @@ function SeasonFormDialog({
 							type="datetime-local"
 							value={endsAt}
 						/>
+					</div>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="season-rule-set">Taisyklių rinkinys</Label>
+						<Select
+							onValueChange={(v) => setScoringRuleSet(v as ScoringRuleSet)}
+							value={scoringRuleSet}
+						>
+							<SelectTrigger id="season-rule-set">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="alpha">
+									{SCORING_RULE_SET_LABELS.alpha}
+								</SelectItem>
+								<SelectItem value="beta">
+									{SCORING_RULE_SET_LABELS.beta}
+								</SelectItem>
+								<SelectItem value="2026-2027">
+									{SCORING_RULE_SET_LABELS["2026-2027"]}
+								</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
 					<DialogFooter>
 						<Button disabled={isPending} type="submit">

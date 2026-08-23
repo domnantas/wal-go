@@ -27,7 +27,7 @@ import {
 	syncQsoScores,
 } from "../scoring/apply-deltas";
 import { computeScoreDrift, EMPTY_SEASON_DRIFT } from "../scoring/drift";
-import { getScoringRuleSet } from "../scoring/index";
+import { getScoringRuleSet, SCORING_RULE_SETS } from "../scoring/index";
 
 const TEAMS = ["yellow", "green", "red"] as const;
 type Team = (typeof TEAMS)[number];
@@ -286,6 +286,7 @@ const listSeasons = adminProcedure.handler(async ({ context }) => {
 		name: row.name,
 		startsAt: row.startsAt,
 		endsAt: row.endsAt,
+		scoringRuleSet: row.scoringRuleSet,
 		status: deriveSeasonStatus(row.startsAt, row.endsAt, now),
 	}));
 });
@@ -294,6 +295,7 @@ const seasonInput = z.object({
 	name: z.string().trim().min(1).max(120),
 	startsAt: z.iso.datetime(),
 	endsAt: z.iso.datetime(),
+	scoringRuleSet: z.enum(SCORING_RULE_SETS),
 });
 
 function validateSeasonDates(startsAt: Date, endsAt: Date) {
@@ -312,7 +314,12 @@ const createSeason = adminProcedure
 		validateSeasonDates(startsAt, endsAt);
 		const rows = await context.db
 			.insert(season)
-			.values({ name: input.name, startsAt, endsAt })
+			.values({
+				name: input.name,
+				startsAt,
+				endsAt,
+				scoringRuleSet: input.scoringRuleSet,
+			})
 			.returning();
 		const row = rows[0];
 		if (!row) {
@@ -329,7 +336,12 @@ const updateSeason = adminProcedure
 		validateSeasonDates(startsAt, endsAt);
 		const rows = await context.db
 			.update(season)
-			.set({ name: input.name, startsAt, endsAt })
+			.set({
+				name: input.name,
+				startsAt,
+				endsAt,
+				scoringRuleSet: input.scoringRuleSet,
+			})
 			.where(eq(season.id, input.id))
 			.returning();
 		if (!rows[0]) {

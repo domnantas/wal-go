@@ -11,7 +11,8 @@ A rule set is a versioned identity, not a per-season flag. Many seasons can shar
 | Value | Seasons | Summary |
 |---|---|---|
 | `alpha` | Alpha season | 1 pt per QSO on operator square. Contact square optional. |
-| `beta` | Beta season | Mode-weighted (1 DIGI / 2 phone-CW) + double on confirmation. Contact square required. |
+| `beta` | Beta season | Mode-weighted (1 DIGI / 2 phone-CW) + double on confirmation. Contact square required. Same-square contacts rejected. |
+| `2026-2027` | 2026-2027 season | Same as `beta`, minus the same-square rejection and the required contact square — both dropped after community pushback. |
 
 Keep this table current when adding a rule set or assigning one to a season.
 
@@ -55,6 +56,12 @@ confirming station gets extra: +base_of_their_own_qso   (they go from 1× to 2×
 
 Because confirmation must be checked per-QSO, beta seasons use per-QSO `scoreInsert` calls inside `commitUpload` instead of the batch `scoreBulkInsert` path. This ensures confirmation bonuses are awarded immediately when importing a log that matches QSOs already on file.
 
+### 2026-2027 Rule Set
+
+Identical to the Beta rule set (`packages/api/src/scoring/season-2026-2027.ts`, cloned from `beta.ts`) except `rejectsSameSquare: false` and `requiresContactSquare: false` — both dropped after community pushback against beta's stricter validation. Mode-weighted points, confirmation, and bulk-import behavior are otherwise unchanged.
+
+Leaving the contact square blank (foreign/DX contact, or square unknown) is now a normal, unmarked input — no `DX` literal needed. It simply means the QSO can never be confirmed (`findConfirmingQso` only runs when `contactSquare` is set), so it scores at 1× instead of 2×. The `DX` literal is still accepted for backward compatibility with existing rows and any client still sending it, but it behaves identically to leaving the field blank — it never matches a real square, so it never confirms either.
+
 ## Per-QSO Score
 
 Each QSO carries its own score, shown in the station log (`/log`) and the admin QSO tab. The value is the points that single QSO contributes to its operator square under the season's rule set:
@@ -87,7 +94,7 @@ Two layers; in both the contact callsign is the **base call** (suffixes/prefixes
 
 - **Exact duplicates** prevent accidental double submission: same user already has the same season, callsign, band, mode, timestamp, operator square, and contact square.
 - **Game duplicates** are scoring rules: only one QSO with the same callsign, band, mode, operator square, and contact square scores per Lithuanian calendar day (`Europe/Vilnius`). Changing either square lets another such QSO score that day.
-- **Same-square contacts**: QSOs where the contact square equals the operator square are rejected when the rule set has `rejectsSameSquare: true` (beta). Enforced in `beta.ts` (`validateInsert`), `validateClientQso` via `RowContext.rejectsSameSquare` (bulk import), the manual form (`getQsoSubmitSchema` with `rejectsSameSquare` prop), and the review dialog (`getBaseStatus` with `rejectsSameSquare` prop). Skip reason: `sameSquare`.
+- **Same-square contacts**: QSOs where the contact square equals the operator square are rejected when the rule set has `rejectsSameSquare: true` (beta only — dropped again in `2026-2027`). Enforced in `beta.ts` (`validateInsert`), `validateClientQso` via `RowContext.rejectsSameSquare` (bulk import), the manual form (`getQsoSubmitSchema` with `rejectsSameSquare` prop), and the review dialog (`getBaseStatus` with `rejectsSameSquare` prop). Skip reason: `sameSquare`.
 
 ## Square Control
 

@@ -604,7 +604,7 @@ export function QsoForm({
 							<Field data-invalid={isInvalid}>
 								<div className="flex items-center justify-between gap-2">
 									<FieldLabel htmlFor="contactSquare">
-										Korespondento kvadratas (arba DX)
+										Korespondento kvadratas
 									</FieldLabel>
 									<FieldDescription>
 										{requiresContactSquare ? "" : "Neprivaloma"}
@@ -625,7 +625,7 @@ export function QsoForm({
 											walOrLocatorValue(event.target.value)
 										);
 									}}
-									placeholder="B12 / DX"
+									placeholder="B12"
 									ref={contactSquareRef}
 									value={field.state.value}
 								/>

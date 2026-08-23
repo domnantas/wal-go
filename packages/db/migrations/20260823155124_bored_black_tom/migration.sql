@@ -1,0 +1,1 @@
+ALTER TYPE "scoring_rule_set" ADD VALUE '2026-2027';
