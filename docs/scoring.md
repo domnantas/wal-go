@@ -206,6 +206,14 @@ When the badge is red, an admin clicks **"Perskaičiuoti"** (`admin.scores.recom
 
 Run it with `pnpm -F @WAL-GO/api backfill:control-history <seasonId> [--dry-run]` (`src/scripts/rebuild-control-history.ts`). `--dry-run` rebuilds inside a transaction and rolls back, printing the row count without writing. Drives the leaderboard control-over-time chart ([leaderboard.md](leaderboard.md)).
 
+### Achievements
+
+`syncQsoScores` ends by calling `syncAchievements`, reconciling materialized operator stats
+and achievement unlocks in the same transaction. Unlike the per-QSO score pass, that step is
+scoped to the users the write touched plus any whose QSOs it rescored — callers pass
+`touchedUserIds` as the third argument; omitting it reconciles the whole season and is reserved
+for recompute and backfill. See [achievements.md](achievements.md).
+
 ## Discord announcements
 
 Square control changes (takeovers) post to Discord. Detection lives in `applyScoreDeltas`, the single chokepoint all score changes pass through. See [discord-announcements.md](discord-announcements.md).

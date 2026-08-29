@@ -10,6 +10,7 @@ import { ORPCError } from "@orpc/server";
 import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
+import { backfillAchievements } from "../achievements/backfill";
 import { uploadNewsletterImage } from "../assets/newsletter-images";
 import { adminProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
@@ -566,7 +567,7 @@ const deleteQso = adminProcedure
 				deltas
 			);
 			await tx.delete(qso).where(eq(qso.id, input.id));
-			await syncQsoScores(tx, qsoRow.seasonId);
+			await syncQsoScores(tx, qsoRow.seasonId, [qsoRow.userId]);
 			return ownershipChanges;
 		});
 
@@ -580,7 +581,7 @@ const deleteQsos = adminProcedure
 	.handler(async ({ context, input }) => {
 		const changes = await context.db.transaction(async (tx) => {
 			const ownershipChanges: OwnershipChange[] = [];
-			const affectedSeasonIds = new Set<number>();
+			const affectedUserIdsBySeason = new Map<number, Set<string>>();
 			for (const id of input.ids) {
 				const existing = await tx
 					.select()
@@ -628,10 +629,18 @@ const deleteQsos = adminProcedure
 					...(await applyScoreDeltas(tx, qsoRow.seasonId, deltas))
 				);
 				await tx.delete(qso).where(eq(qso.id, id));
-				affectedSeasonIds.add(qsoRow.seasonId);
+				const affectedUserIds = affectedUserIdsBySeason.get(qsoRow.seasonId);
+				if (affectedUserIds) {
+					affectedUserIds.add(qsoRow.userId);
+				} else {
+					affectedUserIdsBySeason.set(
+						qsoRow.seasonId,
+						new Set([qsoRow.userId])
+					);
+				}
 			}
-			for (const affectedSeasonId of affectedSeasonIds) {
-				await syncQsoScores(tx, affectedSeasonId);
+			for (const [affectedSeasonId, userIds] of affectedUserIdsBySeason) {
+				await syncQsoScores(tx, affectedSeasonId, [...userIds]);
 			}
 			return ownershipChanges;
 		});
@@ -646,6 +655,20 @@ const recomputeScores = adminProcedure
 			recomputeSeasonScores(tx, input.seasonId)
 		);
 	});
+
+const backfillSeasonAchievements = adminProcedure
+	.input(
+		z.object({
+			seasonId: z.number().int().positive().optional(),
+			dryRun: z.boolean().default(false),
+		})
+	)
+	.handler(({ context, input }) =>
+		backfillAchievements(context.db, {
+			seasonId: input.seasonId,
+			dryRun: input.dryRun,
+		})
+	);
 
 const getDashboard = adminProcedure.handler(async ({ context }) => {
 	const [
@@ -859,6 +882,9 @@ export const adminRouter = {
 	},
 	scores: {
 		recompute: recomputeScores,
+	},
+	achievements: {
+		backfill: backfillSeasonAchievements,
 	},
 	memberships: {
 		list: listMemberships,

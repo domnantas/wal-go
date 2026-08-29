@@ -238,4 +238,57 @@
 			var(--pitch) var(--pitch),
 			100% 100%;
 	}
+
+	/* Perforated stamp edge for elements whose height is not known in advance.
+
+	   .qsl-perforation masks one tiled grid anchored to the top-left, so the
+	   bottom and right rows only land correctly when the box happens to measure
+	   an exact multiple of --pitch. That holds for the fixed-size QSL stamp; it
+	   does not hold for anything sized by its text.
+
+	   Here each edge gets its own strip, repeating along one axis and anchored
+	   to that edge, so the bottom row sits on the bottom whatever the height.
+	   Notches are painted rather than masked — painted background layers stack
+	   without needing mask-composite, which Safari only shipped recently.
+
+	   The trade: notches are painted in --stamp-notch, so the element must sit
+	   on that color. Defaults to the page ground; override when placing a stamp
+	   on a card. */
+	.stamp-perforation {
+		--stamp-hole: 3.5px;
+		--stamp-pitch: 12px;
+		--stamp-notch: var(--background);
+		padding: calc(var(--stamp-pitch) / 2);
+		background-image:
+			radial-gradient(
+				circle var(--stamp-hole) at center,
+				var(--stamp-notch) 95%,
+				transparent
+			),
+			radial-gradient(
+				circle var(--stamp-hole) at center,
+				var(--stamp-notch) 95%,
+				transparent
+			),
+			radial-gradient(
+				circle var(--stamp-hole) at center,
+				var(--stamp-notch) 95%,
+				transparent
+			),
+			radial-gradient(
+				circle var(--stamp-hole) at center,
+				var(--stamp-notch) 95%,
+				transparent
+			);
+		background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+		/* Each tile is offset by half a pitch so hole centers land exactly on the
+		   edge line: top/left from 0, bottom/right from 100% (which resolves
+		   against container minus tile, hence the + half-pitch). */
+		background-position:
+			calc(var(--stamp-pitch) / -2) calc(var(--stamp-pitch) / -2),
+			calc(var(--stamp-pitch) / -2) calc(100% + var(--stamp-pitch) / 2),
+			calc(var(--stamp-pitch) / -2) calc(var(--stamp-pitch) / -2),
+			calc(100% + var(--stamp-pitch) / 2) calc(var(--stamp-pitch) / -2);
+		background-size: var(--stamp-pitch) var(--stamp-pitch);
+	}
 }

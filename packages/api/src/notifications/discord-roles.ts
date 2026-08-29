@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { getCurrentSeason } from "../routers/seasons";
 import type { Team } from "../scoring/control";
 
-type Db = ReturnType<typeof createDb>;
+type Db = Awaited<ReturnType<typeof createDb>>;
 
 const DISCORD_API = "https://discord.com/api/v10";
 const PLATFORM_NAME = "WAL GO";

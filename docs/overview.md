@@ -60,8 +60,12 @@ Unmatched routes render `NotFound` (`components/not-found.tsx`) via `defaultNotF
 
 To keep the game feeling alive, the map and homepage show two liveness signals: an **activity feed** of recent square takeovers and a **map pulse** on squares with a contact in the last 2 hours. See [activity-feed.md](activity-feed.md).
 
+**Operator profiles.** Signed-in users can open any operator's profile at
+`/profile/$callsign` — territory map, career and season stats, and achievements. See
+[profile.md](profile.md) and [achievements.md](achievements.md).
+
 **Player visibility (experiment).** The callsign→team roster used to be a secret hidden during active seasons. It is now visible to **signed-in users** — live individual standings ([leaderboard.md](leaderboard.md)) and callsigns in the square-detail activity feed ([map.md](map.md)). Logged-out visitors keep the anonymized experience (team + square + time, never a callsign) on the public homepage.
 
 ## Related Docs
 
-- [auth.md](auth.md), [seasons.md](seasons.md), [map.md](map.md), [qso-logging.md](qso-logging.md), [scoring.md](scoring.md), [activity-feed.md](activity-feed.md), [design.md](design.md), [rules.md](rules.md), [admin.md](admin.md), [infra.md](infra.md), [db.md](db.md), [discord-announcements.md](discord-announcements.md), [posthog-analytics.md](posthog-analytics.md)
+- [auth.md](auth.md), [seasons.md](seasons.md), [map.md](map.md), [qso-logging.md](qso-logging.md), [scoring.md](scoring.md), [profile.md](profile.md), [achievements.md](achievements.md), [activity-feed.md](activity-feed.md), [design.md](design.md), [rules.md](rules.md), [admin.md](admin.md), [infra.md](infra.md), [db.md](db.md), [discord-announcements.md](discord-announcements.md), [posthog-analytics.md](posthog-analytics.md)

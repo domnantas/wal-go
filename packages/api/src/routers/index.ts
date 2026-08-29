@@ -4,6 +4,7 @@ import { protectedProcedure, publicProcedure } from "../index";
 import { adminRouter } from "./admin";
 import { discordRouter } from "./discord";
 import { newsletterRouter } from "./newsletter";
+import { profileRouter } from "./profile";
 import { qsosRouter } from "./qsos";
 import { scoringRouter } from "./scoring";
 import { seasonsRouter } from "./seasons";
@@ -18,6 +19,7 @@ export const appRouter = {
 	admin: adminRouter,
 	discord: discordRouter,
 	newsletter: newsletterRouter,
+	profile: profileRouter,
 	qsos: qsosRouter,
 	scoring: scoringRouter,
 	seasons: seasonsRouter,

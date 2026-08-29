@@ -28,6 +28,8 @@ The homepage Discord CTA (`apps/web/src/components/discord-qsl-card.tsx`) is sty
 
 QSL paper is physical, so its palette is fixed oklch values via local CSS vars (`--qsl-paper`, `--qsl-ink`, …) — it does **not** follow light/dark theme tokens. Stamp perforation uses the `.qsl-perforation` utility in `globals.css` (two-layer CSS mask: tiled transparent holes along the border ring, solid content box).
 
+`.qsl-perforation` anchors one tiled hole grid to the top-left, so it only resolves cleanly on elements whose size is an exact multiple of `--pitch` — true for this fixed-size stamp. **For elements sized by their content, use `.stamp-perforation` instead**, which anchors each edge's holes to its own edge. See the achievement stamps in [achievements.md](achievements.md).
+
 ## Color roles
 
 - `olive`, `rust`, `golden` — brand and team colors. Use for the logo, team markers, map overlays, chart segments, small identity accents.

@@ -9,7 +9,7 @@ import { cn } from "@WAL-GO/ui/lib/utils";
 import { useSession } from "@better-auth-ui/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { LogOut, Paintbrush, Settings } from "lucide-react";
+import { LogOut, Paintbrush, Settings, Stamp, UserRound } from "lucide-react";
 import { DiscordIcon } from "@/components/discord-icon";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -54,6 +54,22 @@ export function UserButton() {
 			</DropdownMenuTrigger>
 
 			<DropdownMenuContent align="end" sideOffset={6}>
+				<DropdownMenuItem
+					className="cursor-pointer"
+					render={<Link params={{ callsign }} to="/profile/$callsign" />}
+				>
+					<UserRound className="text-muted-foreground" />
+					Mano profilis
+				</DropdownMenuItem>
+
+				<DropdownMenuItem
+					className="cursor-pointer"
+					render={<Link to="/achievements" />}
+				>
+					<Stamp className="text-muted-foreground" />
+					Pasiekimai
+				</DropdownMenuItem>
+
 				<DropdownMenuItem
 					className="cursor-pointer"
 					render={<Link params={{ path: "account" }} to="/settings/$path" />}

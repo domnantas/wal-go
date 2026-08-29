@@ -3,7 +3,7 @@ import {
 	isValidWalSquare,
 	normalizeWalSquare,
 } from "@WAL-GO/grid";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createWalGridFeatureCollection } from "@/lib/wal-grid";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./maplibre-theme.css";
@@ -62,6 +62,7 @@ const WAL_GRID_FILL_LAYER_ID = "wal-grid-fill";
 const WAL_GRID_LINE_LAYER_ID = "wal-grid-lines";
 const WAL_GRID_SELECTED_LINE_LAYER_ID = "wal-grid-selected-line";
 const WAL_GRID_PULSE_LINE_LAYER_ID = "wal-grid-pulse-line";
+const WAL_GRID_WORKED_LINE_LAYER_ID = "wal-grid-worked-line";
 const WAL_GRID_LABEL_LAYER_ID = "wal-grid-labels";
 const WAL_CONTACT_SOURCE_ID = "wal-contact-lines";
 const WAL_CONTACT_LINE_LAYER_ID = "wal-contact-lines-line";
@@ -111,7 +112,24 @@ const CLICKABLE_WAL_GRID_LAYER_IDS = [
 ] as const;
 
 type Team = "yellow" | "green" | "red";
-type SquareControl = Team | "tie" | null;
+// "worked" is the profile overlay's muted tint for a square the operator has
+// contacted at some point but not this season.
+type SquareControl = Team | "tie" | "worked" | null;
+
+/**
+ * What the grid fill means. `control` is the game map: squares tinted by the
+ * team that holds them. `worked` is one operator's footprint: every square they
+ * have ever worked in muted gray, with the current season's squares in their
+ * team color and outlined.
+ */
+export type MapOverlay =
+	| { kind: "control" }
+	| {
+			kind: "worked";
+			allTimeSquares: string[];
+			seasonSquares: string[];
+			team: Team | null;
+	  };
 
 type SquaresData = Array<{
 	code: string;
@@ -126,6 +144,7 @@ interface WalGridTheme {
 	selectedLineColor: string;
 	teamFillColors: Record<Team, string>;
 	tieFillColor: string;
+	workedFillColor: string;
 }
 
 // Precomputed RGB equivalents of design system oklch tokens:
@@ -140,6 +159,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		selectedLineColor: "rgb(255 255 255)",
 		pulseColor: "rgb(255 214 110)",
 		tieFillColor: "rgb(121 121 121)",
+		workedFillColor: "rgb(150 143 133)",
 		teamFillColors: {
 			yellow: "rgb(224, 188, 72)",
 			green: "rgb(106, 165, 82)",
@@ -153,6 +173,7 @@ const WAL_GRID_THEMES: Record<"dark" | "light", WalGridTheme> = {
 		selectedLineColor: "rgb(36 23 15)",
 		pulseColor: "rgb(200 120 40)",
 		tieFillColor: "rgb(148 148 148)",
+		workedFillColor: "rgb(138 130 120)",
 		teamFillColors: {
 			yellow: "rgb(224, 175, 59)",
 			green: "rgb(44, 88, 46)",
@@ -175,14 +196,42 @@ function computeControllingTeam(scores: {
 	return leaders.length === 1 ? leaders[0] : "tie";
 }
 
+/**
+ * Tints one square per the active overlay. Both overlays write the same
+ * `controllingTeam` property so a single fill expression serves them, and the
+ * profile map gets a `seasonWorked` flag for its non-color outline cue.
+ */
+function buildSquareTints(
+	squaresData: SquaresData,
+	overlay: MapOverlay
+): { tints: Map<string, SquareControl>; seasonWorked: Set<string> } {
+	if (overlay.kind === "worked") {
+		const seasonWorked = new Set(overlay.seasonSquares);
+		const tints = new Map<string, SquareControl>();
+		for (const code of overlay.allTimeSquares) {
+			tints.set(code, "worked");
+		}
+		if (overlay.team) {
+			for (const code of seasonWorked) {
+				tints.set(code, overlay.team);
+			}
+		}
+		return { tints, seasonWorked };
+	}
+
+	const tints = new Map<string, SquareControl>();
+	for (const sq of squaresData) {
+		tints.set(sq.code, computeControllingTeam(sq.scores));
+	}
+	return { tints, seasonWorked: new Set<string>() };
+}
+
 function createEnrichedGeoJSON(
 	squaresData: SquaresData,
-	recentSquares: Map<string, Team>
+	recentSquares: Map<string, Team>,
+	overlay: MapOverlay
 ) {
-	const controlMap = new Map<string, SquareControl>();
-	for (const sq of squaresData) {
-		controlMap.set(sq.code, computeControllingTeam(sq.scores));
-	}
+	const { tints, seasonWorked } = buildSquareTints(squaresData, overlay);
 
 	return {
 		...WAL_GRID_GEOJSON,
@@ -190,7 +239,8 @@ function createEnrichedGeoJSON(
 			...feature,
 			properties: {
 				...feature.properties,
-				controllingTeam: controlMap.get(feature.properties.wal) ?? null,
+				controllingTeam: tints.get(feature.properties.wal) ?? null,
+				seasonWorked: seasonWorked.has(feature.properties.wal),
 				recentActivity: recentSquares.has(feature.properties.wal),
 				recentTeam: recentSquares.get(feature.properties.wal) ?? null,
 			},
@@ -201,14 +251,15 @@ function createEnrichedGeoJSON(
 function updateSourceWithTeamData(
 	map: import("maplibre-gl").Map,
 	squaresData: SquaresData,
-	recentSquares: Map<string, Team>
+	recentSquares: Map<string, Team>,
+	overlay: MapOverlay
 ) {
 	const source = map.getSource(WAL_GRID_SOURCE_ID);
 	if (!source || source.type !== "geojson") {
 		return;
 	}
 	(source as import("maplibre-gl").GeoJSONSource).setData(
-		createEnrichedGeoJSON(squaresData, recentSquares) as Parameters<
+		createEnrichedGeoJSON(squaresData, recentSquares, overlay) as Parameters<
 			import("maplibre-gl").GeoJSONSource["setData"]
 		>[0]
 	);
@@ -307,13 +358,18 @@ function fitLithuaniaBounds(map: import("maplibre-gl").Map, reframe: boolean) {
 interface MapViewProps {
 	enableGeolocation?: boolean;
 	onSquareSelect(selectedSquareCode: string | null): void;
+	/** Defaults to the game map's team-control coloring. */
+	overlay?: MapOverlay;
 	seasonId: number | null;
 	selectedSquareCode: string | null;
 }
 
+const CONTROL_OVERLAY: MapOverlay = { kind: "control" };
+
 export function MapView({
 	enableGeolocation = false,
 	onSquareSelect,
+	overlay = CONTROL_OVERLAY,
 	seasonId,
 	selectedSquareCode,
 }: MapViewProps) {
@@ -324,23 +380,29 @@ export function MapView({
 	const [currentSquare, setCurrentSquare] = useState<string | null>(null);
 	const { theme, systemTheme } = useTheme();
 
-	const { data: squaresData } = useQuery(
-		orpc.scoring.squares.queryOptions({
+	// The worked overlay draws one operator's footprint, so none of the live
+	// game data below is read — skip the requests entirely.
+	const isControlOverlay = overlay.kind === "control";
+
+	const { data: squaresData } = useQuery({
+		...orpc.scoring.squares.queryOptions({
 			input: { seasonId: seasonId ?? undefined },
-		})
-	);
+		}),
+		enabled: isControlOverlay,
+	});
 
 	const squaresDataRef = useRef(squaresData);
 	useEffect(() => {
 		squaresDataRef.current = squaresData;
 	}, [squaresData]);
 
-	const { data: recentSquares } = useQuery(
-		orpc.scoring.recentSquares.queryOptions({
+	const { data: recentSquares } = useQuery({
+		...orpc.scoring.recentSquares.queryOptions({
 			input: { seasonId: seasonId ?? undefined },
 			refetchInterval: 60_000,
-		})
-	);
+		}),
+		enabled: isControlOverlay,
+	});
 
 	const recentSquaresRef = useRef<Map<string, Team>>(new Map());
 	useEffect(() => {
@@ -351,13 +413,36 @@ export function MapView({
 
 	const hasRecentSquares = (recentSquares?.length ?? 0) > 0;
 
+	const overlayRef = useRef(overlay);
+	useEffect(() => {
+		overlayRef.current = overlay;
+	}, [overlay]);
+
+	// Single repaint path for both overlays. The worked overlay has no
+	// squaresData, so painting is driven by the overlay itself rather than by
+	// the arrival of game data.
+	const paintSquares = useCallback((map: import("maplibre-gl").Map) => {
+		const data = squaresDataRef.current;
+		const activeOverlay = overlayRef.current;
+		if (activeOverlay.kind === "control" && !data) {
+			return;
+		}
+		updateSourceWithTeamData(
+			map,
+			data ?? [],
+			recentSquaresRef.current,
+			activeOverlay
+		);
+	}, []);
+
 	// Anonymized operator→contact pairs; public, so lines show on the logged-out map.
-	const { data: contacts } = useQuery(
-		orpc.scoring.recentContactLines.queryOptions({
+	const { data: contacts } = useQuery({
+		...orpc.scoring.recentContactLines.queryOptions({
 			input: { seasonId: seasonId ?? undefined },
 			refetchInterval: 60_000,
-		})
-	);
+		}),
+		enabled: isControlOverlay,
+	});
 
 	const contactsRef = useRef<ContactLine[]>([]);
 	useEffect(() => {
@@ -390,10 +475,7 @@ export function MapView({
 			addWalGridLayers(map, walGridTheme);
 			updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
 			updateContactLines(map, contactsRef.current);
-			const data = squaresDataRef.current;
-			if (data) {
-				updateSourceWithTeamData(map, data, recentSquaresRef.current);
-			}
+			paintSquares(map);
 		};
 
 		map.once("style.load", handleStyleLoad);
@@ -406,20 +488,11 @@ export function MapView({
 
 	useEffect(() => {
 		const map = mapRef.current;
-		if (!(map && squaresData)) {
+		if (!map) {
 			return;
 		}
-		updateSourceWithTeamData(map, squaresData, recentSquaresRef.current);
-	}, [squaresData]);
-
-	useEffect(() => {
-		const map = mapRef.current;
-		const data = squaresDataRef.current;
-		if (!(map && data)) {
-			return;
-		}
-		updateSourceWithTeamData(map, data, recentSquaresRef.current);
-	}, [recentSquares]);
+		paintSquares(map);
+	}, [squaresData, recentSquares, overlay, paintSquares]);
 
 	// Pulse the recent-activity outline by oscillating its opacity. MapLibre
 	// can't animate paint via CSS, so drive it with requestAnimationFrame — each
@@ -588,10 +661,7 @@ export function MapView({
 				addWalGridLayers(map, walGridTheme);
 				updateSelectedSquareFilter(map, selectedSquareCodeRef.current);
 				updateContactLines(map, contactsRef.current);
-				const data = squaresDataRef.current;
-				if (data) {
-					updateSourceWithTeamData(map, data, recentSquaresRef.current);
-				}
+				paintSquares(map);
 			});
 
 			map.on("click", (event) => {
@@ -676,7 +746,16 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 		theme.teamFillColors.red,
 		"tie",
 		theme.tieFillColor,
+		"worked",
+		theme.workedFillColor,
 		"transparent",
+	] as unknown as import("maplibre-gl").ExpressionSpecification;
+
+	const fillOpacityExpression = [
+		"case",
+		["==", ["get", "controllingTeam"], "worked"],
+		0.28,
+		0.4,
 	] as unknown as import("maplibre-gl").ExpressionSpecification;
 
 	if (map.getLayer(WAL_GRID_FILL_LAYER_ID)) {
@@ -685,7 +764,11 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 			"fill-color",
 			fillColorExpression
 		);
-		map.setPaintProperty(WAL_GRID_FILL_LAYER_ID, "fill-opacity", 0.4);
+		map.setPaintProperty(
+			WAL_GRID_FILL_LAYER_ID,
+			"fill-opacity",
+			fillOpacityExpression
+		);
 	} else {
 		map.addLayer({
 			id: WAL_GRID_FILL_LAYER_ID,
@@ -693,7 +776,30 @@ function addWalGridLayers(map: import("maplibre-gl").Map, theme: WalGridTheme) {
 			source: WAL_GRID_SOURCE_ID,
 			paint: {
 				"fill-color": fillColorExpression,
-				"fill-opacity": 0.4,
+				"fill-opacity": fillOpacityExpression,
+			},
+		});
+	}
+
+	// Non-color cue for the profile overlay: this season's squares are outlined,
+	// so team identity never rests on the fill hue alone. No feature carries
+	// seasonWorked on the control map, so the filter hides the layer there.
+	if (map.getLayer(WAL_GRID_WORKED_LINE_LAYER_ID)) {
+		map.setPaintProperty(
+			WAL_GRID_WORKED_LINE_LAYER_ID,
+			"line-color",
+			fillColorExpression
+		);
+	} else {
+		map.addLayer({
+			id: WAL_GRID_WORKED_LINE_LAYER_ID,
+			type: "line",
+			source: WAL_GRID_SOURCE_ID,
+			filter: ["==", ["get", "seasonWorked"], true],
+			paint: {
+				"line-color": fillColorExpression,
+				"line-opacity": 0.95,
+				"line-width": 2,
 			},
 		});
 	}

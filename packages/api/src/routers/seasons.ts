@@ -5,11 +5,12 @@ import { and, asc, count, eq, gte, lte } from "drizzle-orm";
 import { protectedProcedure, publicProcedure } from "../index";
 import { syncRoleConnectionInBackground } from "../notifications/discord-roles";
 import { getScoringRuleSet } from "../scoring/index";
+import type { Tx } from "../scoring/types";
 
 const TEAMS = ["yellow", "green", "red"] as const;
 type Team = (typeof TEAMS)[number];
 
-type Db = ReturnType<typeof createDb>;
+type Db = Awaited<ReturnType<typeof createDb>>;
 
 export async function getCurrentSeason(db: Db) {
 	const now = new Date();
@@ -21,7 +22,7 @@ export async function getCurrentSeason(db: Db) {
 	return rows[0] ?? null;
 }
 
-async function pickWeightedTeam(db: Db, seasonId: string): Promise<Team> {
+async function pickWeightedTeam(db: Db | Tx, seasonId: number): Promise<Team> {
 	const rows = await db
 		.select({ team: seasonMembership.team, count: count() })
 		.from(seasonMembership)

@@ -16,7 +16,7 @@ import {
 } from "@WAL-GO/ui/components/table";
 import { sessionOptions } from "@better-auth-ui/react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Trophy } from "lucide-react";
 import { useState } from "react";
 import { MapView } from "@/domains/map/map-view";
@@ -206,7 +206,13 @@ function RouteComponent() {
 											{index + 1}
 										</TableCell>
 										<TableCell className="font-mono font-semibold">
-											{row.callsign}
+											<Link
+												className="underline-offset-4 hover:underline"
+												params={{ callsign: row.callsign }}
+												to="/profile/$callsign"
+											>
+												{row.callsign}
+											</Link>
 										</TableCell>
 										<TableCell>
 											<span className="flex items-center gap-2">

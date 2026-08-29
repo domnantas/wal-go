@@ -429,7 +429,7 @@ const create = protectedProcedure
 
 			const deltas = await ruleSet.scoreInsert(tx, insertParams);
 			const changes = await applyScoreDeltas(tx, currentSeason.id, deltas);
-			await syncQsoScores(tx, currentSeason.id);
+			await syncQsoScores(tx, currentSeason.id, [userId]);
 
 			return { payload: serializeQso(created), changes };
 		});
@@ -576,7 +576,7 @@ const update = protectedProcedure
 				...deleteDeltas,
 				...insertDeltas,
 			]);
-			await syncQsoScores(tx, qsoRow.seasonId);
+			await syncQsoScores(tx, qsoRow.seasonId, [qsoRow.userId]);
 
 			return { payload: serializeQso(updated), changes };
 		});
@@ -647,7 +647,7 @@ const deleteQso = protectedProcedure
 			const changes = await applyScoreDeltas(tx, qsoRow.seasonId, deltas);
 
 			await tx.delete(qso).where(eq(qso.id, input.id));
-			await syncQsoScores(tx, qsoRow.seasonId);
+			await syncQsoScores(tx, qsoRow.seasonId, [qsoRow.userId]);
 
 			return { payload: serializeQso(qsoRow), changes };
 		});
@@ -880,7 +880,11 @@ async function applyBulkScoreDeltas(
 		ruleSet,
 		toInsert
 	);
-	await syncQsoScores(tx, seasonId);
+	await syncQsoScores(
+		tx,
+		seasonId,
+		toInsert.map((params) => params.userId)
+	);
 	return changes;
 }
 

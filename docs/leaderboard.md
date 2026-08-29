@@ -102,6 +102,10 @@ box is the reusable `SeasonWinnerHero` component
 (`domains/season/team-standing-card.tsx`, `showPoints` toggles the points line), shared by
 the leaderboard and homepage.
 
+Every callsign in the individual standings table links to that operator's profile
+([profile.md](profile.md)).
+
 ## Related Docs
 
-- [scoring.md](scoring.md), [seasons.md](seasons.md), [overview.md](overview.md)
+- [scoring.md](scoring.md), [seasons.md](seasons.md), [profile.md](profile.md),
+  [overview.md](overview.md)

@@ -7,6 +7,8 @@ import {
 } from "@WAL-GO/db/schema/scoring";
 import { season } from "@WAL-GO/db/schema/seasons";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
+import type { AchievementUnlock } from "../achievements/evaluate";
+import { syncAchievements } from "../achievements/evaluate";
 import { computeLeader, type Team } from "./control";
 import { getScoringRuleSet } from "./index";
 import type { ScoreDelta, Tx } from "./types";
@@ -259,8 +261,19 @@ export async function applyScoreDeltas(
  * actually changed keeps this correct without bespoke per-path delta logic.
  * Banned users' QSOs are absent from the rule set's map and reconcile to 0,
  * matching their removal from the aggregate score tables.
+ *
+ * `touchedUserIds` names the operators the calling write acted on. The
+ * achievement pass is scoped to them plus every operator whose QSO rows this
+ * sync actually rescored — which is what picks up the counterpart of a
+ * confirmation flip. Omit it only to reconcile the whole season (recompute,
+ * backfill): a season-wide pass rebuilds season *and* career aggregates for
+ * every operator in the season, far too much work for a single logged QSO.
  */
-export async function syncQsoScores(tx: Tx, seasonId: number): Promise<void> {
+export async function syncQsoScores(
+	tx: Tx,
+	seasonId: number,
+	touchedUserIds?: string[]
+): Promise<AchievementUnlock[]> {
 	const seasonRows = await tx
 		.select({ scoringRuleSet: season.scoringRuleSet })
 		.from(season)
@@ -272,15 +285,22 @@ export async function syncQsoScores(tx: Tx, seasonId: number): Promise<void> {
 	const scores = await ruleSet.scoreSeasonQsos(tx as unknown as Db, seasonId);
 
 	const stored = await tx
-		.select({ id: qso.id, score: qso.score, confirmed: qso.confirmed })
+		.select({
+			id: qso.id,
+			score: qso.score,
+			confirmed: qso.confirmed,
+			userId: qso.userId,
+		})
 		.from(qso)
 		.where(eq(qso.seasonId, seasonId));
 
+	const rescoredUserIds = new Set<string>();
 	for (const row of stored) {
 		const target = scores.get(row.id) ?? { points: 0, confirmed: false };
 		if (row.score === target.points && row.confirmed === target.confirmed) {
 			continue;
 		}
+		rescoredUserIds.add(row.userId);
 		await tx
 			.update(qso)
 			.set({
@@ -291,6 +311,16 @@ export async function syncQsoScores(tx: Tx, seasonId: number): Promise<void> {
 			})
 			.where(eq(qso.id, row.id));
 	}
+
+	// Achievements read the per-QSO scores written above, so they reconcile last
+	// — in the same transaction, from the same chokepoint, for the same reason.
+	return syncAchievements(
+		tx,
+		seasonId,
+		touchedUserIds === undefined
+			? undefined
+			: [...new Set([...touchedUserIds, ...rescoredUserIds])]
+	);
 }
 
 export async function recomputeSeasonScores(
@@ -439,7 +469,7 @@ export async function applyUserBanScoreChange(
 			}));
 
 			changesBySeason.push(await applyScoreDeltas(tx, s.id, deltas));
-			await syncQsoScores(tx, s.id);
+			await syncQsoScores(tx, s.id, [userId]);
 		}
 	}
 

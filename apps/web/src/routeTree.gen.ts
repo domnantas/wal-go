@@ -17,8 +17,10 @@ import { Route as LogRouteImport } from './routes/log'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as JoinSeasonRouteImport } from './routes/join-season'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsPathRouteImport } from './routes/settings/$path'
+import { Route as ProfileCallsignRouteImport } from './routes/profile.$callsign'
 import { Route as IngestSplatRouteImport } from './routes/ingest/$'
 import { Route as AuthPathRouteImport } from './routes/auth/$path'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
@@ -65,6 +67,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -73,6 +80,11 @@ const IndexRoute = IndexRouteImport.update({
 const SettingsPathRoute = SettingsPathRouteImport.update({
   id: '/settings/$path',
   path: '/settings/$path',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileCallsignRoute = ProfileCallsignRouteImport.update({
+  id: '/profile/$callsign',
+  path: '/profile/$callsign',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IngestSplatRoute = IngestSplatRouteImport.update({
@@ -103,6 +115,7 @@ const ApiAdifExportRoute = ApiAdifExportRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/join-season': typeof JoinSeasonRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -113,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe': typeof UnsubscribeRoute
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
+  '/profile/$callsign': typeof ProfileCallsignRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/adif/export': typeof ApiAdifExportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -120,6 +134,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/join-season': typeof JoinSeasonRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -130,6 +145,7 @@ export interface FileRoutesByTo {
   '/unsubscribe': typeof UnsubscribeRoute
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
+  '/profile/$callsign': typeof ProfileCallsignRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/adif/export': typeof ApiAdifExportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -138,6 +154,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/achievements': typeof AchievementsRoute
   '/admin': typeof AdminRoute
   '/join-season': typeof JoinSeasonRoute
   '/leaderboard': typeof LeaderboardRoute
@@ -148,6 +165,7 @@ export interface FileRoutesById {
   '/unsubscribe': typeof UnsubscribeRoute
   '/auth/$path': typeof AuthPathRoute
   '/ingest/$': typeof IngestSplatRoute
+  '/profile/$callsign': typeof ProfileCallsignRoute
   '/settings/$path': typeof SettingsPathRoute
   '/api/adif/export': typeof ApiAdifExportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -157,6 +175,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/achievements'
     | '/admin'
     | '/join-season'
     | '/leaderboard'
@@ -167,6 +186,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/auth/$path'
     | '/ingest/$'
+    | '/profile/$callsign'
     | '/settings/$path'
     | '/api/adif/export'
     | '/api/auth/$'
@@ -174,6 +194,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/achievements'
     | '/admin'
     | '/join-season'
     | '/leaderboard'
@@ -184,6 +205,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/auth/$path'
     | '/ingest/$'
+    | '/profile/$callsign'
     | '/settings/$path'
     | '/api/adif/export'
     | '/api/auth/$'
@@ -191,6 +213,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/achievements'
     | '/admin'
     | '/join-season'
     | '/leaderboard'
@@ -201,6 +224,7 @@ export interface FileRouteTypes {
     | '/unsubscribe'
     | '/auth/$path'
     | '/ingest/$'
+    | '/profile/$callsign'
     | '/settings/$path'
     | '/api/adif/export'
     | '/api/auth/$'
@@ -209,6 +233,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AchievementsRoute: typeof AchievementsRoute
   AdminRoute: typeof AdminRoute
   JoinSeasonRoute: typeof JoinSeasonRoute
   LeaderboardRoute: typeof LeaderboardRoute
@@ -219,6 +244,7 @@ export interface RootRouteChildren {
   UnsubscribeRoute: typeof UnsubscribeRoute
   AuthPathRoute: typeof AuthPathRoute
   IngestSplatRoute: typeof IngestSplatRoute
+  ProfileCallsignRoute: typeof ProfileCallsignRoute
   SettingsPathRoute: typeof SettingsPathRoute
   ApiAdifExportRoute: typeof ApiAdifExportRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -283,6 +309,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -295,6 +328,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/$path'
       fullPath: '/settings/$path'
       preLoaderRoute: typeof SettingsPathRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$callsign': {
+      id: '/profile/$callsign'
+      path: '/profile/$callsign'
+      fullPath: '/profile/$callsign'
+      preLoaderRoute: typeof ProfileCallsignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ingest/$': {
@@ -337,6 +377,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AchievementsRoute: AchievementsRoute,
   AdminRoute: AdminRoute,
   JoinSeasonRoute: JoinSeasonRoute,
   LeaderboardRoute: LeaderboardRoute,
@@ -347,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeRoute: UnsubscribeRoute,
   AuthPathRoute: AuthPathRoute,
   IngestSplatRoute: IngestSplatRoute,
+  ProfileCallsignRoute: ProfileCallsignRoute,
   SettingsPathRoute: SettingsPathRoute,
   ApiAdifExportRoute: ApiAdifExportRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
