@@ -2,6 +2,7 @@ import { cn } from "@WAL-GO/ui/lib/utils";
 import { useAuth } from "@better-auth-ui/react";
 import type { ComponentProps } from "react";
 import { Appearance } from "./appearance";
+import { ChangeAvatar } from "./change-avatar";
 import { ChangeEmail } from "./change-email";
 import { ManageAccounts } from "./manage-accounts";
 
@@ -25,6 +26,7 @@ export function AccountSettings({
 			className={cn("flex w-full flex-col gap-4 md:gap-6", className)}
 			{...props}
 		>
+			<ChangeAvatar />
 			{(emailAndPassword?.enabled || hasMagicLink) && <ChangeEmail />}
 			{hasTheme && <Appearance />}
 			{hasMultiSession && <ManageAccounts />}

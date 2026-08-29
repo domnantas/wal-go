@@ -7,6 +7,17 @@ import { type ReactNode, useEffect } from "react";
 import { useTheme } from "tanstack-theme-kit";
 
 import { authClient } from "@/lib/auth-client";
+import { client } from "@/utils/orpc";
+
+// Avatars are resized client-side to 256px WEBP, then stored in the public R2
+// bucket through ORPC (see packages/api/src/assets/avatars.ts). `user.image`
+// holds the returned URL.
+const avatarConfig = {
+	extension: "webp",
+	size: 256,
+	upload: (file: File) => client.account.avatar.upload({ image: file }),
+	delete: (url: string) => client.account.avatar.delete({ url }),
+} as const;
 
 function PHProvider({ children }: React.PropsWithChildren) {
 	const token = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
@@ -55,6 +66,7 @@ export function Providers({ children }: { children: ReactNode }) {
 		<PHProvider>
 			<AuthProvider
 				authClient={authClient}
+				avatar={avatarConfig}
 				emailAndPassword={{
 					requireEmailVerification: true,
 				}}
@@ -100,8 +112,13 @@ export function Providers({ children }: { children: ReactNode }) {
 						accountUnlinked: "Paskyra atsieta",
 						active: "Aktyvi",
 						activeSessions: "Aktyvios sesijos",
-						avatar: "Avataras",
+						avatar: "Profilio nuotrauka",
+						avatarChangedSuccess: "Profilio nuotrauka sėkmingai pakeista",
+						avatarDeletedSuccess: "Profilio nuotrauka sėkmingai ištrinta",
+						changeAvatar: "Keisti profilio nuotrauką",
 						currentSession: "Dabartinė sesija",
+						deleteAvatar: "Ištrinti profilio nuotrauką",
+						uploadAvatar: "Įkelti profilio nuotrauką",
 						link: "Susieti",
 						linkedAccounts: "Susietos paskyros",
 						linkProvider: "Susieti jūsų {{provider}} paskyrą",

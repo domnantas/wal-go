@@ -4,13 +4,15 @@ declare global {
 	interface CloudflareEnv {
 		// Static key for the public ADIF export API (see docs/qso-logging.md).
 		ADIF_EXPORT_API_KEY?: string;
-		// Public R2 bucket for newsletter images (see infra alchemy.run.ts).
-		// Typed with just the `put` we use; the runtime binding is a full R2Bucket.
+		// Public R2 bucket for newsletter images and avatars (see infra alchemy.run.ts).
 		ASSETS_BUCKET?: {
+			delete(key: string): Promise<void>;
 			put(
 				key: string,
 				value: ArrayBuffer | ArrayBufferView | ReadableStream | string,
-				options?: { httpMetadata?: { contentType?: string } }
+				options?: {
+					httpMetadata?: { cacheControl?: string; contentType?: string };
+				}
 			): Promise<unknown>;
 		};
 		BETTER_AUTH_SECRET: string;

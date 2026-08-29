@@ -5,7 +5,8 @@
 
 import { ORPCError } from "@orpc/server";
 
-const PUBLIC_BASE_URL = "https://assets.walgo.lt";
+import { getAssetsBucket, PUBLIC_ASSETS_BASE_URL } from "./bucket";
+
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 const EXTENSION_BY_TYPE: Record<string, string> = {
@@ -14,29 +15,6 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
 	"image/webp": "webp",
 	"image/gif": "gif",
 };
-
-interface AssetsBucket {
-	put(
-		key: string,
-		value: ArrayBuffer,
-		options?: { httpMetadata?: { contentType?: string } }
-	): Promise<unknown>;
-}
-
-// Resolve the binding the same way `@WAL-GO/db` resolves Hyperdrive: a lazy
-// string-specifier import so bundlers outside the Worker runtime don't choke.
-async function getAssetsBucket(): Promise<AssetsBucket | undefined> {
-	try {
-		const mod = "cloudflare:workers";
-		/* @vite-ignore */
-		const { env } = (await import(mod)) as {
-			env: { ASSETS_BUCKET?: AssetsBucket };
-		};
-		return env.ASSETS_BUCKET;
-	} catch {
-		return;
-	}
-}
 
 export async function uploadNewsletterImage(file: File): Promise<string> {
 	const extension = EXTENSION_BY_TYPE[file.type];
@@ -63,5 +41,5 @@ export async function uploadNewsletterImage(file: File): Promise<string> {
 		httpMetadata: { contentType: file.type },
 	});
 
-	return `${PUBLIC_BASE_URL}/${key}`;
+	return `${PUBLIC_ASSETS_BASE_URL}/${key}`;
 }

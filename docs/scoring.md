@@ -75,7 +75,7 @@ Confirmation is **symmetric** — both sides of a confirmed pair independently s
 
 The per-QSO score is materialized on the `qso` row (`score` integer, `confirmed` boolean) instead of computed on every read. `qsos.list` and `admin.qsos.list` select the columns directly.
 
-The columns are maintained by `syncQsoScores(tx, seasonId)` (`apply-deltas.ts`), called inside the transaction of **every** write that can change scoring: `qsos.create` / `update` / `delete`, bulk import (`applyBulkScoreDeltas`), `admin.qsos.delete` / `deleteMany`, and `recomputeSeasonScores` (which covers ban/unban). It is the single reconciliation point:
+The columns are maintained by `syncQsoScores(tx, seasonId)` (`apply-deltas.ts`), called inside the transaction of **every** write that can change scoring: `qsos.create` / `update` / `delete`, bulk import (`applyBulkScoreDeltas`), `admin.qsos.delete` / `deleteMany`, and `admin.scores.recompute` (which runs it season-wide right after `recomputeSeasonScores`, covering ban/unban and past-season backfill). It is the single reconciliation point:
 
 1. Run `ruleSet.scoreSeasonQsos(tx, seasonId)` — `Map<qsoId, { points, confirmed }>` for every non-banned QSO. Beta reuses the same confirmation detection as `computeExpectedScores` (extracted into `detectConfirmedIds`), so materialized values always match awarded aggregate points.
 2. Diff against the stored columns and `UPDATE` only the rows that changed (preserving `updatedAt` — a scoring sync is not a user edit).

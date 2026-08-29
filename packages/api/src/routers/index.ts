@@ -1,6 +1,7 @@
 import type { RouterClient } from "@orpc/server";
 
 import { protectedProcedure, publicProcedure } from "../index";
+import { accountRouter } from "./account";
 import { adminRouter } from "./admin";
 import { discordRouter } from "./discord";
 import { newsletterRouter } from "./newsletter";
@@ -16,6 +17,7 @@ export const appRouter = {
 		message: "This is private",
 		user: context.session?.user,
 	})),
+	account: accountRouter,
 	admin: adminRouter,
 	discord: discordRouter,
 	newsletter: newsletterRouter,

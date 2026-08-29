@@ -9,6 +9,9 @@
       "default": "./src/*.ts"
     }
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "dependencies": {
     "@WAL-GO/callsign": "workspace:*",
     "@WAL-GO/auth": "workspace:*",
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@WAL-GO/config": "workspace:*",
     "tsx": "^4.21.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

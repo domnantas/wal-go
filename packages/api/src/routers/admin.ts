@@ -651,9 +651,12 @@ const deleteQsos = adminProcedure
 const recomputeScores = adminProcedure
 	.input(z.object({ seasonId: z.number().int().positive() }))
 	.handler(async ({ context, input }) => {
-		await context.db.transaction((tx) =>
-			recomputeSeasonScores(tx, input.seasonId)
-		);
+		await context.db.transaction(async (tx) => {
+			await recomputeSeasonScores(tx, input.seasonId);
+			// Aggregates alone leave the per-QSO score/confirmed columns stale —
+			// past seasons never get a write to sync them.
+			await syncQsoScores(tx, input.seasonId);
+		});
 	});
 
 const backfillSeasonAchievements = adminProcedure

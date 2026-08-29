@@ -76,6 +76,55 @@ All password inputs have a show/hide eye button (`Eye`/`EyeOff` from `lucide-rea
 
 Covers: sign-in (`sign-in.tsx`), sign-up + confirm (`sign-up.tsx`), change-password current + new + confirm (`settings/security/change-password.tsx`), reset-password + confirm (`reset-password.tsx`). Email fields stay plain `Input`.
 
+## Avatars
+
+Operators set a profile picture in `/settings/account` (`ChangeAvatar`,
+`packages/ui/src/components/settings/account/change-avatar.tsx` — the only card besides
+change-email and appearance; the callsign itself stays uneditable). The picked file is
+resized client-side by better-auth-ui to a **256px square WEBP**, uploaded, and the returned
+URL is written to `user.image` via `updateUser`.
+
+Wiring lives in `AuthProvider`'s `avatar` config (`apps/web/src/components/providers.tsx`):
+
+```ts
+avatar={{ extension: "webp", size: 256, upload, delete }}
+```
+
+Both callbacks go through ORPC, so `packages/ui` stays storage-agnostic.
+
+- **Storage** — the same public R2 bucket as newsletter images (`ASSETS_BUCKET`,
+  `https://assets.walgo.lt`; see [newsletter.md](newsletter.md#images)). The binding
+  resolver is shared in `packages/api/src/assets/bucket.ts`.
+- **Upload** — `packages/api/src/assets/avatars.ts` (`uploadAvatar`) validates the declared
+  type and matching file signature (PNG/JPG/WEBP), enforces a 512 KiB post-resize limit, and
+  writes `avatars/{userId}/{uuid}.{ext}`. Keys are **per-upload**, unlike newsletter keys, so
+  a changed avatar is never served from cache under an old URL. Avatar responses use a
+  five-minute public cache lifetime to bound how long a deleted object may remain in CDN cache.
+  Uploads are limited to 10 per operator per hour through the shared database rate limiter.
+- **Deletion** — `deleteAvatar` only removes keys under the caller's own
+  `avatars/{userId}/` prefix, so a forged URL cannot reach another operator's avatar or a
+  newsletter image. On replacement, the UI uploads the new object, updates `user.image`, and
+  only then deletes the previous object. If the account update fails, it deletes the newly
+  uploaded object instead. The "Ištrinti avatarą" menu item likewise clears `user.image`
+  before deleting the stored object. Missing storage is reported as an error rather than
+  silently treated as a successful deletion.
+- **Endpoints** — `account.avatar.upload` / `account.avatar.delete`
+  (`packages/api/src/routers/account.ts`), both `protectedProcedure`; the upload takes a
+  `File` and returns the public URL.
+
+The public domain is attached in **prod only**, so uploads from local dev or a preview deploy
+write to the bucket but produce URLs that resolve nowhere — the same limitation newsletter
+images have.
+
+Rendered by `UserAvatar` (`packages/ui/src/components/user/user-avatar.tsx`), which falls
+back to the first two characters of the callsign, and on the profile masthead
+([profile.md](profile.md)).
+
+The settings control accepts PNG, JPG, and WEBP files, exposes an action-specific accessible
+name on the clickable avatar, keeps the current image visible under a busy indicator, and
+stacks the avatar and action on narrow screens. File selection still immediately applies the
+library's centered square resize; there is no crop-review step.
+
 ## Rate limiting
 
 Better Auth's built-in rate limiting is enabled with `storage: "database"` so state persists across Workers isolates (in-memory is per-isolate). Stored in the `rate_limit` table (`packages/db/src/schema/auth.ts`). Built-in rules (per IP):

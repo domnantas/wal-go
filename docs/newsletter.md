@@ -95,8 +95,10 @@ in every already-sent newsletter.
   preview deploys share the binding without a domain). Typed minimally on
   `CloudflareEnv` in `packages/env/env.d.ts`.
 - **Upload** — `packages/api/src/assets/newsletter-images.ts`
-  (`uploadNewsletterImage`) resolves the binding lazily via `cloudflare:workers`
-  (same pattern as `@WAL-GO/db`/`sendEmail`), validates type
+  (`uploadNewsletterImage`) resolves the binding through
+  `packages/api/src/assets/bucket.ts` (`getAssetsBucket`, a lazy
+  `cloudflare:workers` import — same pattern as `@WAL-GO/db`/`sendEmail`;
+  operator avatars share it, see [auth.md](auth.md#avatars)), validates type
   (PNG/JPG/WEBP/GIF) and size (≤ 5 MB), writes the object under an **immutable
   key** (`newsletter/{uuid}.{ext}` — never overwritten or deleted, so old
   newsletters never break), and returns the `assets.walgo.lt` URL.

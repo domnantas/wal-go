@@ -71,10 +71,9 @@ A `graticule` panel sits behind the content, radially masked so it fades out to 
 A team-colored wash was tried here and removed — the team already reads from the dot in the
 meta line, and tinting the masthead only muddied the graticule.
 
-**Avatar upload is not enabled.** `user.image` exists in the auth schema and better-auth-ui
-ships an avatar uploader, but `AuthProvider` is not passed an `avatar` prop, so nothing
-currently writes the column. The profile renders whatever is there and falls back cleanly.
-Enabling upload needs a storage backend and is not part of this feature.
+The avatar comes from `user.image`, set in `/settings/account` and stored in the public R2
+bucket (see [auth.md](auth.md#avatars)). With no picture, the fallback is the first two
+characters of the callsign in mono.
 
 ### Map (`domains/profile/profile-map.tsx`)
 
