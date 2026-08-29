@@ -1,4 +1,9 @@
 import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "@WAL-GO/ui/components/avatar";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -36,6 +41,7 @@ export function UserButton() {
 	}
 
 	const callsign = session.user.name;
+	const image = session.user.image;
 	const team = membership?.team as Team | undefined;
 
 	const pillBorder = team ? TEAM_PILL_CLASSES[team] : "border-border";
@@ -44,10 +50,16 @@ export function UserButton() {
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				className={cn(
-					"inline-flex items-center rounded-full border-2 bg-card px-3 py-1 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
+					"inline-flex items-center gap-2 rounded-full border-2 bg-card py-1 pr-3 pl-1 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30",
 					pillBorder
 				)}
 			>
+				<Avatar className="size-6 shrink-0">
+					{image && <AvatarImage alt="" src={image} />}
+					<AvatarFallback className="bg-muted font-mono font-semibold text-[10px]">
+						{callsign.slice(0, 2)}
+					</AvatarFallback>
+				</Avatar>
 				<span className="font-semibold text-foreground text-sm">
 					{callsign}
 				</span>

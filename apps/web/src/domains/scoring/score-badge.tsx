@@ -3,7 +3,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@WAL-GO/ui/components/tooltip";
-import { Check } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 
 export function ScoreBadge({
 	confirmed,
@@ -18,10 +18,10 @@ export function ScoreBadge({
 			{confirmed ? (
 				<Tooltip>
 					<TooltipTrigger
-						className="inline-flex items-center rounded-full bg-green-500/15 p-0.5 text-green-600"
+						className="inline-flex items-center text-olive"
 						render={<span />}
 					>
-						<Check className="size-3" />
+						<BadgeCheck aria-label="Patvirtinta" className="size-4" />
 					</TooltipTrigger>
 					<TooltipContent>Patvirtintas ryšys – dvigubi taškai</TooltipContent>
 				</Tooltip>

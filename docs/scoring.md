@@ -69,7 +69,7 @@ Each QSO carries its own score, shown in the station log (`/log`) and the admin 
 - **Alpha**: always `1`.
 - **Beta**: `base × (confirmed ? 2 : 1)`, i.e. `1`, `2`, or `4`.
 
-Confirmation is **symmetric** — both sides of a confirmed pair independently show their own doubled value, so a confirmed QSO needs no special "shared" representation. A confirmed QSO is marked with a green checkmark badge next to the score (tooltip explains the doubled points).
+Confirmation is **symmetric** — both sides of a confirmed pair independently show their own doubled value, so a confirmed QSO needs no special "shared" representation. A confirmed QSO is marked with an olive `BadgeCheck` icon next to the score (tooltip explains the doubled points) — the same mark used on the profile recent-QSO table.
 
 ### Materialization
 

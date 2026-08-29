@@ -117,8 +117,10 @@ write to the bucket but produce URLs that resolve nowhere — the same limitatio
 images have.
 
 Rendered by `UserAvatar` (`packages/ui/src/components/user/user-avatar.tsx`), which falls
-back to the first two characters of the callsign, and on the profile masthead
-([profile.md](profile.md)).
+back to the first two characters of the callsign, on the profile masthead
+([profile.md](profile.md)), and in the header's team-colored user pill (`UserButton`,
+`apps/web/src/components/user-button.tsx` — a `size-6` avatar with the same two-character
+fallback, left of the callsign).
 
 The settings control accepts PNG, JPG, and WEBP files, exposes an action-specific accessible
 name on the clickable avatar, keeps the current image visible under a busy indicator, and
