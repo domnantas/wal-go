@@ -166,33 +166,20 @@ Instead, `syncQsoScores(tx, seasonId, touchedUserIds)` scopes it to:
 - every operator whose QSO rows that same sync actually rescored — which is what picks up the
   **counterpart of a confirmation flip**, whose stats change without them writing anything.
 
-Omitting `touchedUserIds` reconciles the whole season. Only `recomputeSeasonScores` and the
-backfill do that, and both are deliberate admin actions.
+Omitting `touchedUserIds` reconciles the whole season. Only `recomputeSeasonScores` does that,
+and it is a deliberate admin action.
 
 Returns the newly unlocked rows, so a caller can announce them
 ([discord-announcements.md](discord-announcements.md) — not wired up yet).
 
-## Backfill
+## Re-evaluating a past season
 
-Existing seasons have never passed through the chokepoint, and an **ended** season receives no
-further writes, so nothing would ever evaluate it.
+An **ended** season receives no further writes, so nothing would ever evaluate it after the
+catalogue gains an achievement it should be able to award.
 
-Run it from the **admin dashboard** ([admin.md](admin.md)): each season card has a
-**"Pasiekimai"** button, and one above the list covers every season. **"Bandymas"** next to it
-is a dry run. Both call `admin.achievements.backfill`
-(`{ seasonId?, dryRun }` → `{ seasonId, seasonName, unlocked }[]`), which delegates to
-`backfillAchievements` in `packages/api/src/achievements/backfill.ts`.
-
-Every season is reconciled in **one** transaction, which a dry run rolls back — so the counts
-are real but nothing is written, and a career-scoped achievement unlocked while reconciling the
-first season stays unlocked for the rest of the pass instead of being counted again per season.
-A transaction per season would report a dry-run figure several times larger than the real run.
-
-Run it once after deploying, and again whenever the catalogue gains an achievement that ended
-seasons should be able to award.
-
-The admin **Perskaičiuoti** button (`admin.scores.recompute`) also reconciles achievements for
-that season, because `recomputeSeasonScores` ends by calling `syncQsoScores`.
+Use the admin dashboard's **Perskaičiuoti** button (`admin.scores.recompute`, [admin.md](admin.md)):
+`recomputeSeasonScores` ends by calling `syncQsoScores`, which reconciles the whole season's
+stats and unlocks. Run it once per season the new achievement can apply to.
 
 ## Catalogue
 

@@ -75,9 +75,6 @@ export function DashboardTab() {
 			</div>
 
 			<div className="flex flex-col gap-4">
-				<div className="flex justify-end">
-					<AchievementsBackfillButton label="Pasiekimai: visi sezonai" />
-				</div>
 				{data.seasons.map((season) => {
 					const totalMembers =
 						season.memberCounts.yellow +
@@ -104,10 +101,6 @@ export function DashboardTab() {
 									{formatDate(new Date(season.startsAt))} –{" "}
 									{formatDate(new Date(season.endsAt))}
 								</span>
-								<AchievementsBackfillButton
-									label="Pasiekimai"
-									seasonId={season.id}
-								/>
 							</div>
 
 							<DriftBadge drift={season.drift} seasonId={season.id} />
@@ -171,61 +164,6 @@ export function DashboardTab() {
 					</p>
 				)}
 			</div>
-		</div>
-	);
-}
-
-/**
- * Reconciles stats and achievements for one season, or all of them when no id
- * is given. Ended seasons receive no scoring writes, so nothing else evaluates
- * them after the catalogue gains an achievement. "Bandymas" rolls back.
- */
-function AchievementsBackfillButton({
-	label,
-	seasonId,
-}: {
-	label: string;
-	seasonId?: number;
-}) {
-	const queryClient = useQueryClient();
-	const backfill = useMutation(
-		orpc.admin.achievements.backfill.mutationOptions({
-			onSuccess: (results, { dryRun }) => {
-				const unlocked = results.reduce(
-					(total, result) => total + result.unlocked,
-					0
-				);
-				toast.success(
-					`${unlocked} nauji pasiekimai (${results.length} sez.)${dryRun ? " – bandymas, neįrašyta" : ""}`
-				);
-				if (!dryRun) {
-					queryClient.invalidateQueries({
-						queryKey: orpc.admin.dashboard.queryOptions().queryKey,
-					});
-				}
-			},
-			onError: (e) => toast.error(e.message),
-		})
-	);
-
-	return (
-		<div className="flex items-center gap-1">
-			<Button
-				disabled={backfill.isPending}
-				onClick={() => backfill.mutate({ seasonId, dryRun: true })}
-				size="sm"
-				variant="ghost"
-			>
-				Bandymas
-			</Button>
-			<Button
-				disabled={backfill.isPending}
-				onClick={() => backfill.mutate({ seasonId, dryRun: false })}
-				size="sm"
-				variant="outline"
-			>
-				{backfill.isPending ? <Spinner className="size-3.5" /> : label}
-			</Button>
 		</div>
 	);
 }

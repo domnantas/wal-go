@@ -10,7 +10,6 @@ import { ORPCError } from "@orpc/server";
 import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
-import { backfillAchievements } from "../achievements/backfill";
 import { uploadNewsletterImage } from "../assets/newsletter-images";
 import { adminProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
@@ -659,20 +658,6 @@ const recomputeScores = adminProcedure
 		});
 	});
 
-const backfillSeasonAchievements = adminProcedure
-	.input(
-		z.object({
-			seasonId: z.number().int().positive().optional(),
-			dryRun: z.boolean().default(false),
-		})
-	)
-	.handler(({ context, input }) =>
-		backfillAchievements(context.db, {
-			seasonId: input.seasonId,
-			dryRun: input.dryRun,
-		})
-	);
-
 const getDashboard = adminProcedure.handler(async ({ context }) => {
 	const [
 		totalUsersResult,
@@ -885,9 +870,6 @@ export const adminRouter = {
 	},
 	scores: {
 		recompute: recomputeScores,
-	},
-	achievements: {
-		backfill: backfillSeasonAchievements,
 	},
 	memberships: {
 		list: listMemberships,

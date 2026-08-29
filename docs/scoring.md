@@ -212,7 +212,7 @@ Run it with `pnpm -F @WAL-GO/api backfill:control-history <seasonId> [--dry-run]
 and achievement unlocks in the same transaction. Unlike the per-QSO score pass, that step is
 scoped to the users the write touched plus any whose QSOs it rescored — callers pass
 `touchedUserIds` as the third argument; omitting it reconciles the whole season and is reserved
-for recompute and backfill. See [achievements.md](achievements.md).
+for recompute. See [achievements.md](achievements.md).
 
 ## Discord announcements
 
