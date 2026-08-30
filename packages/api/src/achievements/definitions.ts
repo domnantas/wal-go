@@ -271,7 +271,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
 		scope: "career",
 		target: 1,
 		label: "Bandomasis triušis",
-		description: "Dalyvavai bandomajame alfa arba beta sezone",
+		description: "Dalyvavauk bandomajame alfa arba beta sezone",
 		icon: "Rocket",
 		progress: (context) => context.extra.testSeasonCount(),
 	}),
