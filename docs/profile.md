@@ -63,7 +63,7 @@ a perforated stamp fights the metaphor.
 
 Sits on the page ground, not in a card — the operator's identity is the masthead. Padded on
 the left (`pl-6 sm:pl-8`) so the avatar is inset from the page edge. Avatar (`user.image`, falling back to
-the first two characters of the callsign in mono), callsign at `text-4xl`/`text-5xl` mono, then
+the callsign without its country prefix in mono — `LY2ABC` → `2ABC`), callsign at `text-4xl`/`text-5xl` mono, then
 one line carrying team (colored dot + label, never color alone), current season name, and the
 member-since date.
 
@@ -72,8 +72,8 @@ A team-colored wash was tried here and removed — the team already reads from t
 meta line, and tinting the masthead only muddied the graticule.
 
 The avatar comes from `user.image`, set in `/settings/account` and stored in the public R2
-bucket (see [auth.md](auth.md#avatars)). With no picture, the fallback is the first two
-characters of the callsign in mono.
+bucket (see [auth.md](auth.md#avatars)). With no picture, the fallback is the callsign
+minus its country prefix (`callsignSuffix`), in mono.
 
 ### Map (`domains/profile/profile-map.tsx`)
 

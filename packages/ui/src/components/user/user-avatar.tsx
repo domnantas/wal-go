@@ -1,5 +1,6 @@
 "use client";
 
+import { callsignSuffix } from "@WAL-GO/callsign";
 import {
 	Avatar,
 	AvatarFallback,
@@ -40,13 +41,10 @@ export function UserAvatar({
 				displayUsername?: string | null;
 		  })
 		| undefined;
-	const initials = (
-		resolvedUserExt?.username ||
-		resolvedUser?.name ||
-		resolvedUser?.email
-	)
-		?.slice(0, 2)
-		.toUpperCase();
+	const callsign = resolvedUserExt?.username || resolvedUser?.name;
+	const initials = callsign
+		? callsignSuffix(callsign)
+		: resolvedUser?.email?.slice(0, 2).toUpperCase();
 
 	return (
 		<Avatar
@@ -64,7 +62,10 @@ export function UserAvatar({
 				src={resolvedUser?.image ?? undefined}
 			/>
 
-			<AvatarFallback delay={resolvedUser?.image ? 600 : undefined}>
+			<AvatarFallback
+				className="font-mono text-[0.7em] tracking-tighter"
+				delay={resolvedUser?.image ? 600 : undefined}
+			>
 				{fallback || initials || <User2 className="size-4" />}
 			</AvatarFallback>
 		</Avatar>

@@ -8,6 +8,18 @@ export function normalizeCallsign(callsign: string): string {
 	return parts.reduce((a, b) => (a.length >= b.length ? a : b), "");
 }
 
+const CALLSIGN_PREFIX_REGEX = /^\d?[A-Z]+/;
+
+/**
+ * Avatar text for a callsign with no picture: everything after the country
+ * prefix (`LY2ABC` → `2ABC`, `9A5ABC` → `5ABC`). Prefixes are shared by every
+ * operator in a country, so they identify nobody.
+ */
+export function callsignSuffix(callsign: string): string {
+	const normalized = normalizeCallsign(callsign);
+	return normalized.replace(CALLSIGN_PREFIX_REGEX, "") || normalized;
+}
+
 export function isBlockedCallsign(callsign: string): boolean {
 	return BLOCKED_CALLSIGN_REGEX.test(callsign);
 }

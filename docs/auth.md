@@ -121,11 +121,15 @@ The public domain is attached in **prod only**, so uploads from local dev or a p
 write to the bucket but produce URLs that resolve nowhere — the same limitation newsletter
 images have.
 
-Rendered by `UserAvatar` (`packages/ui/src/components/user/user-avatar.tsx`), which falls
-back to the first two characters of the callsign, on the profile masthead
-([profile.md](profile.md)), and in the header's team-colored user pill (`UserButton`,
-`apps/web/src/components/user-button.tsx` — a `size-6` avatar with the same two-character
-fallback, left of the callsign).
+Rendered by `UserAvatar` (`packages/ui/src/components/user/user-avatar.tsx`) on the profile
+masthead ([profile.md](profile.md)), and in the header's team-colored user pill (`UserButton`,
+`apps/web/src/components/user-button.tsx` — a `size-6` avatar left of the callsign).
+
+**With no picture, the fallback is the callsign minus its country prefix**, in mono:
+`LY2ABC` → `2ABC`. `callsignSuffix` (`packages/callsign`) strips the prefix, since it is
+shared by every operator in a country and so identifies nobody. The same fallback is used on
+the profile masthead, the user pill, and the admin users table ([admin.md](admin.md)); an
+account with no callsign (only an email) falls back to two characters of the email.
 
 The settings control accepts PNG, JPG, and WEBP files, exposes an action-specific accessible
 name on the clickable avatar, keeps the current image visible under a busy indicator, and

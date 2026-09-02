@@ -1,3 +1,4 @@
+import { callsignSuffix } from "@WAL-GO/callsign";
 import {
 	Avatar,
 	AvatarFallback,
@@ -56,8 +57,8 @@ export function UserButton() {
 			>
 				<Avatar className="size-6 shrink-0">
 					{image && <AvatarImage alt="" src={image} />}
-					<AvatarFallback className="bg-muted font-mono font-semibold text-[10px]">
-						{callsign.slice(0, 2)}
+					<AvatarFallback className="bg-muted font-mono font-semibold text-[9px] tracking-tighter">
+						{callsignSuffix(callsign)}
 					</AvatarFallback>
 				</Avatar>
 				<span className="font-semibold text-foreground text-sm">

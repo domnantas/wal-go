@@ -1,3 +1,4 @@
+import { callsignSuffix } from "@WAL-GO/callsign";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -227,14 +228,14 @@ function UserTableRow({
 								src={user.image}
 							/>
 							<AvatarFallback className="font-mono text-xs">
-								{user.name.slice(0, 2)}
+								{callsignSuffix(user.name)}
 							</AvatarFallback>
 						</Avatar>
 					</a>
 				) : (
 					<Avatar className="size-10">
 						<AvatarFallback className="font-mono text-xs">
-							{user.name.slice(0, 2)}
+							{callsignSuffix(user.name)}
 						</AvatarFallback>
 					</Avatar>
 				)}

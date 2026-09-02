@@ -33,7 +33,7 @@ Team points and controlled-square counts derive from `square_score`; a square co
   settings behavior. Callsigns are colored by active-season team when the user has joined the
   current season.
 - **Profile picture moderation**: the first column shows each operator's avatar (falling back
-  to the first two callsign characters). The thumbnail links to the full-size image in a new
+  to the callsign without its country prefix). The thumbnail links to the full-size image in a new
   tab so an admin can judge it. When a user has a picture, an "Ištrinti nuotrauką" action
   appears with a confirmation; `admin.users.deleteAvatar` clears `user.image` first, then
   deletes the stored object — see [auth.md](auth.md#avatars). The user can upload a new one

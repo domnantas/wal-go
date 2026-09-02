@@ -1,3 +1,4 @@
+import { callsignSuffix } from "@WAL-GO/callsign";
 import {
 	Avatar,
 	AvatarFallback,
@@ -36,7 +37,7 @@ export function ProfileHeader({
 			<Avatar className="size-20 shrink-0">
 				{image && <AvatarImage alt="" src={image} />}
 				<AvatarFallback className="bg-muted font-mono font-semibold text-xl">
-					{callsign.slice(0, 2)}
+					{callsignSuffix(callsign)}
 				</AvatarFallback>
 			</Avatar>
 
