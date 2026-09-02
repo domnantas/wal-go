@@ -10,6 +10,7 @@ import { ORPCError } from "@orpc/server";
 import { and, asc, count, desc, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
+import { deleteAvatar } from "../assets/avatars";
 import { uploadNewsletterImage } from "../assets/newsletter-images";
 import { adminProcedure } from "../index";
 import { announceOwnershipChanges } from "../notifications/discord";
@@ -126,6 +127,7 @@ const listUsers = adminProcedure.handler(async ({ context }) => {
 				name: user.name,
 				email: user.email,
 				emailVerified: user.emailVerified,
+				image: user.image,
 				newsletterSubscribed: newsletterSubscription.subscribed,
 				role: user.role,
 				banned: user.banned,
@@ -179,6 +181,31 @@ const setUserRole = adminProcedure
 			.update(user)
 			.set({ role: input.role })
 			.where(eq(user.id, input.userId));
+	});
+
+// Moderation: removes an inappropriate profile picture. Clears `user.image`
+// first so the picture stops rendering even if the bucket delete fails.
+const deleteUserAvatar = adminProcedure
+	.input(z.object({ userId: z.string() }))
+	.handler(async ({ context, input }) => {
+		const rows = await context.db
+			.select({ image: user.image })
+			.from(user)
+			.where(eq(user.id, input.userId))
+			.limit(1);
+		const existing = rows[0];
+		if (!existing) {
+			throw new ORPCError("NOT_FOUND", { message: "Naudotojas nerastas" });
+		}
+		if (!existing.image) {
+			return;
+		}
+
+		await context.db
+			.update(user)
+			.set({ image: null })
+			.where(eq(user.id, input.userId));
+		await deleteAvatar(input.userId, existing.image);
 	});
 
 const banUser = adminProcedure
@@ -860,6 +887,7 @@ export const adminRouter = {
 		ban: banUser,
 		unban: unbanUser,
 		delete: deleteUser,
+		deleteAvatar: deleteUserAvatar,
 		qsos: listUserQsos,
 	},
 	seasons: {

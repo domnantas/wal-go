@@ -9,6 +9,11 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@WAL-GO/ui/components/alert-dialog";
+import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "@WAL-GO/ui/components/avatar";
 import { Button } from "@WAL-GO/ui/components/button";
 import { Spinner } from "@WAL-GO/ui/components/spinner";
 import {
@@ -21,6 +26,7 @@ import {
 } from "@WAL-GO/ui/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	ImageOff,
 	Radio,
 	Shield,
 	ShieldOff,
@@ -56,6 +62,7 @@ interface UserData {
 	email: string;
 	emailVerified: boolean;
 	id: string;
+	image: null | string;
 	name: string;
 	newsletterSubscribed: boolean;
 	role: string;
@@ -106,6 +113,16 @@ export function UsersTab() {
 		})
 	);
 
+	const deleteAvatar = useMutation(
+		orpc.admin.users.deleteAvatar.mutationOptions({
+			onSuccess: () => {
+				invalidate();
+				toast.success("Profilio nuotrauka ištrinta");
+			},
+			onError: (e) => toast.error(e.message),
+		})
+	);
+
 	const deleteUser = useMutation(
 		orpc.admin.users.delete.mutationOptions({
 			onSuccess: () => {
@@ -134,6 +151,7 @@ export function UsersTab() {
 			<Table className="text-sm">
 				<TableHeader>
 					<TableRow className="bg-muted/40 hover:bg-muted/40">
+						<TableHead className="px-4">Nuotrauka</TableHead>
 						<TableHead className="px-4">Šaukinys</TableHead>
 						<TableHead className="px-4">El. paštas</TableHead>
 						<TableHead className="px-4">El. p. patvirtintas</TableHead>
@@ -149,6 +167,7 @@ export function UsersTab() {
 							key={u.id}
 							onBan={(userId) => ban.mutate({ userId })}
 							onDelete={(userId) => deleteUser.mutate({ userId })}
+							onDeleteAvatar={(userId) => deleteAvatar.mutate({ userId })}
 							onSetRole={(userId, role) => setRole.mutate({ userId, role })}
 							onUnban={(userId) => unban.mutate({ userId })}
 							onViewQsos={() => setQsosUser({ id: u.id, name: u.name })}
@@ -174,6 +193,7 @@ function UserTableRow({
 	onBan,
 	onUnban,
 	onDelete,
+	onDeleteAvatar,
 	onViewQsos,
 }: {
 	user: UserData;
@@ -181,6 +201,7 @@ function UserTableRow({
 	onBan: (userId: string) => void;
 	onUnban: (userId: string) => void;
 	onDelete: (userId: string) => void;
+	onDeleteAvatar: (userId: string) => void;
 	onViewQsos: () => void;
 }) {
 	const callsignClassName = user.currentTeam
@@ -192,6 +213,32 @@ function UserTableRow({
 
 	return (
 		<TableRow>
+			<TableCell className="px-4">
+				{user.image ? (
+					<a
+						href={user.image}
+						rel="noopener"
+						target="_blank"
+						title={`Peržiūrėti ${user.name} nuotrauką`}
+					>
+						<Avatar className="size-10">
+							<AvatarImage
+								alt={`${user.name} profilio nuotrauka`}
+								src={user.image}
+							/>
+							<AvatarFallback className="font-mono text-xs">
+								{user.name.slice(0, 2)}
+							</AvatarFallback>
+						</Avatar>
+					</a>
+				) : (
+					<Avatar className="size-10">
+						<AvatarFallback className="font-mono text-xs">
+							{user.name.slice(0, 2)}
+						</AvatarFallback>
+					</Avatar>
+				)}
+			</TableCell>
 			<TableCell aria-label={callsignLabel} className={callsignClassName}>
 				{user.name}
 			</TableCell>
@@ -246,6 +293,38 @@ function UserTableRow({
 						<Radio className="size-4" />
 						QSO
 					</Button>
+					{user.image && (
+						<AlertDialog>
+							<AlertDialogTrigger
+								render={
+									<Button size="sm" variant="ghost">
+										<ImageOff className="size-4" />
+										Ištrinti nuotrauką
+									</Button>
+								}
+							/>
+							<AlertDialogContent>
+								<AlertDialogHeader>
+									<AlertDialogTitle>
+										Ištrinti {user.name} profilio nuotrauką?
+									</AlertDialogTitle>
+									<AlertDialogDescription>
+										Nuotrauka bus pašalinta negrįžtamai. Naudotojas galės įkelti
+										naują.
+									</AlertDialogDescription>
+								</AlertDialogHeader>
+								<AlertDialogFooter>
+									<AlertDialogCancel>Atšaukti</AlertDialogCancel>
+									<AlertDialogAction
+										onClick={() => onDeleteAvatar(user.id)}
+										variant="destructive"
+									>
+										Ištrinti
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
+					)}
 					<Button
 						onClick={() =>
 							onSetRole(user.id, user.role === "admin" ? "user" : "admin")

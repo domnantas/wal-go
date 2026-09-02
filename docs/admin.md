@@ -27,11 +27,17 @@ Team points and controlled-square counts derive from `square_score`; a square co
 
 ### Users
 
-- List all users (callsign, email, email confirmation, newsletter subscription,
-  role, banned). Newsletter status is read from `newsletter_subscription`; a
-  missing row is shown as subscribed, matching the user settings behavior.
-  Callsigns are colored by active-season team when the user has joined the
+- List all users (profile picture, callsign, email, email confirmation, newsletter
+  subscription, role, banned). Newsletter status is read from
+  `newsletter_subscription`; a missing row is shown as subscribed, matching the user
+  settings behavior. Callsigns are colored by active-season team when the user has joined the
   current season.
+- **Profile picture moderation**: the first column shows each operator's avatar (falling back
+  to the first two callsign characters). The thumbnail links to the full-size image in a new
+  tab so an admin can judge it. When a user has a picture, an "Ištrinti nuotrauką" action
+  appears with a confirmation; `admin.users.deleteAvatar` clears `user.image` first, then
+  deletes the stored object — see [auth.md](auth.md#avatars). The user can upload a new one
+  afterwards; ban them if they keep re-uploading.
 - Toggle role between `user` and `admin`.
 - Ban / unban (ban requires confirmation). Banning keeps QSO rows but removes the user's points from the score tables (unban restores them) — see [scoring.md](scoring.md) § Banned users.
 - Delete with confirmation: first removes the user's points from score tables, then deletes the account (sessions, accounts, QSOs, uploads, memberships, user-season-score rows cascade). Admins can't delete their own account.

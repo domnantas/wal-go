@@ -111,6 +111,11 @@ Both callbacks go through ORPC, so `packages/ui` stays storage-agnostic.
 - **Endpoints** — `account.avatar.upload` / `account.avatar.delete`
   (`packages/api/src/routers/account.ts`), both `protectedProcedure`; the upload takes a
   `File` and returns the public URL.
+- **Moderation** — admins can remove any operator's picture from the Users tab
+  (`admin.users.deleteAvatar`); see [admin.md](admin.md). It reuses the same `deleteAvatar`
+  helper with the *target* user's id, so the prefix check still applies. Avatars that did not
+  come from the bucket (e.g. a social-login URL) fall outside the prefix: `user.image` is
+  still cleared, nothing is deleted from storage.
 
 The public domain is attached in **prod only**, so uploads from local dev or a preview deploy
 write to the bucket but produce URLs that resolve nowhere — the same limitation newsletter
