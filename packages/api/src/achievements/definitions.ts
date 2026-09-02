@@ -139,14 +139,14 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
 		icon: "AudioLines",
 		description: (target) =>
 			`Išbandyk ${target} ${pluralizeLt(target, {
-				one: "skirtingą juostą",
-				few: "skirtingas juostas",
-				many: "skirtingų juostų",
+				one: "skirtingą diapazoną",
+				few: "skirtingus diapazonus",
+				many: "skirtingų diapazonų",
 			})}`,
 		progress: (context: AchievementContext) => context.career.bands.length,
 		tiers: [
 			{ target: 3, label: "Apšilimas" },
-			{ target: 5, label: "Juostų medžiotojas" },
+			{ target: 5, label: "Diapazonų medžiotojas" },
 			{ target: 10, label: "Bangų klajūnas" },
 			{ target: QSO_BANDS.length, label: "Nuo 160 m iki 1 mm" },
 		],
@@ -217,7 +217,7 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
 		scope: "season",
 		target: QSO_MODES.length,
 		label: "Poliglotas",
-		description: `Dirbk visomis rūšimis (${QSO_MODES.join(", ")}) per vieną sezoną`,
+		description: `Dirbk visomis moduliacijomis (${QSO_MODES.join(", ")}) per vieną sezoną`,
 		icon: "Languages",
 		progress: (context) => context.season.modes.length,
 	}),

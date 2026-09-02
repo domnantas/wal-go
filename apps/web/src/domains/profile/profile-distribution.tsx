@@ -57,8 +57,8 @@ export function ProfileDistribution({
 }: ProfileDistributionProps) {
 	return (
 		<section className="grid gap-3 md:grid-cols-2">
-			<DistributionList entries={bands} title="Dažnių juostos" />
-			<DistributionList entries={modes} title="Rūšys" />
+			<DistributionList entries={bands} title="Diapazonai" />
+			<DistributionList entries={modes} title="Moduliacijos" />
 		</section>
 	);
 }

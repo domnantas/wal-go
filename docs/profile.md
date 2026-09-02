@@ -43,7 +43,7 @@ language — the profile should not read as a different product from `/log` and 
   │ coverage bar · map · legend      │
   └──────────────────────────────────┘
   [card][card][card][card][card]        ← log stat cards
-  [ Juostos card ] [ Rūšys card ]
+  [ Diapazonai card ] [ Moduliacijos card ]
   Pasiekimai                     12/34
   [ stamps, on the page ground ]
   Paskutiniai ryšiai

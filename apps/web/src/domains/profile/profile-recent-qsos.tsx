@@ -31,8 +31,8 @@ export function ProfileRecentQsos({ qsos }: { qsos: RecentQso[] }) {
 					<TableHeader>
 						<TableRow>
 							<TableHead>Šaukinys</TableHead>
-							<TableHead>Juosta</TableHead>
-							<TableHead>Rūšis</TableHead>
+							<TableHead>Diapazonas</TableHead>
+							<TableHead>Moduliacija</TableHead>
 							<TableHead>Kvadratas</TableHead>
 							<TableHead>Laikas</TableHead>
 							<TableHead className="w-20 text-right">Taškai</TableHead>

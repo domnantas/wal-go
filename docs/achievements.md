@@ -7,7 +7,7 @@ Two surfaces:
 - **`/profile/$callsign`** shows **earned** stamps only, for any operator ([profile.md](profile.md)).
 - **`/achievements`** (`apps/web/src/routes/achievements.tsx`) is the signed-in operator's own
   full catalogue — every achievement, locked ones grayed with a progress bar, grouped into
-  sections (Teritorija, Eterio darbas, Patvirtinimai, Juostos ir rūšys, Nuoseklumas,
+  sections (Teritorija, Eterio darbas, Patvirtinimai, Diapazonai ir moduliacijos, Nuoseklumas,
   Bendruomenė) with a per-section earned count and an overall progress bar in the header.
   It is personal: there is no route to another operator's locked list.
 
